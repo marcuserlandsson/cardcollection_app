@@ -15,6 +15,3 @@ App for keeping track of trading cards and storing card information. Planned fea
  - Database - PostgreSQL
  - Authentication - JSON Web Tokens
  - Development Tools - Android Studio
-
-
-Test to see if this works
