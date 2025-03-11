@@ -1,6 +1,5 @@
 import requests
 from supabase import create_client
-import time
 from datetime import datetime
 
 url = "https://uvbymfdtduhbcojqxzwi.supabase.co"
