@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 url = "https://uvbymfdtduhbcojqxzwi.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2YnltZmR0ZHVoYmNvanF4endpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTY4Njk2NywiZXhwIjoyMDU3MjYyOTY3fQ.Qe2iN7BeMvuZOksBoLVu2dQjzHAPPHYRHSyNi46brzg"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2YnltZmR0ZHVoYmNvanF4endpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE2ODY5NjcsImV4cCI6MjA1NzI2Mjk2N30.AUTvCLm4onmeXZSFyWMKp7NclcndptH-MP75ALekxlY"
 supabase = create_client(url, key)
 
 def fetch_and_cache_cards():
