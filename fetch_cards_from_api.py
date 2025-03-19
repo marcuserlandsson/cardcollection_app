@@ -11,7 +11,7 @@ def fetch_and_cache_cards():
     response = requests.get("https://digimoncard.io/api-public/getAllCards.php?sort=name&series=Digimon Card Game&sortdirection=asc")
     cards = response.json()
 
-    # Process each card and extract relevant information
+    # Process each card and extract relevant information, mainly derive card_expansion from card_number
     processed_cards = []
     for card in cards:
         cardnum = card.get('cardnumber', '')
@@ -26,13 +26,15 @@ def fetch_and_cache_cards():
         print("batch done!")
 
     # Process in batches
-    BATCH_SIZE = 15
+    BATCH_SIZE = 50
     for i in range(0, len(processed_cards), BATCH_SIZE):
         batch = processed_cards[i:i+BATCH_SIZE]
         
-        # Upsert batch into Supabase
-        result = supabase.table("cards").upsert(batch).execute()
+        # Upload batch into Supabase using card_number as the unique identifier
+        result = supabase.table("cards").upsert(
+            batch,
+            on_conflict="card_number"
+        ).execute()
         print(f"Processed batch {i//BATCH_SIZE + 1}, cards {i+1}-{min(i+BATCH_SIZE, len(processed_cards))}")
 
-# Run daily or on demand
 fetch_and_cache_cards()
