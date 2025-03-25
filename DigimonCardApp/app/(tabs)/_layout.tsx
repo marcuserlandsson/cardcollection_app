@@ -13,30 +13,30 @@ export default function TabLayout() {
             }}
         >
             <Tabs.Screen
-            name='index'
-            options={{
-                title: 'Home',
-                tabBarIcon: ({color, focused}) => (
-                    <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24}/>
-                )
+                name="index"
+                options={{
+                    title: 'Home',
+                    tabBarIcon: ({color, focused}) => (
+                        <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24}/>
+                    )
                 }}
             />
             <Tabs.Screen
-            name='database'
-            options={{
-                title: 'Card Database',
-                tabBarIcon: ({color, focused}) => (
-                    <Ionicons name={focused ? 'albums-sharp' : 'albums-outline'} color={color} size={24}/>
-                )
+                name="database"
+                options={{
+                    title: 'Card Database',
+                    tabBarIcon: ({color, focused}) => (
+                        <Ionicons name={focused ? 'albums-sharp' : 'albums-outline'} color={color} size={24}/>
+                    )
                 }}
             />
             <Tabs.Screen
-            name='collection'
-            options={{
-                title: 'Collection',
-                tabBarIcon: ({color, focused}) => (
-                    <Ionicons name={focused ? 'book-sharp' : 'book-outline'} color={color} size={24}/>
-                )
+                name="collection"
+                options={{
+                    title: 'Collection',
+                    tabBarIcon: ({color, focused}) => (
+                        <Ionicons name={focused ? 'book-sharp' : 'book-outline'} color={color} size={24}/>
+                    )
                 }}
             />
             <Tabs.Screen

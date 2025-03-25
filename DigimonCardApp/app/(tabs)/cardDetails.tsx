@@ -1,8 +1,21 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 
 type Params = {
     cardNumber: string;
+}
+
+interface CardDetail {
+    name: string;
+    type: string;
+    id: string;
+    level: string;
+    color: string;
+    dp: string;
+    play_cost: string;
+    evolution_cost: string;
+    main_effect: string;
 }
 
 // Rate limiter implementation
@@ -48,15 +61,52 @@ async function fetchCardDetails(cardNumber: string) {
 
 export default function CardDetailsScreen() {
     const { cardNumber } = useLocalSearchParams<Params>();
-    const cardDetails = fetchCardDetails(cardNumber);
+    const [cardDetails, setCardDetails] = useState<CardDetail[] | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadCardDetails() {
+            try {
+                const details = await fetchCardDetails(cardNumber);
+                setCardDetails(details);
+            } catch (error) {
+                console.error('Error loading card details:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadCardDetails();
+    }, [cardNumber]);
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ color: '#fff' }}>Loading...</Text>
+            </View>
+        );
+    }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <Image
                 source={{ uri: `https://images.digimoncard.io/images/cards/${cardNumber}.jpg` }}
                 style={styles.cardImage}
             />
-        </View>
+            {cardDetails && cardDetails[0] && (
+                <View style={styles.detailsContainer}>
+                    <Text style={styles.cardName}>{cardDetails[0].name}</Text>
+                    <Text style={styles.cardText}>Type: {cardDetails[0].type}</Text>
+                    <Text style={styles.cardText}>Card Number: {cardDetails[0].id}</Text>
+                    <Text style={styles.cardText}>Level: {cardDetails[0].level}</Text>
+                    <Text style={styles.cardText}>Color: {cardDetails[0].color}</Text>
+                    <Text style={styles.cardText}>DP: {cardDetails[0].dp}</Text>
+                    <Text style={styles.cardText}>Play Cost: {cardDetails[0].play_cost}</Text>
+                    <Text style={styles.cardText}>Evolution Cost: {cardDetails[0].evolution_cost}</Text>
+                    <Text style={styles.cardText}>Effect: {cardDetails[0].main_effect}</Text>
+                </View>
+            )}
+        </ScrollView>
     );
 }
 
@@ -64,6 +114,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#25292e',
+    },
+    contentContainer: {
         padding: 16,
         alignItems: 'center',
     },
@@ -72,5 +124,21 @@ const styles = StyleSheet.create({
         height: undefined,
         aspectRatio: 63/88,
         resizeMode: 'contain',
+    },
+    detailsContainer: {
+        marginTop: 20,
+        width: '100%',
+        padding: 10,
+    },
+    cardName: {
+        color: '#fff',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    cardText: {
+        color: '#fff',
+        fontSize: 16,
+        marginBottom: 5,
     },
 });
