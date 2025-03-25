@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, FlatList, Image, Dimensions, Pressable } from 'react-native';
 import { useEffect, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
 type Params = {
@@ -19,6 +19,14 @@ export default function CardListScreen() {
     const { setId, setTitle } = useLocalSearchParams<Params>();
     const [cards, setCards] = useState<Card[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    const handleCardPress = (cardNumber: string) => {
+        router.push({
+            pathname: '/(tabs)/cardDetails',
+            params: { cardNumber }
+        });
+    };
 
     useEffect(() => {
         fetchCards();
@@ -47,7 +55,10 @@ export default function CardListScreen() {
     }
 
     const renderCard = ({ item }: { item: Card }) => (
-        <Pressable style={styles.card}>
+        <Pressable
+            style={styles.card}
+            onPress={() => handleCardPress(item.card_number)}
+        >
             <Image
                 source={{ uri: `https://images.digimoncard.io/images/cards/${item.card_number}.jpg` }}
                 style={styles.cardImage}
