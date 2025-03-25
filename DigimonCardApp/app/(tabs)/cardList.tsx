@@ -23,7 +23,7 @@ export default function CardListScreen() {
 
     const handleCardPress = (cardNumber: string) => {
         router.push({
-            pathname: 'cardDetails',
+            pathname: '/(tabs)/cardDetails',
             params: { cardNumber }
         });
     };
