@@ -1,4 +1,4 @@
-import { Stack, useRouter, usePathname, Link } from "expo-router";
+import { Stack, usePathname, Link } from "expo-router";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 

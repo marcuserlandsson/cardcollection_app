@@ -4,7 +4,14 @@ import { useRouter } from 'expo-router';
 const cardSets = [
     { id: 'BT20', title: 'BT20 - OVER THE X', image: require('../../assets/images/expansions/bt20.png') },
     { id: 'BT19', title: 'BT19 - XROS EVOLUTION', image: require('../../assets/images/expansions/bt19.png') },
-    // Add more card sets
+    { id: 'BT18', title: 'BT18 - ELEMENT SUCCESSOR', image: require('../../assets/images/expansions/bt18.png') },
+    { id: 'BT17', title: 'BT17 - SECRET CRISIS', image: require('../../assets/images/expansions/bt17.png') },
+    { id: 'BT16', title: 'BT16 - BEGINNING OBSERVER', image: require('../../assets/images/expansions/bt16.png') },
+    { id: 'BT15', title: 'BT15 - EXCEED APOCALYPSE', image: require('../../assets/images/expansions/bt15.png') },
+    { id: 'BT14', title: 'BT14 - BLAST ACE', image: require('../../assets/images/expansions/bt14.png') },
+    { id: 'BT13', title: 'BT13 - VERSUS ROYAL KNIGHT', image: require('../../assets/images/expansions/bt13.png') },
+    { id: 'BT12', title: 'BT12 - ACROSS TIME', image: require('../../assets/images/expansions/bt12.png') },
+    { id: 'BT11', title: 'BT11 - DIMENSIONAL PHASE', image: require('../../assets/images/expansions/bt11.png') },
 ];
 
 interface CardSet {
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         color: '#fff',
-        padding: 10,
+        padding: 8,
         fontSize: 14,
         textAlign: 'center',
     }
