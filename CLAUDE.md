@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-DigiCollect — a responsive web app for tracking Digimon TCG card collections, planning decks, and identifying surplus cards worth selling on Cardmarket.
+CardBoard — a responsive web app for tracking TCG card collections, planning decks, and identifying surplus cards worth selling on Cardmarket. Currently focused on Digimon TCG with plans to support additional TCGs.
 
 ## Tech Stack
 
-- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS, Lucide React (icons), Inter (font)
 - **Backend:** Supabase (Postgres, Auth, Row Level Security)
 - **Hosting:** Vercel (free tier)
 - **Card Data:** Digimon Card API (https://digimoncard.io/api-public/)
