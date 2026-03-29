@@ -1,0 +1,115 @@
+<h2>Card Detail View</h2>
+<p class="subtitle">What should you see when you tap on a card?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Full Page</h3>
+      <p>Navigates to a dedicated card page. Large image, all stats, collection controls, pricing, and deck usage — everything in one scrollable view.</p>
+      <div class="mockup" style="margin-top: 12px;">
+        <div class="mockup-body" style="padding: 12px; max-width: 260px; margin: 0 auto;">
+          <div style="color: #666; font-size: 11px; margin-bottom: 8px;">← Back to BT-18</div>
+          <div style="background: #1a1a2e; border-radius: 8px; height: 160px; display: flex; align-items: center; justify-content: center; color: #333; margin-bottom: 10px;">
+            <span style="font-size: 40px;">🃏</span>
+          </div>
+          <div style="color: #fff; font-weight: 700; font-size: 15px;">Agumon</div>
+          <div style="color: #888; font-size: 11px; margin-bottom: 10px;">BT18-008 · Digimon · Red · Rare</div>
+          <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+            <span style="background: #1a1a2e; color: #aaa; padding: 3px 8px; border-radius: 4px; font-size: 10px;">Lv.3</span>
+            <span style="background: #1a1a2e; color: #aaa; padding: 3px 8px; border-radius: 4px; font-size: 10px;">Cost 3</span>
+            <span style="background: #1a1a2e; color: #aaa; padding: 3px 8px; border-radius: 4px; font-size: 10px;">5000 DP</span>
+          </div>
+          <div style="background: #1a1a2e; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 6px;">MY COLLECTION</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <button style="background: #333; border: none; color: #fff; width: 28px; height: 28px; border-radius: 4px; font-size: 16px;">−</button>
+              <span style="color: #fff; font-size: 18px; font-weight: 700;">3</span>
+              <button style="background: #4ea8de; border: none; color: #fff; width: 28px; height: 28px; border-radius: 4px; font-size: 16px;">+</button>
+            </div>
+          </div>
+          <div style="background: #1a1a2e; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 4px;">CARDMARKET PRICE</div>
+            <div style="color: #4ea8de; font-weight: 700;">€2.50 <span style="color: #888; font-weight: 400; font-size: 11px;">avg</span></div>
+          </div>
+          <div style="background: #1a1a2e; border-radius: 6px; padding: 10px;">
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 4px;">USED IN DECKS</div>
+            <div style="color: #ccc; font-size: 12px;">Red Aggro (×4), Agumon Bond (×2)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Slide-Up Panel</h3>
+      <p>A bottom sheet slides up over the card list. Shows key info and collection controls without leaving the browse view. Swipe down to dismiss. Tap "View full details" to expand.</p>
+      <div class="mockup" style="margin-top: 12px;">
+        <div class="mockup-body" style="padding: 0; max-width: 260px; margin: 0 auto; position: relative; overflow: hidden;">
+          <div style="background: #16213e; padding: 12px; min-height: 80px; opacity: 0.4;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+              <div style="background: #1a1a2e; border-radius: 4px; height: 50px;"></div>
+              <div style="background: #1a1a2e; border-radius: 4px; height: 50px;"></div>
+              <div style="background: #1a1a2e; border-radius: 4px; height: 50px;"></div>
+            </div>
+          </div>
+          <div style="background: #1a1a2e; border-radius: 12px 12px 0 0; padding: 12px; border-top: 1px solid #333;">
+            <div style="width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 0 auto 10px;"></div>
+            <div style="display: flex; gap: 10px;">
+              <div style="background: #16213e; border-radius: 6px; width: 70px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px;">🃏</span>
+              </div>
+              <div style="flex: 1;">
+                <div style="color: #fff; font-weight: 700; font-size: 14px;">Agumon</div>
+                <div style="color: #888; font-size: 10px; margin-bottom: 6px;">BT18-008 · Red · Rare</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                  <button style="background: #333; border: none; color: #fff; width: 24px; height: 24px; border-radius: 4px; font-size: 14px;">−</button>
+                  <span style="color: #fff; font-weight: 700;">3</span>
+                  <button style="background: #4ea8de; border: none; color: #fff; width: 24px; height: 24px; border-radius: 4px; font-size: 14px;">+</button>
+                </div>
+                <div style="color: #4ea8de; font-size: 12px;">€2.50</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 8px; color: #4ea8de; font-size: 11px;">View full details →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Side Panel (Desktop) / Full Page (Mobile)</h3>
+      <p>On desktop, a detail panel slides in from the right while the card list stays visible. On mobile, it becomes a full page. Best of both worlds for responsive design.</p>
+      <div class="mockup" style="margin-top: 12px;">
+        <div class="mockup-body" style="padding: 0; display: flex;">
+          <div style="background: #16213e; padding: 10px; flex: 1; min-height: 160px;">
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 6px;">BT-18</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+              <div style="background: #1a1a2e; border-radius: 4px; height: 40px;"></div>
+              <div style="background: #4ea8de33; border: 1px solid #4ea8de; border-radius: 4px; height: 40px;"></div>
+              <div style="background: #1a1a2e; border-radius: 4px; height: 40px;"></div>
+              <div style="background: #1a1a2e; border-radius: 4px; height: 40px;"></div>
+            </div>
+          </div>
+          <div style="background: #1a1a2e; padding: 10px; width: 180px; border-left: 1px solid #333;">
+            <div style="background: #16213e; border-radius: 6px; height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+              <span style="font-size: 28px;">🃏</span>
+            </div>
+            <div style="color: #fff; font-weight: 700; font-size: 13px;">Agumon</div>
+            <div style="color: #888; font-size: 10px; margin-bottom: 8px;">BT18-008 · Red</div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <button style="background: #333; border: none; color: #fff; width: 22px; height: 22px; border-radius: 4px; font-size: 12px;">−</button>
+              <span style="color: #fff; font-weight: 700; font-size: 13px;">3</span>
+              <button style="background: #4ea8de; border: none; color: #fff; width: 22px; height: 22px; border-radius: 4px; font-size: 12px;">+</button>
+            </div>
+            <div style="color: #4ea8de; font-size: 11px;">€2.50</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

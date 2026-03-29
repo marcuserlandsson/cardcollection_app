@@ -15,7 +15,8 @@ import requests
 from dotenv import load_dotenv
 from supabase import create_client
 
-load_dotenv()
+load_dotenv()  # loads .env
+load_dotenv(".env.local", override=True)  # loads .env.local (used by Next.js)
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
