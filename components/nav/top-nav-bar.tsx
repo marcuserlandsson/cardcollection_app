@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Search, Layers, SquareStack, TrendingUp, LogOut, LogIn } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const tabs = [
-  { href: "/database", label: "Database" },
-  { href: "/collection", label: "Collection" },
-  { href: "/decks", label: "Decks" },
-  { href: "/sell", label: "Sell Advisor" },
+  { href: "/database", label: "Database", icon: Search },
+  { href: "/collection", label: "Collection", icon: Layers },
+  { href: "/decks", label: "Decks", icon: SquareStack },
+  { href: "/sell", label: "Sell", icon: TrendingUp },
 ];
 
 export default function TopNavBar() {
@@ -34,22 +35,42 @@ export default function TopNavBar() {
   }
 
   return (
-    <nav className="hidden border-b border-[var(--border)] bg-[var(--surface)] md:block">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/database" className="text-lg font-bold text-[var(--accent)]">DigiCollect</Link>
-        <div className="flex items-center gap-6">
+    <nav className="hidden border-b border-[var(--accent-border)] bg-[var(--surface)]/80 backdrop-blur-xl md:block">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
+        <Link href="/database" className="text-lg font-bold text-[var(--text-primary)]">
+          Card<span className="text-[var(--accent)]">Board</span>
+        </Link>
+        <div className="flex items-center gap-0.5 rounded-lg bg-[var(--elevated)] p-0.5">
           {tabs.map((tab) => {
             const isActive = pathname.startsWith(tab.href);
+            const Icon = tab.icon;
             return (
-              <Link key={tab.href} href={tab.href} className={`text-sm transition-colors ${isActive ? "text-[var(--accent)] border-b-2 border-[var(--accent)] pb-1" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}>{tab.label}</Link>
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-[var(--accent)] text-[var(--background)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                <Icon size={15} />
+                {tab.label}
+              </Link>
             );
           })}
-          {user ? (
-            <button onClick={handleSignOut} className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Sign Out</button>
-          ) : (
-            <Link href="/login" className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm text-white hover:bg-[var(--accent-hover)]">Sign In</Link>
-          )}
         </div>
+        {user ? (
+          <button onClick={handleSignOut} className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]">
+            <LogOut size={15} />
+            Sign Out
+          </button>
+        ) : (
+          <Link href="/login" className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)]">
+            <LogIn size={15} />
+            Sign In
+          </Link>
+        )}
       </div>
     </nav>
   );

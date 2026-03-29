@@ -7,6 +7,7 @@ import DeckListCard from "@/components/decks/deck-list-card";
 import DeckForm from "@/components/decks/deck-form";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { PlusCircle, SquareStack, LogIn } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 export default function DecksPage() {
@@ -42,8 +43,12 @@ export default function DecksPage() {
   if (authChecked && !user) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-[var(--text-secondary)]">Sign in to access this feature.</p>
-        <Link href="/login" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-white hover:bg-[var(--accent-hover)]">Sign In</Link>
+        <SquareStack size={40} className="text-[var(--border)]" />
+        <p className="text-[var(--text-muted)]">Sign in to access your decks.</p>
+        <Link href="/login" className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-hover)]">
+          <LogIn size={15} />
+          Sign In
+        </Link>
       </div>
     );
   }
@@ -53,13 +58,20 @@ export default function DecksPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">My Decks</h1>
         {!showForm && (
-          <button onClick={() => setShowForm(true)} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--accent-hover)]">New Deck</button>
+          <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)]">
+            <PlusCircle size={16} />
+            New Deck
+          </button>
         )}
       </div>
       {showForm && <DeckForm onCreated={() => setShowForm(false)} onCancel={() => setShowForm(false)} />}
-      {isLoading && <p className="py-12 text-center text-[var(--text-secondary)]">Loading...</p>}
+      {isLoading && <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>}
       {!isLoading && decks && decks.length === 0 && !showForm && (
-        <p className="py-12 text-center text-[var(--text-secondary)]">No decks yet. Create one to start planning!</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <SquareStack size={40} className="mb-3 text-[var(--border)]" />
+          <p className="text-sm text-[var(--text-muted)]">No decks yet.</p>
+          <p className="text-xs text-[var(--text-dim)]">Create one to start planning!</p>
+        </div>
       )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {decks?.map((deck) => {

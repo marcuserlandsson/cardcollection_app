@@ -1,6 +1,6 @@
-# DigiCollect — Digimon TCG Collection Tracker
+# CardBoard — TCG Collection Tracker
 
-A responsive web app for tracking your Digimon TCG card collection, planning decks, and identifying surplus cards worth selling.
+A responsive web app for tracking your TCG card collection, planning decks, and identifying surplus cards worth selling. Currently focused on Digimon TCG with plans to support additional TCGs.
 
 ## Features
 
