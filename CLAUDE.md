@@ -1,52 +1,46 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-Digimon TCG card collection tracker - a React Native/Expo mobile app with a Supabase backend and the Digimon Card API for card data.
+DigiCollect — a responsive web app for tracking Digimon TCG card collections, planning decks, and identifying surplus cards worth selling on Cardmarket.
 
-## Development Commands
+## Tech Stack
 
-All commands run from the `DigimonCardApp/` directory:
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS
+- **Backend:** Supabase (Postgres, Auth, Row Level Security)
+- **Hosting:** Vercel (free tier)
+- **Card Data:** Digimon Card API (https://digimoncard.io/api-public/)
+- **Price Data:** Cardmarket API (primary), Cardtrader API (fallback)
+- **Data Sync:** Python scripts + GitHub Actions (daily cron)
+- **Client Caching:** TanStack Query (React Query)
+
+## Development
 
 ```bash
-npm start              # Start Expo dev server
-npm run android        # Run on Android emulator
-npm run ios            # Run on iOS simulator
-npm run web            # Run web version
-npm test               # Run Jest tests (watch mode)
-npm run lint           # Run Expo lint
+npm run dev     # Start dev server at localhost:3000
+npm run build   # Production build
+npm run lint    # ESLint check
 ```
 
-To update the card database, run `fetch_cards_from_api.py` from the repo root (Python, requires supabase-py).
+## Data Sync
 
-## Architecture
+```bash
+pip install -r scripts/requirements.txt
+python scripts/sync_cards.py    # Sync cards from Digimon Card API
+python scripts/sync_prices.py   # Sync prices from Cardmarket/Cardtrader
+```
 
-### App Structure (DigimonCardApp/)
+Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
-- **Expo Router** with file-based routing under `app/`
-- Tab navigation defined in `app/(tabs)/_layout.tsx` with three visible tabs: Home, Database, Collection
-- Hidden routes (cardList, cardDetails) are accessible via stack navigation but excluded from the tab bar (`href: null`)
-- Root layout (`app/_layout.tsx`) handles the global header with dynamic back button behavior
+## Key Architecture Decisions
 
-### Key Screens
+- Card images served from Bandai CDN: `https://world.digimoncard.com/images/cardlist/card/{card_number}.png`
+- Sell logic: `surplus = owned - max(max_copies, sum across all decks)`
+- Guest browsing allowed for card database; auth required for collection/decks/sell
+- Bottom tab nav on mobile, top nav on desktop (768px breakpoint)
+- Supabase RLS enforces per-user data isolation
 
-| Route | File | Purpose |
-|-------|------|---------|
-| `/` | `app/(tabs)/index.tsx` | Home with nav buttons |
-| `/database` | `app/(tabs)/database.tsx` | Grid of card expansions (BT11-BT20) |
-| `/cardList` | `app/(tabs)/cardList.tsx` | Cards in a selected expansion (3-column grid) |
-| `/cardDetails` | `app/(tabs)/cardDetails.tsx` | Single card view with API-fetched details |
-| `/collection` | `app/(tabs)/collection.tsx` | Placeholder for user collection |
+## Database Schema
 
-### Data Flow
-
-1. **Supabase** (`lib/supabase.ts`) stores card data (table: `cards` with columns: `card_number`, `card_name`, `card_expansion`, `last_updated`)
-2. **Digimon Card API** (`https://digimoncard.io/api-public/`) provides detailed card info and images at runtime
-3. **Python sync script** (`fetch_cards_from_api.py`) bulk-fetches cards from the API and upserts to Supabase in batches of 50
-4. The app queries Supabase for card lists, then fetches individual card details from the Digimon Card API with a rate limiter (15 tokens, 10-second refill)
-
-### Styling
-
-Dark theme throughout: background `#25292e`, accent blue `#0865a3`. Uses React Native `StyleSheet` objects defined per-component.
+See `supabase/migrations/001_initial_schema.sql` for the full schema.
+Tables: `cards`, `collection`, `decks`, `deck_cards`, `card_prices`
