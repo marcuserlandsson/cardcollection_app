@@ -6,12 +6,14 @@ import CardSearchBar from "@/components/cards/card-search-bar";
 import CardFilters from "@/components/cards/card-filters";
 import CardGrid from "@/components/cards/card-grid";
 import ExpansionGrid from "@/components/cards/expansion-grid";
+import CardPanel from "@/components/cards/card-panel";
 import type { Card, Expansion } from "@/lib/types";
 
 export default function DatabasePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ color?: string; card_type?: string; rarity?: string }>({});
   const [selectedExpansion, setSelectedExpansion] = useState<string | null>(null);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const { data: expansions, isLoading: loadingExpansions } = useExpansions();
   const { data: expansionCards, isLoading: loadingExpansionCards } = useCardsByExpansion(selectedExpansion);
@@ -40,10 +42,8 @@ export default function DatabasePage() {
     setFilters({});
   }, []);
 
-  const handleCardClick = useCallback((card: Card) => {
-    // TODO: Open card detail panel (Task 12)
-    console.log("Card clicked:", card.card_number);
-  }, []);
+  const handleCardClick = useCallback((card: Card) => { setSelectedCard(card); }, []);
+  const handleClosePanel = useCallback(() => { setSelectedCard(null); }, []);
 
   const handleBack = useCallback(() => { setSelectedExpansion(null); }, []);
 
@@ -70,6 +70,7 @@ export default function DatabasePage() {
         </>
       )}
       {displayCards && !isLoading && <CardGrid cards={displayCards} onCardClick={handleCardClick} />}
+      <CardPanel card={selectedCard} onClose={handleClosePanel} />
     </div>
   );
 }

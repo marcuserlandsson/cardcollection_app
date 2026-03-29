@@ -7,12 +7,14 @@ import CardGrid from "@/components/cards/card-grid";
 import CollectionSummary from "@/components/collection/collection-summary";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import CardPanel from "@/components/cards/card-panel";
 import type { Card } from "@/lib/types";
 
 const supabase = createClient();
 
 export default function CollectionPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const { data: collection, isLoading } = useCollection();
   const quantities = useCollectionMap();
 
@@ -35,9 +37,8 @@ export default function CollectionPage() {
   });
 
   const handleSearch = useCallback((query: string) => { setSearchQuery(query); }, []);
-  const handleCardClick = useCallback((card: Card) => {
-    console.log("Card clicked:", card.card_number);
-  }, []);
+  const handleCardClick = useCallback((card: Card) => { setSelectedCard(card); }, []);
+  const handleClosePanel = useCallback(() => { setSelectedCard(null); }, []);
 
   return (
     <div className="space-y-4">
@@ -49,6 +50,7 @@ export default function CollectionPage() {
         <p className="py-12 text-center text-[var(--text-secondary)]">No cards in your collection yet. Browse the database to add some!</p>
       )}
       {filteredCards && <CardGrid cards={filteredCards} quantities={quantities} onCardClick={handleCardClick} />}
+      <CardPanel card={selectedCard} onClose={handleClosePanel} />
     </div>
   );
 }
