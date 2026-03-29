@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useExpansions, useCardsByExpansion, useCardSearch, useCardsFiltered } from "@/lib/hooks/use-cards";
+import { ArrowLeft, Check } from "lucide-react";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardFilters from "@/components/cards/card-filters";
 import CardGrid from "@/components/cards/card-grid";
@@ -56,7 +57,6 @@ export default function DatabasePage() {
 
   const handleCardClick = useCallback((card: Card) => { setSelectedCard(card); }, []);
   const handleClosePanel = useCallback(() => { setSelectedCard(null); }, []);
-
   const handleBack = useCallback(() => { setSelectedExpansion(null); }, []);
 
   let displayCards: Card[] | undefined;
@@ -69,21 +69,25 @@ export default function DatabasePage() {
   return (
     <div className="space-y-4">
       {showConfirmed && (
-        <div className="flex items-center justify-between rounded-lg bg-[var(--success)]/15 border border-[var(--success)]/30 p-3 text-sm text-[var(--success)]">
-          <span>Email confirmed! You are now signed in.</span>
-          <button onClick={() => setShowConfirmed(false)} className="ml-2 hover:opacity-70">x</button>
+        <div className="flex items-center gap-2 rounded-xl border bg-[var(--green-translucent)] p-3 text-sm font-medium text-[var(--success)]" style={{ borderColor: "var(--green-border)" }}>
+          <Check size={16} />
+          <span className="flex-1">Email confirmed! You are now signed in.</span>
+          <button onClick={() => setShowConfirmed(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">×</button>
         </div>
       )}
       <h1 className="text-2xl font-bold">Card Database</h1>
       <CardSearchBar onSearch={handleSearch} />
       <CardFilters filters={filters} onChange={handleFilterChange} />
       {selectedExpansion && !hasActiveSearch && !hasActiveFilters && (
-        <button onClick={handleBack} className="text-sm text-[var(--accent)] hover:underline">← Back to expansions</button>
+        <button onClick={handleBack} className="flex items-center gap-1.5 text-sm font-medium text-[var(--accent)] hover:underline">
+          <ArrowLeft size={14} />
+          Back to expansions
+        </button>
       )}
-      {isLoading && <p className="py-12 text-center text-[var(--text-secondary)]">Loading...</p>}
+      {isLoading && <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>}
       {showExpansions && !loadingExpansions && expansions && (
         <>
-          <h2 className="text-sm font-medium text-[var(--text-secondary)]">BROWSE BY EXPANSION</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Browse by Expansion</h2>
           <ExpansionGrid expansions={expansions} onSelect={handleExpansionSelect} />
         </>
       )}

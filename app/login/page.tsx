@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -39,18 +40,24 @@ export default function LoginPage() {
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-[var(--accent)]">DigiCollect</h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">{isSignUp ? "Create an account" : "Sign in to your account"}</p>
+          <h1 className="text-2xl font-bold">Card<span className="text-[var(--accent)]">Board</span></h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{isSignUp ? "Create an account" : "Sign in to your account"}</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)]" />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required minLength={6} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)]" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3.5 py-2.5">
+            <Mail size={16} className="flex-shrink-0 text-[var(--text-dim)]" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className="w-full bg-transparent text-sm outline-none placeholder-[var(--text-dim)]" />
+          </div>
+          <div className="flex items-center gap-2.5 rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3.5 py-2.5">
+            <Lock size={16} className="flex-shrink-0 text-[var(--text-dim)]" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required minLength={6} className="w-full bg-transparent text-sm outline-none placeholder-[var(--text-dim)]" />
+          </div>
           {error && <p className={`text-sm ${error.includes("Check your email") ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>{error}</p>}
-          <button type="submit" disabled={loading} className="w-full rounded-lg bg-[var(--accent)] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50">{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}</button>
+          <button type="submit" disabled={loading} className="w-full rounded-xl bg-[var(--accent)] py-2.5 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50">{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}</button>
         </form>
-        <p className="text-center text-sm text-[var(--text-secondary)]">
+        <p className="text-center text-sm text-[var(--text-muted)]">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button onClick={() => { setIsSignUp(!isSignUp); setError(null); }} className="text-[var(--accent)] hover:underline">{isSignUp ? "Sign in" : "Sign up"}</button>
+          <button onClick={() => { setIsSignUp(!isSignUp); setError(null); }} className="font-medium text-[var(--accent)] hover:underline">{isSignUp ? "Sign in" : "Sign up"}</button>
         </p>
       </div>
     </div>

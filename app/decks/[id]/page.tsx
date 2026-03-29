@@ -10,6 +10,7 @@ import DeckCardRow from "@/components/decks/deck-card-row";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardGrid from "@/components/cards/card-grid";
 import CardPanel from "@/components/cards/card-panel";
+import { ArrowLeft, Plus, Trash2, AlertTriangle, Check, SquareStack } from "lucide-react";
 import type { Card } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
@@ -65,40 +66,51 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
     }
   }, [deleteDeck, deckId, router]);
 
-  if (!deck) return <p className="py-12 text-center text-[var(--text-secondary)]">Loading...</p>;
+  if (!deck) return <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Link href="/decks" className="text-sm text-[var(--accent)] hover:underline">← Decks</Link>
-      </div>
+      <Link href="/decks" className="flex items-center gap-1.5 text-sm font-medium text-[var(--accent)] hover:underline">
+        <ArrowLeft size={14} />
+        Decks
+      </Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{deck.name}</h1>
           {deck.description && <p className="text-sm text-[var(--text-secondary)]">{deck.description}</p>}
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setAddingCards(!addingCards)} className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm text-white hover:bg-[var(--accent-hover)]">{addingCards ? "Done" : "Add Cards"}</button>
-          <button onClick={handleDelete} className="rounded-lg bg-[var(--danger)] px-3 py-1.5 text-sm text-white hover:opacity-80">Delete</button>
+          <button onClick={() => setAddingCards(!addingCards)} className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-hover)]">
+            {addingCards ? <><Check size={14} /> Done</> : <><Plus size={14} /> Add Cards</>}
+          </button>
+          <button onClick={handleDelete} className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors" style={{ background: "var(--red-translucent)", borderColor: "var(--red-border)", color: "var(--danger)" }}>
+            <Trash2 size={14} />
+            Delete
+          </button>
         </div>
       </div>
       {missingCount > 0 && (
-        <div className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 p-3 text-sm text-[var(--danger)]">
+        <div className="flex items-center gap-2 rounded-xl border p-3 text-sm font-medium" style={{ background: "var(--red-translucent)", borderColor: "var(--red-border)", color: "var(--danger)" }}>
+          <AlertTriangle size={16} />
           Missing {missingCount} card{missingCount !== 1 ? "s" : ""} to complete this deck.
         </div>
       )}
       {addingCards && (
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-[var(--text-secondary)]">SEARCH CARDS TO ADD</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Search Cards to Add</h2>
           <CardSearchBar onSearch={handleSearch} />
           {searchResults && <CardGrid cards={searchResults} quantities={quantities} onCardClick={handleCardClick} />}
         </div>
       )}
-      <h2 className="text-sm font-medium text-[var(--text-secondary)]">
-        DECK CARDS ({cardNumbers.length} unique, {deckCards?.reduce((s, dc) => s + dc.quantity, 0) ?? 0} total)
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+        Deck Cards ({cardNumbers.length} unique, {deckCards?.reduce((s, dc) => s + dc.quantity, 0) ?? 0} total)
       </h2>
       {cardsInDeck && cardsInDeck.length === 0 && (
-        <p className="py-8 text-center text-[var(--text-secondary)]">No cards in this deck yet. Click "Add Cards" to search and add.</p>
+        <div className="flex flex-col items-center justify-center py-12">
+          <SquareStack size={40} className="mb-3 text-[var(--border)]" />
+          <p className="text-sm text-[var(--text-muted)]">No cards in this deck yet.</p>
+          <p className="text-xs text-[var(--text-dim)]">Click &quot;Add Cards&quot; to search and add.</p>
+        </div>
       )}
       <div className="space-y-2">
         {cardsInDeck?.map((card) => (

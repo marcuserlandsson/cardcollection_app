@@ -11,6 +11,7 @@ import SellSummary from "@/components/sell/sell-summary";
 import SellCardRow from "@/components/sell/sell-card-row";
 import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
+import { TrendingUp, Clock, LogIn } from "lucide-react";
 import type { Card } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -60,8 +61,12 @@ export default function SellPage() {
   if (authChecked && !user) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-[var(--text-secondary)]">Sign in to access this feature.</p>
-        <Link href="/login" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-white hover:bg-[var(--accent-hover)]">Sign In</Link>
+        <TrendingUp size={40} className="text-[var(--border)]" />
+        <p className="text-[var(--text-muted)]">Sign in to access the sell advisor.</p>
+        <Link href="/login" className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-hover)]">
+          <LogIn size={15} />
+          Sign In
+        </Link>
       </div>
     );
   }
@@ -70,9 +75,18 @@ export default function SellPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Sell Advisor</h1>
       {sellableCards.length > 0 && <SellSummary surplusCount={totalSurplus} totalValue={totalValue > 0 ? totalValue : null} />}
-      {latestFetch && <p className="text-xs text-[var(--text-secondary)]">Prices updated {timeAgo(latestFetch)}</p>}
+      {latestFetch && (
+        <p className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+          <Clock size={12} />
+          Prices updated {timeAgo(latestFetch)}
+        </p>
+      )}
       {sellableCards.length === 0 && (
-        <p className="py-12 text-center text-[var(--text-secondary)]">No surplus cards to sell. Cards beyond your playset limit (4) or deck needs will appear here.</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <TrendingUp size={40} className="mb-3 text-[var(--border)]" />
+          <p className="text-sm text-[var(--text-muted)]">No surplus cards to sell.</p>
+          <p className="text-xs text-[var(--text-dim)]">Cards beyond your playset limit or deck needs will appear here.</p>
+        </div>
       )}
       <div className="space-y-2">
         {sellableCards.map((item) => (

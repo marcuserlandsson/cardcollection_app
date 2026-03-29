@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
+import { Layers, LogIn } from "lucide-react";
 import type { Card } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -55,8 +56,12 @@ export default function CollectionPage() {
   if (authChecked && !user) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-[var(--text-secondary)]">Sign in to access this feature.</p>
-        <Link href="/login" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-white hover:bg-[var(--accent-hover)]">Sign In</Link>
+        <Layers size={40} className="text-[var(--border)]" />
+        <p className="text-[var(--text-muted)]">Sign in to access your collection.</p>
+        <Link href="/login" className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-hover)]">
+          <LogIn size={15} />
+          Sign In
+        </Link>
       </div>
     );
   }
@@ -66,9 +71,13 @@ export default function CollectionPage() {
       <h1 className="text-2xl font-bold">My Collection</h1>
       <CollectionSummary />
       <CardSearchBar onSearch={handleSearch} />
-      {isLoading && <p className="py-12 text-center text-[var(--text-secondary)]">Loading...</p>}
+      {isLoading && <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>}
       {!isLoading && cardNumbers.length === 0 && (
-        <p className="py-12 text-center text-[var(--text-secondary)]">No cards in your collection yet. Browse the database to add some!</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <Layers size={40} className="mb-3 text-[var(--border)]" />
+          <p className="text-sm text-[var(--text-muted)]">No cards in your collection yet.</p>
+          <p className="text-xs text-[var(--text-dim)]">Browse the database to add some!</p>
+        </div>
       )}
       {filteredCards && <CardGrid cards={filteredCards} quantities={quantities} onCardClick={handleCardClick} />}
       <CardPanel card={selectedCard} onClose={handleClosePanel} />
