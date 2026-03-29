@@ -4,8 +4,8 @@ import AppShell from "@/components/nav/app-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DigiCollect — Digimon TCG Collection Tracker",
-  description: "Track your Digimon TCG card collection, plan decks, and find cards to sell.",
+  title: "CardBoard — TCG Collection Tracker",
+  description: "Track your TCG card collection, plan decks, and find cards to sell.",
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-[var(--background)] text-[var(--text-primary)] antialiased">
+      <body className="min-h-screen antialiased">
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
