@@ -12,10 +12,10 @@ export default function ExpansionGrid({ expansions, onSelect }: ExpansionGridPro
         <button
           key={exp.code}
           onClick={() => onSelect(exp)}
-          className="rounded-lg bg-[var(--surface)] p-4 text-center transition-colors hover:bg-[var(--surface-hover)]"
+          className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent-border)] hover:shadow-[0_4px_16px_var(--accent-glow)]"
         >
           <div className="text-sm font-bold text-[var(--accent)]">{exp.code}</div>
-          <div className="mt-1 text-xs text-[var(--text-secondary)]">{exp.card_count} cards</div>
+          <div className="mt-1 text-xs text-[var(--text-muted)]">{exp.card_count} cards</div>
         </button>
       ))}
     </div>

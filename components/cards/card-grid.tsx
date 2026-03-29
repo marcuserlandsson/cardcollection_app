@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import type { Card } from "@/lib/types";
 import CardThumbnail from "./card-thumbnail";
 
@@ -10,7 +11,10 @@ interface CardGridProps {
 export default function CardGrid({ cards, quantities, onCardClick }: CardGridProps) {
   if (cards.length === 0) {
     return (
-      <p className="py-12 text-center text-[var(--text-secondary)]">No cards found.</p>
+      <div className="flex flex-col items-center justify-center py-16">
+        <Search size={40} className="mb-3 text-[var(--border)]" />
+        <p className="text-sm text-[var(--text-muted)]">No cards found.</p>
+      </div>
     );
   }
 
