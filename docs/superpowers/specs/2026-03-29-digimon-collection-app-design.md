@@ -17,7 +17,7 @@ A responsive web app for tracking your Digimon TCG card collection, planning dec
 - **Backend/Database:** Supabase (Postgres, Auth, Row Level Security)
 - **Hosting:** Vercel (free tier, auto-deploys from GitHub)
 - **Card Data Source:** Digimon Card API (`https://digimoncard.io/api-public/`)
-- **Price Data Source:** Cardmarket (EU)
+- **Price Data Source:** Cardmarket API (primary, requires seller account), Cardtrader API (fallback, free account)
 - **Data Sync:** Python scripts for card data and price fetching
 - **Client-Side Caching:** TanStack Query (React Query)
 - **Future:** PWA support for offline collection browsing, camera card scanning
@@ -112,8 +112,8 @@ sellable = collection.quantity - need
 
 ### Data Sync
 
-- **Card sync:** Python script pulls all cards from Digimon Card API and upserts into `cards` table. Run manually when new sets release.
-- **Price sync:** Python script fetches Cardmarket prices and updates `card_prices` table. Can run on a schedule via GitHub Actions (free) or manually. Note: Cardmarket's official API requires a developer account application. During implementation, investigate whether a public API, third-party aggregator, or web scraping is the best approach for price data.
+- **Card sync:** Python script pulls all cards from Digimon Card API and upserts into `cards` table. Runs automatically on a schedule via GitHub Actions (e.g., daily) so new expansions and cards appear in the app without manual intervention. Can also be triggered manually.
+- **Price sync:** Python script fetches card prices and updates `card_prices` table. Runs on a schedule via GitHub Actions (e.g., daily) alongside the card sync. Primary source is Cardmarket API (requires registering as a seller to get API credentials — OAuth 1.0, price guide endpoint provides avg/low/trend). Fallback source is Cardtrader API (free account + API token, EUR pricing). If neither source is available for a card, the UI shows "Price not available" gracefully.
 - Card images are served directly from the Digimon Card API CDN — not stored in our database.
 
 ## UI Design
