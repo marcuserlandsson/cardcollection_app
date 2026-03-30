@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useExpansions, useCardsByExpansion, useCardSearch, useCardsFiltered } from "@/lib/hooks/use-cards";
+import { useExpansions, useExpansionMetadata, useCardsByExpansion, useCardSearch, useCardsFiltered } from "@/lib/hooks/use-cards";
 import { ArrowLeft, Check } from "lucide-react";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardFilters from "@/components/cards/card-filters";
@@ -29,6 +29,7 @@ export default function DatabasePage() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const { data: expansions, isLoading: loadingExpansions } = useExpansions();
+  const { data: setImages } = useExpansionMetadata();
   const { data: expansionCards, isLoading: loadingExpansionCards } = useCardsByExpansion(selectedExpansion);
   const { data: searchResults, isLoading: loadingSearch } = useCardSearch(searchQuery);
   const { data: filteredCards, isLoading: loadingFiltered } = useCardsFiltered(filters);
@@ -88,7 +89,7 @@ export default function DatabasePage() {
       {showExpansions && !loadingExpansions && expansions && (
         <>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Browse by Expansion</h2>
-          <ExpansionGrid expansions={expansions} onSelect={handleExpansionSelect} />
+          <ExpansionGrid expansions={expansions} setImages={setImages || {}} onSelect={handleExpansionSelect} />
         </>
       )}
       {displayCards && !isLoading && <CardGrid cards={displayCards} onCardClick={handleCardClick} />}

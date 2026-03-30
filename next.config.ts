@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.digimoncard.io",
-        pathname: "/images/cards/**",
+        pathname: "/images/**",
       },
     ],
   },

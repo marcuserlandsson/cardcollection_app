@@ -131,6 +131,27 @@ export function useCardsFiltered(filters: {
   });
 }
 
+export function useExpansionMetadata() {
+  return useQuery<Record<string, string>>({
+    queryKey: ["expansion-metadata"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expansion_metadata")
+        .select("expansion, set_image_url");
+
+      if (error) throw error;
+
+      const map: Record<string, string> = {};
+      for (const row of data) {
+        if (row.set_image_url) {
+          map[row.expansion] = row.set_image_url;
+        }
+      }
+      return map;
+    },
+  });
+}
+
 export function useCard(cardNumber: string | null) {
   return useQuery<Card>({
     queryKey: ["cards", cardNumber],

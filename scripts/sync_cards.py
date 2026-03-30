@@ -299,6 +299,21 @@ def sync_cards():
                 f"  Upserted {min(i + batch_size, len(card_expansions))}/{len(card_expansions)}"
             )
 
+    # Upsert expansion metadata (set images)
+    exp_metadata = []
+    for pack_name, sid in set_ids.items():
+        exp_code = pack_name.split(":")[0].strip() if ":" in pack_name else pack_name
+        exp_metadata.append({
+            "expansion": exp_code,
+            "set_id": sid,
+            "set_image_url": f"https://images.digimoncard.io/images/sets/{sid}.jpg",
+        })
+    if exp_metadata:
+        print(f"Upserting {len(exp_metadata)} expansion metadata entries...")
+        for i in range(0, len(exp_metadata), batch_size):
+            batch = exp_metadata[i : i + batch_size]
+            supabase.table("expansion_metadata").upsert(batch).execute()
+
     # Upsert variants
     if variants:
         print(f"Upserting {len(variants)} card variants in batches...")
