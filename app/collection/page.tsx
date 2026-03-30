@@ -8,8 +8,9 @@ import CollectionSummary from "@/components/collection/collection-summary";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import CardPanel from "@/components/cards/card-panel";
+import ImportModal from "@/components/collection/import-modal";
 import Link from "next/link";
-import { Layers, LogIn } from "lucide-react";
+import { Layers, LogIn, Upload } from "lucide-react";
 import type { Card } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -21,6 +22,7 @@ export default function CollectionPage() {
   const supabaseAuth = createClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { data: collection, isLoading } = useCollection();
   const quantities = useCollectionMap();
 
@@ -68,7 +70,16 @@ export default function CollectionPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">My Collection</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">My Collection</h1>
+        <button
+          onClick={() => setImportOpen(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-[var(--elevated)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+        >
+          <Upload size={15} />
+          Import
+        </button>
+      </div>
       <CollectionSummary />
       <CardSearchBar onSearch={handleSearch} />
       {isLoading && <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>}
@@ -81,6 +92,7 @@ export default function CollectionPage() {
       )}
       {filteredCards && <CardGrid cards={filteredCards} quantities={quantities} onCardClick={handleCardClick} />}
       <CardPanel card={selectedCard} onClose={handleClosePanel} />
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
