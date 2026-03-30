@@ -42,26 +42,29 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    if (!open) {
-      setStage("input");
-      setTextInput("");
-      setValidated([]);
-      setUnknownCards([]);
-      setParseErrors([]);
-      setImportedCount(0);
-      setImportProgress(0);
-      setTab("paste");
-    }
-  }, [open]);
+  const resetState = useCallback(() => {
+    setStage("input");
+    setTextInput("");
+    setValidated([]);
+    setUnknownCards([]);
+    setParseErrors([]);
+    setImportedCount(0);
+    setImportProgress(0);
+    setTab("paste");
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetState();
+    onClose();
+  }, [resetState, onClose]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     }
     if (open) document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  }, [open, handleClose]);
 
   const validateParsed = useCallback(
     (parsed: ParsedCard[]) => {
@@ -129,11 +132,11 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black/60" onClick={handleClose} />
       <div className="fixed inset-x-4 top-[10vh] z-50 mx-auto max-w-lg rounded-2xl bg-[var(--surface)] p-5 shadow-xl md:inset-x-auto md:w-[480px]">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Import Cards</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--elevated)]">
+          <button onClick={handleClose} className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--elevated)]">
             <X size={18} />
           </button>
         </div>
@@ -286,7 +289,7 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
               Added {importedCount} cards to your collection
             </p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="mt-4 rounded-xl bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)]"
             >
               Done
