@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "images.digimoncard.io",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "assets.orangeswim.dev",
+        pathname: "/other/**",
+      },
     ],
   },
 };

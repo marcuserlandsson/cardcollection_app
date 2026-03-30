@@ -317,16 +317,26 @@ def sync_cards():
             )
 
     # Upsert expansion metadata (set images)
+    # Use orangeswim.dev product images where available, fall back to digimoncard.io
+    orangeswim_path = Path(__file__).parent / "set_images_orangeswim.json"
+    orangeswim: dict[str, str] = {}
+    if orangeswim_path.exists():
+        with open(orangeswim_path) as f:
+            orangeswim = json.load(f)
+        print(f"Loaded {len(orangeswim)} high-quality set images from orangeswim")
+
     # Deduplicate: prefer main booster/extra set when multiple packs share a code
     exp_meta_map: dict[str, dict] = {}
     for pack_name, sid in set_ids.items():
         exp_code = pack_name.split(":")[0].strip() if ":" in pack_name else pack_name
         is_main = any(kw in pack_name for kw in ["Booster", "Theme", "Extra", "Starter Deck", "Advanced"])
         if exp_code not in exp_meta_map or is_main:
+            # Prefer orangeswim image, fall back to digimoncard.io
+            image_url = orangeswim.get(exp_code, f"https://images.digimoncard.io/images/sets/{sid}.jpg")
             exp_meta_map[exp_code] = {
                 "expansion": exp_code,
                 "set_id": sid,
-                "set_image_url": f"https://images.digimoncard.io/images/sets/{sid}.jpg",
+                "set_image_url": image_url,
             }
     exp_metadata = list(exp_meta_map.values())
     if exp_metadata:
