@@ -38,7 +38,7 @@ export default function TopNavBar() {
     <nav className="hidden border-b border-[var(--accent-border)] bg-[var(--surface)]/80 backdrop-blur-xl md:block">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
         <Link href="/database" className="text-lg font-bold text-[var(--text-primary)]">
-          Card<span className="text-[var(--accent)]">Board</span>
+          📦 Card<span className="text-[var(--accent)]">Board</span>
         </Link>
         <div className="flex items-center gap-0.5 rounded-lg bg-[var(--elevated)] p-0.5">
           {tabs.map((tab) => {
