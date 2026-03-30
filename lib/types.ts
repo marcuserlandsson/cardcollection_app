@@ -36,6 +36,15 @@ export interface DeckCard {
   quantity: number;
 }
 
+export interface CardVariant {
+  id: string;
+  card_number: string;
+  variant_name: string;
+  tcgplayer_id: number | null;
+  alt_art_url: string | null;
+  created_at: string;
+}
+
 export interface CardPrice {
   card_number: string;
   price_avg: number | null;
