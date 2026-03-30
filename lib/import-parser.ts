@@ -16,6 +16,7 @@ export interface ParseResult {
 /**
  * Parses a text block of card entries. Supports formats:
  * - "BT1-001 3" or "BT1-001 x3" or "BT1-001,3"
+ * - "4 (BT14-001)" — quantity first, card number in parentheses (digimoncard.io format)
  * - Card number only (defaults to quantity 1)
  * One card per line. Blank lines and lines starting with # are ignored.
  */
@@ -28,14 +29,22 @@ export function parseCardList(input: string): ParseResult {
     const line = rawLine.trim();
     if (line === "" || line.startsWith("#")) continue;
 
-    const match = line.match(/^([A-Za-z0-9]+-\d+)\s*[,xX×]?\s*(\d+)?$/);
+    // Format: "4 (BT14-001)" or "4x (BT14-001)" — quantity first, card number in parens
+    const parenMatch = line.match(/^(\d+)\s*x?\s*\(([A-Za-z0-9]+-\d+)\)$/);
+    // Format: "BT1-001 3" or "BT1-001 x3" or "BT1-001,3" or just "BT1-001"
+    const standardMatch = line.match(/^([A-Za-z0-9]+-\d+)\s*[,xX×]?\s*(\d+)?$/);
+
+    const match = parenMatch || standardMatch;
     if (!match) {
       errors.push({ line, reason: "Unrecognized format" });
       continue;
     }
 
-    const cardNumber = match[1].toUpperCase();
-    const quantity = match[2] ? parseInt(match[2], 10) : 1;
+    const cardNumber = parenMatch
+      ? match[2].toUpperCase()
+      : match[1].toUpperCase();
+    const rawQty = parenMatch ? match[1] : match[2];
+    const quantity = rawQty ? parseInt(rawQty, 10) : 1;
 
     if (quantity <= 0) {
       errors.push({ line, reason: "Quantity must be at least 1" });
