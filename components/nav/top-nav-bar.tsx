@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Search, Layers, SquareStack, TrendingUp, LogOut, LogIn } from "lucide-react";
+import { Home, Search, Layers, SquareStack, TrendingUp, LogOut, LogIn } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const tabs = [
+  { href: "/", label: "Home", icon: Home },
   { href: "/database", label: "Database", icon: Search },
   { href: "/collection", label: "Collection", icon: Layers },
   { href: "/decks", label: "Decks", icon: SquareStack },
@@ -30,19 +31,19 @@ export default function TopNavBar() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/database");
+    router.push("/");
     router.refresh();
   }
 
   return (
     <nav className="hidden border-b border-[var(--accent-border)] bg-[var(--surface)]/80 backdrop-blur-xl md:block">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
-        <Link href="/database" className="text-lg font-bold text-[var(--text-primary)]">
+        <Link href="/" className="text-lg font-bold text-[var(--text-primary)]">
           📦 Card<span className="text-[var(--accent)]">Board</span>
         </Link>
         <div className="flex items-center gap-0.5 rounded-lg bg-[var(--elevated)] p-0.5">
           {tabs.map((tab) => {
-            const isActive = pathname.startsWith(tab.href);
+            const isActive = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
             const Icon = tab.icon;
             return (
               <Link
