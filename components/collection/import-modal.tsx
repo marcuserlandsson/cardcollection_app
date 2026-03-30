@@ -246,7 +246,7 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
             <div className="flex items-center gap-2 text-sm">
               <CheckCircle2 size={16} className="text-[var(--green)]" />
               <span>
-                <strong>{validated.length}</strong> cards recognized
+                <strong>{validated.reduce((sum, e) => sum + e.quantity, 0)}</strong> cards recognized
               </span>
               {(unknownCards.length > 0 || parseErrors.length > 0) && (
                 <>
@@ -296,7 +296,7 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
                 disabled={validated.length === 0}
                 className="flex-1 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-40"
               >
-                Import {validated.length} cards
+                Import {validated.reduce((sum, e) => sum + e.quantity, 0)} cards
               </button>
             </div>
           </div>
