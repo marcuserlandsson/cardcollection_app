@@ -100,21 +100,38 @@ def scrape_set_ids() -> dict[str, int]:
 
 
 def load_set_ids() -> dict[str, int]:
-    """Load set IDs from cache, scraping fresh if cache is missing or stale."""
+    """Load set IDs from committed file, refreshing via scrape if stale."""
     if SET_IDS_PATH.exists():
+        with open(SET_IDS_PATH) as f:
+            cached = json.load(f)
+
         age_days = (time.time() - SET_IDS_PATH.stat().st_mtime) / 86400
         if age_days < 7:
-            with open(SET_IDS_PATH) as f:
-                cached = json.load(f)
             print(
                 f"Using cached set IDs ({len(cached)} sets, {age_days:.1f} days old)"
             )
             return cached
 
+        # Try to refresh, but fall back to existing file on failure
+        print("Set IDs cache is stale, attempting refresh...")
+        try:
+            fresh = scrape_set_ids()
+            if fresh:
+                with open(SET_IDS_PATH, "w") as f:
+                    json.dump(fresh, f, indent=2, sort_keys=True)
+                print(f"Refreshed set IDs ({len(fresh)} sets)")
+                return fresh
+        except Exception as e:
+            print(f"  Scrape failed ({e}), using existing cache")
+
+        return cached
+
+    # No file at all — must scrape
     set_ids = scrape_set_ids()
-    with open(SET_IDS_PATH, "w") as f:
-        json.dump(set_ids, f, indent=2, sort_keys=True)
-    print(f"Saved set IDs to {SET_IDS_PATH}")
+    if set_ids:
+        with open(SET_IDS_PATH, "w") as f:
+            json.dump(set_ids, f, indent=2, sort_keys=True)
+        print(f"Saved set IDs to {SET_IDS_PATH}")
     return set_ids
 
 
