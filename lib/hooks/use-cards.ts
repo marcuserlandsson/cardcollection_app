@@ -10,23 +10,35 @@ export function useExpansions() {
   return useQuery<Expansion[]>({
     queryKey: ["expansions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cards")
-        .select("expansion")
-        .order("expansion", { ascending: false });
+      // Count cards per expansion using the join table
+      const pageSize = 1000;
+      const allRows: { expansion: string }[] = [];
+      let from = 0;
 
-      if (error) throw error;
+      while (true) {
+        const { data, error } = await supabase
+          .from("card_expansions")
+          .select("expansion")
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        allRows.push(...data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
 
       const counts = new Map<string, number>();
-      for (const row of data) {
+      for (const row of allRows) {
         counts.set(row.expansion, (counts.get(row.expansion) || 0) + 1);
       }
 
-      return Array.from(counts.entries()).map(([code, card_count]) => ({
-        code,
-        name: code,
-        card_count,
-      }));
+      return Array.from(counts.entries())
+        .map(([code, card_count]) => ({
+          code,
+          name: code,
+          card_count,
+        }))
+        .sort((a, b) => b.code.localeCompare(a.code));
     },
   });
 }
@@ -35,14 +47,42 @@ export function useCardsByExpansion(expansion: string | null) {
   return useQuery<Card[]>({
     queryKey: ["cards", "expansion", expansion],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cards")
-        .select("*")
-        .eq("expansion", expansion!)
-        .order("card_number");
+      // Get card numbers from the join table, then fetch full card data
+      const pageSize = 1000;
+      const cardNumbers: string[] = [];
+      let from = 0;
 
-      if (error) throw error;
-      return data as Card[];
+      while (true) {
+        const { data, error } = await supabase
+          .from("card_expansions")
+          .select("card_number")
+          .eq("expansion", expansion!)
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        cardNumbers.push(...data.map((r) => r.card_number));
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+
+      if (cardNumbers.length === 0) return [];
+
+      // Fetch full card data in batches (Supabase .in() has a limit)
+      const allCards: Card[] = [];
+      const inBatchSize = 200;
+      for (let i = 0; i < cardNumbers.length; i += inBatchSize) {
+        const batch = cardNumbers.slice(i, i + inBatchSize);
+        const { data, error } = await supabase
+          .from("cards")
+          .select("*")
+          .in("card_number", batch)
+          .order("card_number");
+
+        if (error) throw error;
+        allCards.push(...(data as Card[]));
+      }
+
+      return allCards.sort((a, b) => a.card_number.localeCompare(b.card_number));
     },
     enabled: !!expansion,
   });

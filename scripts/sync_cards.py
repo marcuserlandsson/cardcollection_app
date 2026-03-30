@@ -153,10 +153,28 @@ def transform_card(raw: dict) -> dict:
     set_names = raw.get("set_name", [])
     expansion = ""
     if set_names:
-        first_set = set_names[0]
-        expansion = (
-            first_set.split(":")[0].strip() if ":" in first_set else first_set
-        )
+        # Match expansion to the card number prefix (e.g. BT14-101 → BT-14)
+        # The card number prefix maps: BT14 → BT-14, EX9 → EX-09, ST1 → ST-1, etc.
+        prefix = re.match(r"^([A-Z]+)(\d+)", card_number)
+        if prefix:
+            card_prefix = prefix.group(1)
+            card_num = prefix.group(2)
+            for sn in set_names:
+                set_code = sn.split(":")[0].strip() if ":" in sn else sn
+                # Normalize for comparison: strip hyphens/zeros
+                normalized = set_code.replace("-", "").replace("0", "").upper()
+                candidate = (card_prefix + card_num).replace("0", "").upper()
+                if normalized == candidate:
+                    expansion = set_code
+                    break
+        # Fallback to first set if no prefix match
+        if not expansion:
+            first_set = set_names[0]
+            expansion = (
+                first_set.split(":")[0].strip()
+                if ":" in first_set
+                else first_set
+            )
 
     return {
         "card_number": card_number,
@@ -199,15 +217,23 @@ def sync_cards():
             continue
         card_entries[card_id].append(raw)
 
-    # Build cards and variants
+    # Build cards, variants, and expansion memberships
     cards: dict[str, dict] = {}
     variants: list[dict] = []
+    card_expansion_set: set[tuple[str, str]] = set()
     alt_art_count = 0
 
     for card_id, entries in card_entries.items():
         cards[card_id] = transform_card(entries[0])
         expansion = cards[card_id]["expansion"]
         set_id = expansion_set_ids.get(expansion)
+
+        # Collect all expansions this card belongs to
+        set_names = entries[0].get("set_name", [])
+        for sn in set_names:
+            exp_code = sn.split(":")[0].strip() if ":" in sn else sn
+            if exp_code:
+                card_expansion_set.add((card_id, exp_code))
 
         # Track alt art index separately (for image URL variant_idx)
         alt_art_idx = 0
@@ -258,6 +284,20 @@ def sync_cards():
         batch = card_list[i : i + batch_size]
         supabase.table("cards").upsert(batch).execute()
         print(f"  Upserted {min(i + batch_size, len(card_list))}/{len(card_list)}")
+
+    # Upsert card-expansion memberships
+    card_expansions = [
+        {"card_number": cn, "expansion": exp}
+        for cn, exp in card_expansion_set
+    ]
+    if card_expansions:
+        print(f"Upserting {len(card_expansions)} card-expansion memberships...")
+        for i in range(0, len(card_expansions), batch_size):
+            batch = card_expansions[i : i + batch_size]
+            supabase.table("card_expansions").upsert(batch).execute()
+            print(
+                f"  Upserted {min(i + batch_size, len(card_expansions))}/{len(card_expansions)}"
+            )
 
     # Upsert variants
     if variants:
