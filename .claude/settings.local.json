@@ -4,7 +4,12 @@
       "Bash(git checkout:*)",
       "Bash(git restore:*)",
       "Bash(find /c/Users/macke/Documents/GitHub/cardcollection_app -not -path */node_modules/* -not -path */.git/* -not -path */.expo/* -type f)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(find /c/Users/macke/Documents/GitHub/cardcollection_app -name tailwind.config.* -o -name postcss.config.*)",
+      "Bash(bash C:/Users/macke/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming/scripts/start-server.sh --project-dir C:/Users/macke/Documents/GitHub/cardcollection_app)",
+      "WebSearch",
+      "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\(''SquareStack:'', !!l.SquareStack\\); console.log\\(''PackageMinus:'', !!l.PackageMinus\\); console.log\\(''Egg:'', !!l.Egg\\); console.log\\(''Sparkles:'', !!l.Sparkles\\);\")",
+      "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\(''SquareStack:'', Boolean\\(l.SquareStack\\)\\); console.log\\(''PackageMinus:'', Boolean\\(l.PackageMinus\\)\\); console.log\\(''Egg:'', Boolean\\(l.Egg\\)\\); console.log\\(''Sparkles:'', Boolean\\(l.Sparkles\\)\\);\")"
     ]
   }
 }
