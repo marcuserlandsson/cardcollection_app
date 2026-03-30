@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "world.digimoncard.com",
-        pathname: "/images/cardlist/card/**",
+        hostname: "images.digimoncard.io",
+        pathname: "/images/cards/**",
       },
     ],
   },

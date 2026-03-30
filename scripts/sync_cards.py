@@ -21,7 +21,7 @@ load_dotenv(".env.local", override=True)  # loads .env.local (used by Next.js)
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 DIGIMON_API_SEARCH = "https://digimoncard.io/api-public/search.php"
-IMAGE_BASE_URL = "https://world.digimoncard.com/images/cardlist/card"
+IMAGE_BASE_URL = "https://images.digimoncard.io/images/cards"
 
 REQUEST_INTERVAL = 0.7
 
@@ -82,7 +82,7 @@ def transform_card(raw: dict) -> dict:
         "evolution_cost": (
             raw.get("evolution_cost") if raw.get("evolution_cost") else None
         ),
-        "image_url": f"{IMAGE_BASE_URL}/{card_number}.png",
+        "image_url": f"{IMAGE_BASE_URL}/{card_number}.jpg",
         "max_copies": 4,
     }
 

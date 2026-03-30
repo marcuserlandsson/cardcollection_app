@@ -10,7 +10,13 @@
       "WebSearch",
       "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\(''SquareStack:'', !!l.SquareStack\\); console.log\\(''PackageMinus:'', !!l.PackageMinus\\); console.log\\(''Egg:'', !!l.Egg\\); console.log\\(''Sparkles:'', !!l.Sparkles\\);\")",
       "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\(''SquareStack:'', Boolean\\(l.SquareStack\\)\\); console.log\\(''PackageMinus:'', Boolean\\(l.PackageMinus\\)\\); console.log\\(''Egg:'', Boolean\\(l.Egg\\)\\); console.log\\(''Sparkles:'', Boolean\\(l.Sparkles\\)\\);\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(curl -s \"https://digimoncard.io/api-public/search.php?card=BT1-001\")",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(json.dumps\\(data[0] if data else {}, indent=2\\)\\)\")",
+      "Bash(curl:*)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(c.get\\(''''id'''',''''?''''\\)\\) for c in data[:30]]\")",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(json.dumps\\(data[0], indent=2\\)\\)\")",
+      "Bash(python -c \":*)"
     ]
   }
 }

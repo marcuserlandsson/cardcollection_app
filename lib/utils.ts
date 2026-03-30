@@ -55,7 +55,7 @@ export function formatPrice(value: number | null): string {
 }
 
 export function getCardImageUrl(cardNumber: string): string {
-  return `https://world.digimoncard.com/images/cardlist/card/${cardNumber}.png`;
+  return `https://images.digimoncard.io/images/cards/${cardNumber}.jpg`;
 }
 
 export function timeAgo(date: string): string {
