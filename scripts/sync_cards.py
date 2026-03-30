@@ -317,14 +317,18 @@ def sync_cards():
             )
 
     # Upsert expansion metadata (set images)
-    exp_metadata = []
+    # Deduplicate: prefer main booster/extra set when multiple packs share a code
+    exp_meta_map: dict[str, dict] = {}
     for pack_name, sid in set_ids.items():
         exp_code = pack_name.split(":")[0].strip() if ":" in pack_name else pack_name
-        exp_metadata.append({
-            "expansion": exp_code,
-            "set_id": sid,
-            "set_image_url": f"https://images.digimoncard.io/images/sets/{sid}.jpg",
-        })
+        is_main = any(kw in pack_name for kw in ["Booster", "Theme", "Extra", "Starter Deck", "Advanced"])
+        if exp_code not in exp_meta_map or is_main:
+            exp_meta_map[exp_code] = {
+                "expansion": exp_code,
+                "set_id": sid,
+                "set_image_url": f"https://images.digimoncard.io/images/sets/{sid}.jpg",
+            }
+    exp_metadata = list(exp_meta_map.values())
     if exp_metadata:
         print(f"Upserting {len(exp_metadata)} expansion metadata entries...")
         for i in range(0, len(exp_metadata), batch_size):
