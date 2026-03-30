@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { getCardImageUrl } from "@/lib/utils";
+import CardImage from "@/components/cards/card-image";
 import { useUpdateDeckCard } from "@/lib/hooks/use-decks";
 import { Minus, Plus } from "lucide-react";
 import type { Card } from "@/lib/types";
@@ -20,7 +19,7 @@ export default function DeckCardRow({ card, deckId, quantityInDeck, quantityOwne
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="relative h-16 w-11 flex-shrink-0 overflow-hidden rounded-md border border-[var(--border)]">
-        <Image src={getCardImageUrl(card.card_number)} alt={card.name} fill sizes="44px" className="object-cover" />
+        <CardImage cardNumber={card.card_number} alt={card.name} fill sizes="44px" className="object-cover" />
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium">{card.name}</p>

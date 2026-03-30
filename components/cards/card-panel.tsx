@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
-import { getCardImageUrl, formatPrice } from "@/lib/utils";
+import CardImage from "@/components/cards/card-image";
+import { formatPrice } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
 import { Coins } from "lucide-react";
 import QuantityControl from "@/components/collection/quantity-control";
@@ -40,7 +40,7 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--border)] md:hidden" />
         <div className="flex gap-4">
           <div className="relative h-[180px] w-[128px] flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
-            <Image src={getCardImageUrl(card.card_number)} alt={card.name} fill sizes="128px" className="object-cover" />
+            <CardImage cardNumber={card.card_number} alt={card.name} fill sizes="128px" className="object-cover" />
           </div>
           <div className="flex-1 space-y-2.5">
             <h2 className="text-lg font-bold text-[var(--text-primary)]">{card.name}</h2>

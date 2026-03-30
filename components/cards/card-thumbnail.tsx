@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { getCardImageUrl } from "@/lib/utils";
+import CardImage from "@/components/cards/card-image";
 import type { Card } from "@/lib/types";
 
 interface CardThumbnailProps {
@@ -15,8 +14,8 @@ export default function CardThumbnail({ card, quantity, onClick }: CardThumbnail
       className="group relative overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] transition-all duration-200 hover:-translate-y-1 hover:border-[var(--accent-border)] hover:shadow-[0_4px_16px_var(--accent-glow)]"
     >
       <div className="relative aspect-[5/7]">
-        <Image
-          src={getCardImageUrl(card.card_number)}
+        <CardImage
+          cardNumber={card.card_number}
           alt={card.name}
           fill
           sizes="(max-width: 768px) 33vw, 20vw"

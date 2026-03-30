@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { getCardImageUrl, formatPrice } from "@/lib/utils";
+import CardImage from "@/components/cards/card-image";
+import { formatPrice } from "@/lib/utils";
 import { Coins, PackageMinus } from "lucide-react";
 import type { SellableCard } from "@/lib/types";
 
@@ -12,7 +12,7 @@ export default function SellCardRow({ item, onClick }: SellCardRowProps) {
   return (
     <button onClick={onClick} className="flex w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition-all duration-200 hover:border-[var(--accent-border)] hover:shadow-[0_4px_16px_var(--accent-glow)]">
       <div className="relative h-16 w-11 flex-shrink-0 overflow-hidden rounded-md border border-[var(--border)]">
-        <Image src={getCardImageUrl(item.card.card_number)} alt={item.card.name} fill sizes="44px" className="object-cover" />
+        <CardImage cardNumber={item.card.card_number} alt={item.card.name} fill sizes="44px" className="object-cover" />
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium">{item.card.name}</p>
