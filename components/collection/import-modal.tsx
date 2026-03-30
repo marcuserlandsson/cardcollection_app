@@ -41,9 +41,20 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
   const { data: knownCards } = useQuery<Set<string>>({
     queryKey: ["all-card-numbers"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("cards").select("card_number");
-      if (error) throw error;
-      return new Set((data as { card_number: string }[]).map((c) => c.card_number));
+      const pageSize = 1000;
+      const allNumbers: string[] = [];
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabase
+          .from("cards")
+          .select("card_number")
+          .range(from, from + pageSize - 1);
+        if (error) throw error;
+        allNumbers.push(...(data as { card_number: string }[]).map((c) => c.card_number));
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      return new Set(allNumbers);
     },
     staleTime: 5 * 60 * 1000,
   });
