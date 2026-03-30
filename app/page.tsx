@@ -18,6 +18,10 @@ export default function HomePage() {
       setUser(user);
       setAuthChecked(true);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, [supabase.auth]);
 
   if (!authChecked) return null;
