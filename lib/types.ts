@@ -10,6 +10,7 @@ export interface Card {
   level: number | null;
   evolution_cost: number | null;
   image_url: string | null;
+  pretty_url: string | null;
   max_copies: number;
   last_updated: string;
 }
@@ -40,6 +41,7 @@ export interface CardVariant {
   id: string;
   card_number: string;
   variant_name: string;
+  variant_index: number;
   tcgplayer_id: number | null;
   alt_art_url: string | null;
   created_at: string;

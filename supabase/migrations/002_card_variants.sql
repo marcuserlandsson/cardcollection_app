@@ -1,15 +1,24 @@
 -- ============================================
+-- Add pretty_url to cards for linking to digimoncard.io
+-- ============================================
+alter table public.cards
+  add column pretty_url text;
+
+-- ============================================
 -- Card variants table (alt arts, reprints, promos)
 -- ============================================
 -- Each row represents a distinct printable variant of a card
 -- (e.g. regular, alternate art, reprint in a different set).
 -- The base card data lives in `cards`; variants add pricing
 -- and alt-art image info.
+--
+-- See docs/card-variants.md for the full data model documentation.
 
 create table public.card_variants (
   id uuid primary key default gen_random_uuid(),
   card_number text references public.cards(card_number) on delete cascade not null,
-  variant_name text not null,          -- e.g. "Alternate Art", "Resurgence Booster Reprint"
+  variant_name text not null,          -- e.g. "Regular", "Alternate Art", "Rare Pull"
+  variant_index integer not null,      -- 1-based order from the API
   tcgplayer_id integer,                -- unique TCGplayer product ID
   alt_art_url text,                    -- alt art image URL (null for regular printing)
   created_at timestamptz not null default now(),

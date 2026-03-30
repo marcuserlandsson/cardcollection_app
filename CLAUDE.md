@@ -34,7 +34,9 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
 ## Key Architecture Decisions
 
-- Card images served from Bandai CDN: `https://world.digimoncard.com/images/cardlist/card/{card_number}.png`
+- Card images served from digimoncard.io CDN: `https://images.digimoncard.io/images/cards/{card_number}.jpg`
+- Alt art images: `https://images.digimoncard.io/images/cards/alt/{card_number}-set-{set_id}-{idx}.webp`
+- Card variants (alt arts, reprints) documented in `docs/card-variants.md`
 - Sell logic: `surplus = owned - max(max_copies, sum across all decks)`
 - Guest browsing allowed for card database; auth required for collection/decks/sell
 - Bottom tab nav on mobile, top nav on desktop (768px breakpoint)
@@ -42,5 +44,5 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
 ## Database Schema
 
-See `supabase/migrations/001_initial_schema.sql` for the full schema.
-Tables: `cards`, `collection`, `decks`, `deck_cards`, `card_prices`
+See `supabase/migrations/` for the full schema.
+Tables: `cards`, `card_variants`, `collection`, `decks`, `deck_cards`, `card_prices`

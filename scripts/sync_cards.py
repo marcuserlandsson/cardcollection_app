@@ -1,5 +1,10 @@
 """
-Sync cards from the Digimon Card API into Supabase.
+Sync cards and variants from the Digimon Card API into Supabase.
+
+Fetches all cards in bulk, deduplicates, and stores base card data plus
+variant entries (regular, alt art, reprints) with image URLs.
+
+See docs/card-variants.md for the data model documentation.
 
 Usage:
     pip install -r scripts/requirements.txt
@@ -11,16 +16,16 @@ Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env or environment.
 import json
 import os
 import re
-import sys
 import time
 import requests
+from collections import defaultdict
 from pathlib import Path
 from urllib.parse import unquote_plus
 from dotenv import load_dotenv
 from supabase import create_client
 
-load_dotenv()  # loads .env
-load_dotenv(".env.local", override=True)  # loads .env.local (used by Next.js)
+load_dotenv()
+load_dotenv(".env.local", override=True)
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
@@ -51,12 +56,15 @@ def fetch_all_cards() -> list[dict]:
 
 
 def scrape_set_ids() -> dict[str, int]:
-    """Scrape set IDs from digimoncard.io pack pages."""
+    """Scrape set IDs from digimoncard.io pack pages.
+
+    Each pack page on digimoncard.io displays a set cover image whose URL
+    contains the internal set ID: images/sets/{SET_ID}.jpg
+    """
     print("Scraping set IDs from digimoncard.io/packs...")
     headers = {"User-Agent": "Mozilla/5.0 (compatible; CardBoard/1.0)"}
     set_ids: dict[str, int] = {}
 
-    # Collect all pack URLs
     pack_urls = set()
     for page in range(1, 15):
         resp = requests.get(
@@ -76,7 +84,6 @@ def scrape_set_ids() -> dict[str, int]:
 
     print(f"  Found {len(pack_urls)} pack pages")
 
-    # Extract set ID from each pack page's set image
     for url in sorted(pack_urls):
         pack_name = unquote_plus(url.split("/pack/")[-1])
         try:
@@ -99,7 +106,9 @@ def load_set_ids() -> dict[str, int]:
         if age_days < 7:
             with open(SET_IDS_PATH) as f:
                 cached = json.load(f)
-            print(f"Using cached set IDs ({len(cached)} sets, {age_days:.1f} days old)")
+            print(
+                f"Using cached set IDs ({len(cached)} sets, {age_days:.1f} days old)"
+            )
             return cached
 
     set_ids = scrape_set_ids()
@@ -110,21 +119,30 @@ def load_set_ids() -> dict[str, int]:
 
 
 def build_expansion_to_set_id(set_ids: dict[str, int]) -> dict[str, int]:
-    """Map expansion codes (e.g. 'EX-09', 'BT-01') to set IDs."""
-    mapping = {}
+    """Map expansion codes (e.g. 'EX-09', 'BT-01') to set IDs.
+
+    Prefers the main booster/extra set entry when multiple packs share the
+    same expansion code prefix.
+    """
+    mapping: dict[str, int] = {}
     for pack_name, sid in set_ids.items():
-        # Extract set code from pack names like "EX-09: Extra Booster Versus Monsters"
         match = re.match(r"^([A-Z]+-?\d+)", pack_name)
         if match:
             code = match.group(1)
-            # Only keep the main booster/extra set (skip box promos, limited card packs etc.)
-            if code not in mapping or "Booster" in pack_name or "Theme" in pack_name or "Extra" in pack_name:
+            if (
+                code not in mapping
+                or "Booster" in pack_name
+                or "Theme" in pack_name
+                or "Extra" in pack_name
+            ):
                 mapping[code] = sid
     return mapping
 
 
-def get_alt_art_url(card_number: str, set_id: int, variant_idx: int = 1) -> str:
-    """Build alt art image URL."""
+def get_alt_art_url(
+    card_number: str, set_id: int, variant_idx: int = 1
+) -> str:
+    """Build alt art image URL on the digimoncard.io CDN."""
     return f"{ALT_IMAGE_BASE_URL}/{card_number}-set-{set_id}-{variant_idx}.webp"
 
 
@@ -136,7 +154,9 @@ def transform_card(raw: dict) -> dict:
     expansion = ""
     if set_names:
         first_set = set_names[0]
-        expansion = first_set.split(":")[0].strip() if ":" in first_set else first_set
+        expansion = (
+            first_set.split(":")[0].strip() if ":" in first_set else first_set
+        )
 
     return {
         "card_number": card_number,
@@ -152,6 +172,7 @@ def transform_card(raw: dict) -> dict:
             raw.get("evolution_cost") if raw.get("evolution_cost") else None
         ),
         "image_url": f"{IMAGE_BASE_URL}/{card_number}.jpg",
+        "pretty_url": raw.get("pretty_url", ""),
         "max_copies": 4,
     }
 
@@ -168,66 +189,75 @@ def sync_cards():
     all_raw = fetch_all_cards()
     print(f"Fetched {len(all_raw)} cards from API")
 
-    # Deduplicate cards, collect variants
-    seen: dict[str, dict] = {}
-    variants: list[dict] = []
+    # Group API entries by card ID to assign variant indices in order
+    card_entries: dict[str, list[dict]] = defaultdict(list)
     skipped = 0
-
     for raw in all_raw:
         card_id = raw.get("id")
         if not card_id:
             skipped += 1
             continue
+        card_entries[card_id].append(raw)
 
-        tcgplayer_name = raw.get("tcgplayer_name", "")
-        tcgplayer_id = raw.get("tcgplayer_id")
+    # Build cards and variants
+    cards: dict[str, dict] = {}
+    variants: list[dict] = []
+    alt_art_count = 0
 
-        # First occurrence becomes the base card
-        if card_id not in seen:
-            seen[card_id] = transform_card(raw)
+    for card_id, entries in card_entries.items():
+        cards[card_id] = transform_card(entries[0])
+        expansion = cards[card_id]["expansion"]
+        set_id = expansion_set_ids.get(expansion)
 
-        # Build variant entry
-        if tcgplayer_id:
+        # Track alt art index separately (for image URL variant_idx)
+        alt_art_idx = 0
+
+        for v_index, raw in enumerate(entries, start=1):
+            tcgplayer_id = raw.get("tcgplayer_id")
+            if not tcgplayer_id:
+                continue
+
+            tcgplayer_name = raw.get("tcgplayer_name", "")
             is_alt_art = "Alternate Art" in tcgplayer_name
 
             # Determine variant name
             if tcgplayer_name == raw.get("name", ""):
                 variant_name = "Regular"
             else:
-                # Extract the parenthetical description
                 match = re.search(r"\(([^)]+)\)$", tcgplayer_name)
                 variant_name = match.group(1) if match else tcgplayer_name
 
-            # Build alt art URL if available
+            # Build alt art image URL
             alt_art_url = None
-            if is_alt_art:
-                expansion = seen[card_id].get("expansion", "")
-                sid = expansion_set_ids.get(expansion)
-                if sid:
-                    alt_art_url = get_alt_art_url(card_id, sid)
+            if is_alt_art and set_id:
+                alt_art_idx += 1
+                alt_art_url = get_alt_art_url(card_id, set_id, alt_art_idx)
+                alt_art_count += 1
 
-            variants.append({
-                "card_number": card_id,
-                "variant_name": variant_name,
-                "tcgplayer_id": tcgplayer_id,
-                "alt_art_url": alt_art_url,
-            })
+            variants.append(
+                {
+                    "card_number": card_id,
+                    "variant_name": variant_name,
+                    "variant_index": v_index,
+                    "tcgplayer_id": tcgplayer_id,
+                    "alt_art_url": alt_art_url,
+                }
+            )
 
-    cards = list(seen.values())
+    card_list = list(cards.values())
 
     if skipped:
         print(f"Skipped {skipped} cards with no ID")
-    dupes = len(all_raw) - skipped - len(cards)
-    if dupes:
-        print(f"Found {dupes} variant entries across {len(cards)} unique cards")
+    print(f"Unique cards: {len(card_list)}")
+    print(f"Total variants: {len(variants)} ({alt_art_count} with alt art images)")
 
     # Upsert cards
-    print(f"Upserting {len(cards)} cards in batches...")
+    print(f"Upserting {len(card_list)} cards in batches...")
     batch_size = 500
-    for i in range(0, len(cards), batch_size):
-        batch = cards[i : i + batch_size]
+    for i in range(0, len(card_list), batch_size):
+        batch = card_list[i : i + batch_size]
         supabase.table("cards").upsert(batch).execute()
-        print(f"  Upserted {min(i + batch_size, len(cards))}/{len(cards)}")
+        print(f"  Upserted {min(i + batch_size, len(card_list))}/{len(card_list)}")
 
     # Upsert variants
     if variants:
@@ -237,10 +267,14 @@ def sync_cards():
             supabase.table("card_variants").upsert(
                 batch, on_conflict="card_number,tcgplayer_id"
             ).execute()
-            print(f"  Upserted {min(i + batch_size, len(variants))}/{len(variants)}")
+            print(
+                f"  Upserted {min(i + batch_size, len(variants))}/{len(variants)}"
+            )
 
     result = supabase.table("cards").select("card_number", count="exact").execute()
-    variant_result = supabase.table("card_variants").select("id", count="exact").execute()
+    variant_result = (
+        supabase.table("card_variants").select("id", count="exact").execute()
+    )
     print(f"Done! Cards: {result.count}, Variants: {variant_result.count}")
 
 
