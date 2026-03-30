@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { parseCardList, parseCSV } from "@/lib/import-parser";
 import { useUpdateQuantity } from "@/lib/hooks/use-collection";
 import { useCollectionMap } from "@/lib/hooks/use-collection";
+import { useUpdateDeckCard } from "@/lib/hooks/use-decks";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { X, Upload, ClipboardPaste, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
@@ -17,9 +18,11 @@ type Stage = "input" | "preview" | "importing" | "done";
 interface ImportModalProps {
   open: boolean;
   onClose: () => void;
+  /** When provided, imports cards into this deck instead of the collection */
+  deckId?: string;
 }
 
-export default function ImportModal({ open, onClose }: ImportModalProps) {
+export default function ImportModal({ open, onClose, deckId }: ImportModalProps) {
   const [tab, setTab] = useState<Tab>("paste");
   const [stage, setStage] = useState<Stage>("input");
   const [textInput, setTextInput] = useState("");
@@ -30,7 +33,10 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateQuantity = useUpdateQuantity();
+  const updateDeckCard = useUpdateDeckCard();
   const quantities = useCollectionMap();
+
+  const isDeckImport = !!deckId;
 
   const { data: knownCards } = useQuery<Set<string>>({
     queryKey: ["all-card-numbers"],
@@ -116,26 +122,42 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
     setStage("importing");
     let imported = 0;
     for (const entry of validated) {
-      const currentQty = quantities.get(entry.cardNumber) ?? 0;
-      await updateQuantity.mutateAsync({
-        cardNumber: entry.cardNumber,
-        quantity: currentQty + entry.quantity,
-      });
+      if (isDeckImport) {
+        await updateDeckCard.mutateAsync({
+          deckId: deckId!,
+          cardNumber: entry.cardNumber,
+          quantity: entry.quantity,
+        });
+      } else {
+        const currentQty = quantities.get(entry.cardNumber) ?? 0;
+        await updateQuantity.mutateAsync({
+          cardNumber: entry.cardNumber,
+          quantity: currentQty + entry.quantity,
+        });
+      }
       imported++;
       setImportProgress(Math.round((imported / validated.length) * 100));
     }
     setImportedCount(imported);
     setStage("done");
-  }, [validated, quantities, updateQuantity]);
+  }, [validated, quantities, updateQuantity, updateDeckCard, isDeckImport, deckId]);
 
   if (!open) return null;
+
+  const title = isDeckImport ? "Import Deck List" : "Import Cards";
+  const previewHint = isDeckImport
+    ? "This will set the deck contents to the imported list."
+    : "Quantities will be added to your existing collection.";
+  const doneMessage = isDeckImport
+    ? `Imported ${importedCount} cards into deck`
+    : `Added ${importedCount} cards to your collection`;
 
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/60" onClick={handleClose} />
       <div className="fixed inset-x-4 top-[10vh] z-50 mx-auto max-w-lg rounded-2xl bg-[var(--surface)] p-5 shadow-xl md:inset-x-auto md:w-[480px]">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Import Cards</h2>
+          <h2 className="text-lg font-bold">{title}</h2>
           <button onClick={handleClose} className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--elevated)]">
             <X size={18} />
           </button>
@@ -248,7 +270,7 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
             </div>
 
             <p className="mt-2 text-xs text-[var(--text-dim)]">
-              Quantities will be added to your existing collection.
+              {previewHint}
             </p>
 
             <div className="mt-3 flex gap-2">
@@ -286,7 +308,7 @@ export default function ImportModal({ open, onClose }: ImportModalProps) {
           <div className="mt-4 flex flex-col items-center py-8">
             <CheckCircle2 size={32} className="text-[var(--green)]" />
             <p className="mt-3 text-sm font-medium">
-              Added {importedCount} cards to your collection
+              {doneMessage}
             </p>
             <button
               onClick={handleClose}

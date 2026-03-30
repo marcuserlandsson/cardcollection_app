@@ -10,7 +10,8 @@ import DeckCardRow from "@/components/decks/deck-card-row";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardGrid from "@/components/cards/card-grid";
 import CardPanel from "@/components/cards/card-panel";
-import { ArrowLeft, Plus, Trash2, AlertTriangle, Check, SquareStack } from "lucide-react";
+import ImportModal from "@/components/collection/import-modal";
+import { ArrowLeft, Plus, Trash2, AlertTriangle, Check, SquareStack, Upload } from "lucide-react";
 import type { Card } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
@@ -20,6 +21,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
   const { id: deckId } = use(params);
   const router = useRouter();
   const [addingCards, setAddingCards] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
@@ -80,6 +82,10 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
           {deck.description && <p className="text-sm text-[var(--text-secondary)]">{deck.description}</p>}
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setImportOpen(true)} className="flex items-center gap-1.5 rounded-lg bg-[var(--elevated)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+            <Upload size={14} />
+            Import
+          </button>
           <button onClick={() => setAddingCards(!addingCards)} className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--background)] hover:bg-[var(--accent-hover)]">
             {addingCards ? <><Check size={14} /> Done</> : <><Plus size={14} /> Add Cards</>}
           </button>
@@ -118,6 +124,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
         ))}
       </div>
       <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} />
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} deckId={deckId} />
     </div>
   );
 }
