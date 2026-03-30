@@ -149,7 +149,7 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
       imported++;
       setImportProgress(Math.round((imported / validated.length) * 100));
     }
-    setImportedCount(imported);
+    setImportedCount(validated.reduce((sum, e) => sum + e.quantity, 0));
     setStage("done");
   }, [validated, quantities, updateQuantity, updateDeckCard, isDeckImport, deckId]);
 
