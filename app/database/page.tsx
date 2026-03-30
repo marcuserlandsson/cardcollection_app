@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useExpansions, useExpansionMetadata, useCardsByExpansion, useCardSearch, useCardsFiltered } from "@/lib/hooks/use-cards";
 import { ArrowLeft, Check } from "lucide-react";
@@ -11,17 +11,18 @@ import ExpansionGrid from "@/components/cards/expansion-grid";
 import CardPanel from "@/components/cards/card-panel";
 import type { Card, Expansion } from "@/lib/types";
 
-export default function DatabasePage() {
+function DatabasePageContent() {
   const searchParams = useSearchParams();
-  const [showConfirmed, setShowConfirmed] = useState(false);
+  const [showConfirmed, setShowConfirmed] = useState(
+    () => searchParams.get("confirmed") === "true"
+  );
 
   useEffect(() => {
-    if (searchParams.get("confirmed") === "true") {
-      setShowConfirmed(true);
+    if (showConfirmed) {
       const timeout = setTimeout(() => setShowConfirmed(false), 5000);
       return () => clearTimeout(timeout);
     }
-  }, [searchParams]);
+  }, [showConfirmed]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ color?: string; card_type?: string; rarity?: string }>({});
@@ -95,5 +96,13 @@ export default function DatabasePage() {
       {displayCards && !isLoading && <CardGrid cards={displayCards} onCardClick={handleCardClick} />}
       <CardPanel card={selectedCard} onClose={handleClosePanel} />
     </div>
+  );
+}
+
+export default function DatabasePage() {
+  return (
+    <Suspense>
+      <DatabasePageContent />
+    </Suspense>
   );
 }
