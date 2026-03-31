@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { Card, Expansion, CardVariant } from "@/lib/types";
+import type { Card, Expansion } from "@/lib/types";
 
 const supabase = createClient();
 
@@ -169,33 +169,33 @@ export function useCard(cardNumber: string | null) {
   });
 }
 
-export function useCardVariants(cardNumber: string | null) {
-  return useQuery<CardVariant[]>({
-    queryKey: ["card-variants", cardNumber],
+export function useCardSiblings(baseCardNumber: string | null) {
+  return useQuery<Card[]>({
+    queryKey: ["card-siblings", baseCardNumber],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("card_variants")
+        .from("cards")
         .select("*")
-        .eq("card_number", cardNumber!)
-        .order("variant_index");
+        .eq("base_card_number", baseCardNumber!)
+        .order("card_number");
       if (error) throw error;
-      return data as CardVariant[];
+      return data as Card[];
     },
-    enabled: !!cardNumber,
+    enabled: !!baseCardNumber,
   });
 }
 
-export function useCardExpansions(cardNumber: string | null) {
+export function useCardExpansions(baseCardNumber: string | null) {
   return useQuery<{ card_number: string; expansion: string }[]>({
-    queryKey: ["card-expansions", cardNumber],
+    queryKey: ["card-expansions", baseCardNumber],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("card_expansions")
         .select("card_number, expansion")
-        .eq("card_number", cardNumber!);
+        .eq("card_number", baseCardNumber!);
       if (error) throw error;
       return data as { card_number: string; expansion: string }[];
     },
-    enabled: !!cardNumber,
+    enabled: !!baseCardNumber,
   });
 }
