@@ -1,9 +1,10 @@
 """
-Sync card variant images from the CardTrader API into Supabase.
+Sync card variant images and expansions from the CardTrader API into Supabase.
 
 Fetches all Digimon blueprints from CardTrader, matches them to cards in our
-database by base_card_number + variant_name, and updates image_url for cards
-that are still using the default base card image.
+database by base_card_number + variant_name, and updates:
+  - image_url: per-variant card artwork
+  - expansion + card_expansions: correct expansion for cross-set variants
 
 Requires CARDTRADER_ACCESS_TOKEN and SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY
 in .env or environment.
@@ -133,20 +134,31 @@ def fetch_all_digimon_blueprints(headers: dict) -> list[dict]:
     return all_blueprints
 
 
-def build_image_lookup(
-    blueprints: list[dict],
-) -> dict[tuple[str, str], str]:
-    """Build a lookup map from (base_card_number, normalized_version) -> image_url.
+def extract_expansion_code(ct_expansion_name: str) -> str:
+    """Extract our expansion code from a CardTrader expansion name.
 
-    When multiple blueprints match the same key, prefer the one with an image.
+    Examples:
+        "BT-17: Secret Crisis" -> "BT-17"
+        "EX-9: Versus Monsters" -> "EX-9"
+        "AD-01: Advanced Booster Digimon Generation" -> "AD-01"
+        "ST-9: Starter Deck Ultimate Ancient Dragon" -> "ST-9"
+        "Promo" -> "Promo"
+        "Premium Bandai Products" -> "Premium Bandai Products"
     """
-    lookup: dict[tuple[str, str], str] = {}
+    match = re.match(r"^([A-Z]+-?\d+)", ct_expansion_name)
+    return match.group(1) if match else ct_expansion_name
+
+
+def build_blueprint_lookup(
+    blueprints: list[dict],
+) -> dict[tuple[str, str], dict]:
+    """Build a lookup map from (base_card_number, normalized_version) -> blueprint data.
+
+    Returns dict with keys 'image_url' and 'expansion'.
+    """
+    lookup: dict[tuple[str, str], dict] = {}
 
     for bp in blueprints:
-        image_url = bp.get("image_url", "")
-        if not image_url:
-            continue
-
         collector_number = (
             bp.get("fixed_properties", {}).get("collector_number", "")
         )
@@ -156,11 +168,15 @@ def build_image_lookup(
         base_cn = strip_collector_suffix(collector_number)
         version = bp.get("version", "")
         normalized = normalize_version(version)
+        expansion = extract_expansion_code(bp.get("_expansion_name", ""))
 
         key = (base_cn, normalized)
         # Keep first match (don't overwrite)
         if key not in lookup:
-            lookup[key] = image_url
+            lookup[key] = {
+                "image_url": bp.get("image_url", ""),
+                "expansion": expansion,
+            }
 
     return lookup
 
@@ -182,21 +198,21 @@ def sync_images():
 
     # Fetch all blueprints
     blueprints = fetch_all_digimon_blueprints(headers)
-    image_lookup = build_image_lookup(blueprints)
-    print(f"Built image lookup with {len(image_lookup)} entries")
+    bp_lookup = build_blueprint_lookup(blueprints)
+    print(f"Built blueprint lookup with {len(bp_lookup)} entries")
 
-    # Connect to Supabase and fetch cards that need images
+    # Connect to Supabase and fetch cards
     print("Connecting to Supabase...")
     supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    # Fetch all cards with their current image_url, base_card_number, variant_name
+    # Fetch all cards
     page_size = 1000
     all_cards = []
     offset = 0
     while True:
         result = (
             supabase.table("cards")
-            .select("card_number, base_card_number, variant_name, image_url")
+            .select("card_number, base_card_number, variant_name, image_url, expansion")
             .range(offset, offset + page_size - 1)
             .execute()
         )
@@ -207,59 +223,86 @@ def sync_images():
 
     print(f"Fetched {len(all_cards)} cards from database")
 
-    # Match and update
-    updates = []
-    matched = 0
-    already_has_image = 0
+    # Match and build updates
+    image_updates = []
+    expansion_fixes = []  # (card_number, new_expansion) — cards needing expansion change
+    expansion_cleanups = []  # card_numbers needing card_expansions cleanup (variant cards with CT match)
 
     for card in all_cards:
         card_number = card["card_number"]
         base_cn = card["base_card_number"]
         variant_name = card["variant_name"]
         current_image = card.get("image_url", "")
+        current_expansion = card.get("expansion", "")
+        is_variant = card_number != base_cn
 
-        # Skip if the card already has a non-default image
-        # Default images are from digimoncard.io CDN: .../cards/{base}.jpg
-        default_image = f"https://images.digimoncard.io/images/cards/{base_cn}.jpg"
-        if current_image and current_image != default_image:
-            already_has_image += 1
-            continue
-
-        # Try to match against CardTrader lookup
         normalized_name = normalize_variant_name(variant_name)
         key = (base_cn, normalized_name)
-        ct_image = image_lookup.get(key)
+        bp_data = bp_lookup.get(key)
 
-        if ct_image:
-            updates.append(
-                {"card_number": card_number, "image_url": ct_image}
+        if not bp_data:
+            continue
+
+        # Update image if card still has default base image
+        default_image = f"https://images.digimoncard.io/images/cards/{base_cn}.jpg"
+        if bp_data["image_url"] and (not current_image or current_image == default_image):
+            image_updates.append(
+                {"card_number": card_number, "image_url": bp_data["image_url"]}
             )
-            matched += 1
 
-    print(f"Cards already with variant images: {already_has_image}")
-    print(f"New image matches found: {matched}")
+        # For variant cards, ensure correct expansion from CardTrader
+        ct_expansion = bp_data["expansion"]
+        if is_variant and ct_expansion:
+            if ct_expansion != current_expansion:
+                expansion_fixes.append((card_number, ct_expansion))
+            # Always clean up card_expansions for variants to remove inherited entries
+            expansion_cleanups.append((card_number, ct_expansion))
 
-    if not updates:
-        print("No images to update.")
-        return
+    print(f"Image updates: {len(image_updates)}")
+    print(f"Expansion column fixes: {len(expansion_fixes)}")
+    print(f"Expansion entry cleanups: {len(expansion_cleanups)}")
 
-    # Batch update using upsert — only include cards that exist in DB
-    # We know these card_numbers exist because we fetched them from the DB above
-    db_card_numbers = {c["card_number"] for c in all_cards}
-    valid_updates = [u for u in updates if u["card_number"] in db_card_numbers]
-    print(f"Updating {len(valid_updates)} card images (filtered to existing cards)...")
-
-    batch_size = 200
-    for i in range(0, len(valid_updates), batch_size):
-        batch = valid_updates[i : i + batch_size]
-        # Use RPC or individual updates to avoid upsert creating new rows
-        for update in batch:
+    # Apply image updates
+    if image_updates:
+        print(f"Updating {len(image_updates)} card images...")
+        for i, update in enumerate(image_updates):
             supabase.table("cards").update(
                 {"image_url": update["image_url"]}
             ).eq("card_number", update["card_number"]).execute()
-        print(f"  Updated {min(i + batch_size, len(valid_updates))}/{len(valid_updates)}")
+            if (i + 1) % 500 == 0:
+                print(f"  Updated {i + 1}/{len(image_updates)}")
+        print(f"  Updated {len(image_updates)}/{len(image_updates)}")
 
-    print("Done!")
+    # Apply expansion column fixes
+    if expansion_fixes:
+        print(f"Fixing {len(expansion_fixes)} card expansion columns...")
+        for i, (card_number, new_exp) in enumerate(expansion_fixes):
+            supabase.table("cards").update(
+                {"expansion": new_exp}
+            ).eq("card_number", card_number).execute()
+            if (i + 1) % 500 == 0:
+                print(f"  Fixed {i + 1}/{len(expansion_fixes)}")
+        print(f"  Fixed {len(expansion_fixes)}/{len(expansion_fixes)}")
+
+    # Clean up card_expansions for variant cards — replace inherited entries
+    # with the single correct expansion from CardTrader
+    if expansion_cleanups:
+        print(f"Cleaning up {len(expansion_cleanups)} variant card_expansions...")
+        for i, (card_number, correct_exp) in enumerate(expansion_cleanups):
+            supabase.table("card_expansions").delete().eq(
+                "card_number", card_number
+            ).execute()
+            supabase.table("card_expansions").upsert(
+                {"card_number": card_number, "expansion": correct_exp}
+            ).execute()
+            if (i + 1) % 500 == 0:
+                print(f"  Cleaned {i + 1}/{len(expansion_cleanups)}")
+        print(f"  Cleaned {len(expansion_cleanups)}/{len(expansion_cleanups)}")
+
+    if not image_updates and not expansion_fixes and not expansion_cleanups:
+        print("Nothing to update.")
+    else:
+        print("Done!")
 
 
 if __name__ == "__main__":

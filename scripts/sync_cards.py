@@ -299,12 +299,11 @@ def sync_cards():
             )
             cards[card_row["card_number"]] = card_row
 
-            # Add expansion entries for variant cards too
-            if v_index > 1:
-                for sn in set_names:
-                    exp_code = sn.split(":")[0].strip() if ":" in sn else sn
-                    if exp_code:
-                        card_expansion_set.add((card_row["card_number"], exp_code))
+            # Don't add expansion entries for non-regular variants here.
+            # The Digimon API doesn't tell us which set a variant was actually
+            # printed in — cross-set variants (reprints, gold borders, etc.)
+            # would incorrectly show up under the base card's expansion.
+            # The sync_images.py script assigns correct expansions from CardTrader.
 
     card_list = list(cards.values())
 
