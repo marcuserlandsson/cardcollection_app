@@ -11,9 +11,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <TopNavBar />
       <main
-        className={`mx-auto max-w-7xl px-4 pb-20 pt-4 transition-transform duration-300 ease-in-out md:px-6 md:pb-6 ${
-          isPanelOpen ? "md:-translate-x-[200px]" : ""
+        className={`px-4 pb-20 pt-4 md:px-6 md:pb-6 ${
+          isPanelOpen
+            ? "md:mr-[400px]"
+            : "mx-auto max-w-7xl"
         }`}
+        style={{
+          transition: "max-width 300ms ease-in-out, margin 300ms ease-in-out",
+          ...(isPanelOpen ? { maxWidth: "calc(100% - 400px)" } : {}),
+        }}
       >
         {children}
       </main>
