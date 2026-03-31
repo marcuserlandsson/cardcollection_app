@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageOff, X, Coins } from "lucide-react";
 import { formatPrice, getCardImageUrl } from "@/lib/utils";
@@ -27,12 +27,19 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
   const { openPanel, closePanel } = usePanelContext();
   const [variantImageUrl, setVariantImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const prevCardRef = useRef<string | null>(null);
+
+  // Reset variant/image state when card changes (no effect needed)
+  const currentCardNumber = card?.card_number ?? null;
+  if (currentCardNumber !== prevCardRef.current) {
+    prevCardRef.current = currentCardNumber;
+    if (variantImageUrl !== null) setVariantImageUrl(null);
+    if (imageError) setImageError(false);
+  }
 
   useEffect(() => {
     if (card) {
       openPanel();
-      setVariantImageUrl(null);
-      setImageError(false);
     } else {
       closePanel();
     }
