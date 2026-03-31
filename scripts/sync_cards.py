@@ -266,7 +266,7 @@ def sync_cards():
         alt_art_idx = 0
 
         for v_index, raw in enumerate(entries, start=1):
-            tcgplayer_name = raw.get("tcgplayer_name", "")
+            tcgplayer_name = raw.get("tcgplayer_name") or ""
             is_alt_art = "Alternate Art" in tcgplayer_name
 
             # Determine variant name
