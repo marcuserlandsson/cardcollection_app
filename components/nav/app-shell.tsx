@@ -10,19 +10,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <TopNavBar />
-      <main
-        className={`px-4 pb-20 pt-4 md:px-6 md:pb-6 ${
-          isPanelOpen
-            ? "md:mr-[400px]"
-            : "mx-auto max-w-7xl"
-        }`}
-        style={{
-          transition: "max-width 300ms ease-in-out, margin 300ms ease-in-out",
-          ...(isPanelOpen ? { maxWidth: "calc(100% - 400px)" } : {}),
-        }}
-      >
-        {children}
-      </main>
+      <div className="flex justify-center">
+        <main
+          className="w-full max-w-7xl px-4 pb-20 pt-4 md:px-6 md:pb-6"
+          style={{
+            marginRight: isPanelOpen ? 400 : 0,
+            transition: "margin-right 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {children}
+        </main>
+      </div>
       <BottomTabBar />
     </>
   );
