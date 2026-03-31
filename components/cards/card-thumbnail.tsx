@@ -17,6 +17,7 @@ export default function CardThumbnail({ card, quantity, onClick }: CardThumbnail
         <CardImage
           cardNumber={card.card_number}
           alt={card.name}
+          imageUrl={card.image_url}
           fill
           sizes="(max-width: 768px) 33vw, 20vw"
           className="object-cover"

@@ -65,7 +65,7 @@ export default function WorthSelling() {
             className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-[var(--elevated)]"
           >
             <div className="relative h-10 w-7 flex-shrink-0 overflow-hidden rounded border border-[var(--border)]">
-              <CardImage cardNumber={item.card.card_number} alt={item.card.name} fill sizes="28px" className="object-cover" />
+              <CardImage cardNumber={item.card.card_number} alt={item.card.name} imageUrl={item.card.image_url} fill sizes="28px" className="object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium">{item.card.name}</p>

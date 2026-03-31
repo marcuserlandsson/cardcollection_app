@@ -8,12 +8,13 @@ import { getCardImageUrl } from "@/lib/utils";
 interface CardImageProps {
   cardNumber: string;
   alt: string;
+  imageUrl?: string | null;
   fill?: boolean;
   sizes?: string;
   className?: string;
 }
 
-export default function CardImage({ cardNumber, alt, fill, sizes, className }: CardImageProps) {
+export default function CardImage({ cardNumber, alt, imageUrl, fill, sizes, className }: CardImageProps) {
   const [error, setError] = useState(false);
 
   if (error) {
@@ -27,7 +28,7 @@ export default function CardImage({ cardNumber, alt, fill, sizes, className }: C
 
   return (
     <Image
-      src={getCardImageUrl(cardNumber)}
+      src={imageUrl || getCardImageUrl(cardNumber)}
       alt={alt}
       fill={fill}
       sizes={sizes}

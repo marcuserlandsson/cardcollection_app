@@ -19,7 +19,7 @@ export default function DeckCardRow({ card, deckId, quantityInDeck, quantityOwne
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="relative h-16 w-11 flex-shrink-0 overflow-hidden rounded-md border border-[var(--border)]">
-        <CardImage cardNumber={card.card_number} alt={card.name} fill sizes="44px" className="object-cover" />
+        <CardImage cardNumber={card.card_number} alt={card.name} imageUrl={card.image_url} fill sizes="44px" className="object-cover" />
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium">{card.name}</p>
