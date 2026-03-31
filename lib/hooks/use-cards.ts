@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { Card, Expansion } from "@/lib/types";
+import type { Card, Expansion, CardVariant } from "@/lib/types";
 
 const supabase = createClient();
 
@@ -164,6 +164,37 @@ export function useCard(cardNumber: string | null) {
 
       if (error) throw error;
       return data as Card;
+    },
+    enabled: !!cardNumber,
+  });
+}
+
+export function useCardVariants(cardNumber: string | null) {
+  return useQuery<CardVariant[]>({
+    queryKey: ["card-variants", cardNumber],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("card_variants")
+        .select("*")
+        .eq("card_number", cardNumber!)
+        .order("variant_index");
+      if (error) throw error;
+      return data as CardVariant[];
+    },
+    enabled: !!cardNumber,
+  });
+}
+
+export function useCardExpansions(cardNumber: string | null) {
+  return useQuery<{ card_number: string; expansion: string }[]>({
+    queryKey: ["card-expansions", cardNumber],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("card_expansions")
+        .select("card_number, expansion")
+        .eq("card_number", cardNumber!);
+      if (error) throw error;
+      return data as { card_number: string; expansion: string }[];
     },
     enabled: !!cardNumber,
   });
