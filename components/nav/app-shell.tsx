@@ -11,7 +11,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <TopNavBar />
       <main
-        className={`mx-auto max-w-7xl px-4 pb-20 pt-4 transition-[margin] duration-300 md:px-6 md:pb-6 ${
+        style={{
+          transitionProperty: "margin-left, margin-right",
+          transitionDuration: "300ms",
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+        className={`mx-auto max-w-7xl px-4 pb-20 pt-4 md:px-6 md:pb-6 ${
           isPanelOpen ? "md:mr-[400px] md:ml-0" : ""
         }`}
       >
