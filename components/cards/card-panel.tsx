@@ -104,7 +104,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
             <div className="flex flex-wrap gap-1.5">
               <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--purple-translucent)", color: "var(--purple)" }}>{card.card_type}</span>
               {card.rarity && <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--yellow-translucent)", color: "var(--yellow)" }}>{card.rarity}</span>}
-              <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: colorStyle.bg, color: colorStyle.color }}>{card.color}</span>
+              <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: colorStyle!.bg, color: colorStyle!.color }}>{card.color}</span>
               {card.variant_name !== "Regular" && (
                 <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--accent-translucent)", color: "var(--accent)" }}>{card.variant_name}</span>
               )}
