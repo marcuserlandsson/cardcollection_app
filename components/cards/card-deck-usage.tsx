@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useDecks, useAllDeckCards } from "@/lib/hooks/use-decks";
+import { getBaseCardNumber } from "@/lib/utils";
 
 interface CardDeckUsageProps {
   cardNumber: string;
@@ -13,8 +14,10 @@ export default function CardDeckUsage({ cardNumber }: CardDeckUsageProps) {
 
   if (!decks || !allDeckCards) return null;
 
+  const baseCardNumber = getBaseCardNumber(cardNumber);
+
   const usages = allDeckCards
-    .filter((dc) => dc.card_number === cardNumber)
+    .filter((dc) => dc.card_number === baseCardNumber)
     .map((dc) => {
       const deck = decks.find((d) => d.id === dc.deck_id);
       return deck ? { deckId: deck.id, deckName: deck.name, quantity: dc.quantity } : null;
