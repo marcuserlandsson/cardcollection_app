@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import CardImage from "@/components/cards/card-image";
-import { formatPrice } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { ImageOff, X, Coins } from "lucide-react";
+import { formatPrice, getCardImageUrl } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
-import { Coins } from "lucide-react";
+import { usePanelContext } from "@/contexts/panel-context";
 import QuantityControl from "@/components/collection/quantity-control";
+import CardVariants from "@/components/cards/card-variants";
+import CardDeckUsage from "@/components/cards/card-deck-usage";
+import CardExpansions from "@/components/cards/card-expansions";
 import type { Card } from "@/lib/types";
 
 const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
@@ -20,6 +24,19 @@ const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
 
 export default function CardPanel({ card, onClose }: { card: Card | null; onClose: () => void }) {
   const { data: price } = useCardPrice(card?.card_number ?? null);
+  const { openPanel, closePanel } = usePanelContext();
+  const [variantImageUrl, setVariantImageUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    if (card) {
+      openPanel();
+      setVariantImageUrl(null);
+      setImageError(false);
+    } else {
+      closePanel();
+    }
+  }, [card, openPanel, closePanel]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -32,15 +49,45 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
   if (!card) return null;
 
   const colorStyle = COLOR_STYLES[card.color] ?? { color: "var(--text-secondary)", bg: "var(--elevated)" };
+  const displayImageUrl = variantImageUrl || getCardImageUrl(card.card_number);
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-[var(--surface)] p-5 shadow-xl md:bottom-auto md:right-0 md:top-0 md:left-auto md:w-[400px] md:max-h-full md:rounded-none md:rounded-l-2xl">
+      {/* Mobile overlay only */}
+      <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-[var(--surface)] p-5 shadow-xl transition-transform duration-300 md:bottom-0 md:right-0 md:top-0 md:left-auto md:w-[400px] md:max-h-full md:rounded-none md:border-l md:border-[var(--border)]">
+        {/* Mobile drag handle */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--border)] md:hidden" />
+
+        {/* Desktop close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 hidden rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--elevated)] md:block"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Card Header */}
         <div className="flex gap-4">
           <div className="relative h-[180px] w-[128px] flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
-            <CardImage cardNumber={card.card_number} alt={card.name} fill sizes="128px" className="object-cover" />
+            {imageError ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--elevated)] text-[var(--text-dim)]">
+                <ImageOff size={20} />
+                <span className="text-[10px]">{card.card_number}</span>
+              </div>
+            ) : (
+              <Image
+                key={displayImageUrl}
+                src={displayImageUrl}
+                alt={card.name}
+                fill
+                sizes="128px"
+                className="object-cover"
+                onError={() => setImageError(true)}
+              />
+            )}
           </div>
           <div className="flex-1 space-y-2.5">
             <h2 className="text-lg font-bold text-[var(--text-primary)]">{card.name}</h2>
@@ -52,6 +99,8 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
             </div>
           </div>
         </div>
+
+        {/* Stats Row */}
         {(card.level !== null || card.play_cost !== null || card.dp !== null || card.evolution_cost !== null) && (
           <div className="mt-4 flex gap-2">
             {card.level !== null && (
@@ -80,10 +129,29 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
             )}
           </div>
         )}
-        <div className="mt-4 rounded-lg bg-[var(--elevated)] p-3">
+
+        {/* Variants */}
+        <CardVariants
+          cardNumber={card.card_number}
+          onVariantSelect={(url) => {
+            setVariantImageUrl(url);
+            setImageError(false);
+          }}
+        />
+
+        {/* Collection */}
+        <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">My Collection</div>
           <QuantityControl cardNumber={card.card_number} />
         </div>
+
+        {/* Deck Usage */}
+        <CardDeckUsage cardNumber={card.card_number} />
+
+        {/* Expansions */}
+        <CardExpansions cardNumber={card.card_number} />
+
+        {/* Price */}
         <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
           <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Cardmarket Price</div>
           <div className="flex items-baseline gap-3">
