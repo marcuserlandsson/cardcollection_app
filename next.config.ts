@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "assets.orangeswim.dev",
         pathname: "/other/**",
       },
+      {
+        protocol: "https",
+        hostname: "cardtrader.com",
+        pathname: "/uploads/**",
+      },
     ],
   },
 };
