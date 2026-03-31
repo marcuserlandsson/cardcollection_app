@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Providers from "./providers";
 import AppShell from "@/components/nav/app-shell";
+import { PanelProvider } from "@/contexts/panel-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers>
-          <AppShell>{children}</AppShell>
+          <PanelProvider>
+            <AppShell>{children}</AppShell>
+          </PanelProvider>
         </Providers>
       </body>
     </html>
