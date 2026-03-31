@@ -91,7 +91,7 @@ export default function CollectionPage() {
         </div>
       )}
       {filteredCards && <CardGrid cards={filteredCards} quantities={quantities} onCardClick={handleCardClick} />}
-      <CardPanel card={selectedCard} onClose={handleClosePanel} />
+      <CardPanel card={selectedCard} onClose={handleClosePanel} onCardSelect={setSelectedCard} />
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );

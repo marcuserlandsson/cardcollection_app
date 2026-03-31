@@ -7,7 +7,7 @@ import { formatPrice, getCardImageUrl } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
 import { usePanelContext } from "@/contexts/panel-context";
 import QuantityControl from "@/components/collection/quantity-control";
-import CardVariants from "@/components/cards/card-variants";
+import CardSiblings from "@/components/cards/card-siblings";
 import CardDeckUsage from "@/components/cards/card-deck-usage";
 import CardExpansions from "@/components/cards/card-expansions";
 import type { Card } from "@/lib/types";
@@ -22,18 +22,15 @@ const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
   White: { color: "var(--text-primary)", bg: "var(--elevated)" },
 };
 
-export default function CardPanel({ card, onClose }: { card: Card | null; onClose: () => void }) {
+export default function CardPanel({ card, onClose, onCardSelect }: { card: Card | null; onClose: () => void; onCardSelect?: (card: Card) => void }) {
   const { data: price } = useCardPrice(card?.card_number ?? null);
   const { openPanel, closePanel } = usePanelContext();
-  const [variantImageUrl, setVariantImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const prevCardRef = useRef<string | null>(null);
 
-  // Reset variant/image state when card changes (no effect needed)
   const currentCardNumber = card?.card_number ?? null;
   if (currentCardNumber !== prevCardRef.current) {
     prevCardRef.current = currentCardNumber;
-    if (variantImageUrl !== null) setVariantImageUrl(null);
     if (imageError) setImageError(false);
   }
 
@@ -55,7 +52,7 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
 
   const isOpen = !!card;
   const colorStyle = card ? (COLOR_STYLES[card.color] ?? { color: "var(--text-secondary)", bg: "var(--elevated)" }) : null;
-  const displayImageUrl = card ? (variantImageUrl || getCardImageUrl(card.card_number)) : "";
+  const displayImageUrl = card ? (card.image_url || getCardImageUrl(card.base_card_number)) : "";
 
   return (
     <>
@@ -108,6 +105,9 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
               <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--purple-translucent)", color: "var(--purple)" }}>{card.card_type}</span>
               {card.rarity && <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--yellow-translucent)", color: "var(--yellow)" }}>{card.rarity}</span>}
               <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: colorStyle.bg, color: colorStyle.color }}>{card.color}</span>
+              {card.variant_name !== "Regular" && (
+                <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--accent-translucent)", color: "var(--accent)" }}>{card.variant_name}</span>
+              )}
             </div>
           </div>
         </div>
@@ -142,13 +142,10 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
           </div>
         )}
 
-        {/* Variants */}
-        <CardVariants
-          cardNumber={card.card_number}
-          onVariantSelect={(url) => {
-            setVariantImageUrl(url);
-            setImageError(false);
-          }}
+        {/* Siblings */}
+        <CardSiblings
+          card={card}
+          onSiblingSelect={(sibling) => { if (onCardSelect) onCardSelect(sibling); }}
         />
 
         {/* Collection */}
@@ -161,7 +158,7 @@ export default function CardPanel({ card, onClose }: { card: Card | null; onClos
         <CardDeckUsage cardNumber={card.card_number} />
 
         {/* Expansions */}
-        <CardExpansions cardNumber={card.card_number} />
+        <CardExpansions cardNumber={card.base_card_number} />
 
         {/* Price */}
         <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">

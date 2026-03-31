@@ -123,7 +123,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
           <DeckCardRow key={card.card_number} card={card} deckId={deckId} quantityInDeck={deckCardMap.get(card.card_number) ?? 0} quantityOwned={quantities.get(card.card_number) ?? 0} />
         ))}
       </div>
-      <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} />
+      <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} onCardSelect={setSelectedCard} />
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} deckId={deckId} />
     </div>
   );

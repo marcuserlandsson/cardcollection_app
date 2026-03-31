@@ -94,7 +94,7 @@ function DatabasePageContent() {
         </>
       )}
       {displayCards && !isLoading && <CardGrid cards={displayCards} onCardClick={handleCardClick} />}
-      <CardPanel card={selectedCard} onClose={handleClosePanel} />
+      <CardPanel card={selectedCard} onClose={handleClosePanel} onCardSelect={setSelectedCard} />
     </div>
   );
 }

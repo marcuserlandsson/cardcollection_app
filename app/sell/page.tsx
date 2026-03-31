@@ -93,7 +93,7 @@ export default function SellPage() {
           <SellCardRow key={item.card.card_number} item={item} onClick={() => handleCardClick(item.card)} />
         ))}
       </div>
-      <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} />
+      <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} onCardSelect={setSelectedCard} />
     </div>
   );
 }
