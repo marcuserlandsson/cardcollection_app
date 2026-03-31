@@ -13,6 +13,8 @@ export interface Card {
   pretty_url: string | null;
   max_copies: number;
   last_updated: string;
+  base_card_number: string;
+  variant_name: string;
 }
 
 export interface CollectionEntry {
@@ -35,16 +37,6 @@ export interface DeckCard {
   deck_id: string;
   card_number: string;
   quantity: number;
-}
-
-export interface CardVariant {
-  id: string;
-  card_number: string;
-  variant_name: string;
-  variant_index: number;
-  tcgplayer_id: number | null;
-  alt_art_url: string | null;
-  created_at: string;
 }
 
 export interface CardPrice {
