@@ -1,8 +1,9 @@
 """
-Sync cards and variants from the Digimon Card API into Supabase.
+Sync cards from the Digimon Card API into Supabase.
 
-Fetches all cards in bulk, deduplicates, and stores base card data plus
-variant entries (regular, alt art, reprints) with image URLs.
+Each API entry (including alt arts, reprints, promos) becomes its own row
+in the cards table with a suffixed card_number (e.g. BT1-084-V2).
+The base_card_number column groups all variants of the same game card.
 
 See docs/card-variants.md for the data model documentation.
 
@@ -163,28 +164,29 @@ def get_alt_art_url(
     return f"{ALT_IMAGE_BASE_URL}/{card_number}-set-{set_id}-{variant_idx}.webp"
 
 
-def transform_card(raw: dict) -> dict:
+def transform_card(
+    raw: dict,
+    variant_index: int = 1,
+    variant_name: str = "Regular",
+    alt_art_url: str | None = None,
+) -> dict:
     card_number = raw["id"]
     rarity_raw = (raw.get("rarity") or "").lower().strip()
 
     set_names = raw.get("set_name", [])
     expansion = ""
     if set_names:
-        # Match expansion to the card number prefix (e.g. BT14-101 → BT-14)
-        # The card number prefix maps: BT14 → BT-14, EX9 → EX-09, ST1 → ST-1, etc.
         prefix = re.match(r"^([A-Z]+)(\d+)", card_number)
         if prefix:
             card_prefix = prefix.group(1)
             card_num = prefix.group(2)
             for sn in set_names:
                 set_code = sn.split(":")[0].strip() if ":" in sn else sn
-                # Normalize for comparison: strip hyphens/zeros
                 normalized = set_code.replace("-", "").replace("0", "").upper()
                 candidate = (card_prefix + card_num).replace("0", "").upper()
                 if normalized == candidate:
                     expansion = set_code
                     break
-        # Fallback to first set if no prefix match
         if not expansion:
             first_set = set_names[0]
             expansion = (
@@ -193,8 +195,16 @@ def transform_card(raw: dict) -> dict:
                 else first_set
             )
 
+    # Build the suffixed card_number for non-primary variants
+    suffixed_card_number = card_number
+    if variant_index > 1:
+        suffixed_card_number = f"{card_number}-V{variant_index}"
+
+    # Use alt art image URL if available, otherwise default
+    image_url = alt_art_url if alt_art_url else f"{IMAGE_BASE_URL}/{card_number}.jpg"
+
     return {
-        "card_number": card_number,
+        "card_number": suffixed_card_number,
         "name": raw.get("name", ""),
         "expansion": expansion,
         "card_type": raw.get("type", ""),
@@ -206,9 +216,11 @@ def transform_card(raw: dict) -> dict:
         "evolution_cost": (
             raw.get("evolution_cost") if raw.get("evolution_cost") else None
         ),
-        "image_url": f"{IMAGE_BASE_URL}/{card_number}.jpg",
+        "image_url": image_url,
         "pretty_url": raw.get("pretty_url", ""),
         "max_copies": 4,
+        "base_card_number": card_number,
+        "variant_name": variant_name,
     }
 
 
@@ -234,16 +246,14 @@ def sync_cards():
             continue
         card_entries[card_id].append(raw)
 
-    # Build cards, variants, and expansion memberships
+    # Build cards and expansion memberships
     cards: dict[str, dict] = {}
-    variants: list[dict] = []
     card_expansion_set: set[tuple[str, str]] = set()
     alt_art_count = 0
 
     for card_id, entries in card_entries.items():
-        cards[card_id] = transform_card(entries[0])
-        expansion = cards[card_id]["expansion"]
-        set_id = expansion_set_ids.get(expansion)
+        expansion_code = ""
+        set_id = None
 
         # Collect all expansions this card belongs to
         set_names = entries[0].get("set_name", [])
@@ -256,15 +266,13 @@ def sync_cards():
         alt_art_idx = 0
 
         for v_index, raw in enumerate(entries, start=1):
-            tcgplayer_id = raw.get("tcgplayer_id")
-            if not tcgplayer_id:
-                continue
-
             tcgplayer_name = raw.get("tcgplayer_name", "")
             is_alt_art = "Alternate Art" in tcgplayer_name
 
             # Determine variant name
-            if tcgplayer_name == raw.get("name", ""):
+            if v_index == 1:
+                variant_name = "Regular"
+            elif tcgplayer_name == raw.get("name", ""):
                 variant_name = "Regular"
             else:
                 match = re.search(r"\(([^)]+)\)$", tcgplayer_name)
@@ -272,27 +280,37 @@ def sync_cards():
 
             # Build alt art image URL
             alt_art_url = None
-            if is_alt_art and set_id:
-                alt_art_idx += 1
-                alt_art_url = get_alt_art_url(card_id, set_id, alt_art_idx)
-                alt_art_count += 1
+            if is_alt_art:
+                # Resolve set_id lazily (only when needed)
+                if set_id is None:
+                    first_card = transform_card(entries[0])
+                    expansion_code = first_card["expansion"]
+                    set_id = expansion_set_ids.get(expansion_code, 0)
+                if set_id:
+                    alt_art_idx += 1
+                    alt_art_url = get_alt_art_url(card_id, set_id, alt_art_idx)
+                    alt_art_count += 1
 
-            variants.append(
-                {
-                    "card_number": card_id,
-                    "variant_name": variant_name,
-                    "variant_index": v_index,
-                    "tcgplayer_id": tcgplayer_id,
-                    "alt_art_url": alt_art_url,
-                }
+            card_row = transform_card(
+                raw,
+                variant_index=v_index,
+                variant_name=variant_name,
+                alt_art_url=alt_art_url,
             )
+            cards[card_row["card_number"]] = card_row
+
+            # Add expansion entries for variant cards too
+            if v_index > 1:
+                for sn in set_names:
+                    exp_code = sn.split(":")[0].strip() if ":" in sn else sn
+                    if exp_code:
+                        card_expansion_set.add((card_row["card_number"], exp_code))
 
     card_list = list(cards.values())
 
     if skipped:
         print(f"Skipped {skipped} cards with no ID")
-    print(f"Unique cards: {len(card_list)}")
-    print(f"Total variants: {len(variants)} ({alt_art_count} with alt art images)")
+    print(f"Total card rows (including variants): {len(card_list)} ({alt_art_count} with alt art images)")
 
     # Upsert cards
     print(f"Upserting {len(card_list)} cards in batches...")
@@ -345,23 +363,8 @@ def sync_cards():
             batch = exp_metadata[i : i + batch_size]
             supabase.table("expansion_metadata").upsert(batch).execute()
 
-    # Upsert variants
-    if variants:
-        print(f"Upserting {len(variants)} card variants in batches...")
-        for i in range(0, len(variants), batch_size):
-            batch = variants[i : i + batch_size]
-            supabase.table("card_variants").upsert(
-                batch, on_conflict="card_number,tcgplayer_id"
-            ).execute()
-            print(
-                f"  Upserted {min(i + batch_size, len(variants))}/{len(variants)}"
-            )
-
     result = supabase.table("cards").select("card_number", count="exact").execute()
-    variant_result = (
-        supabase.table("card_variants").select("id", count="exact").execute()
-    )
-    print(f"Done! Cards: {result.count}, Variants: {variant_result.count}")
+    print(f"Done! Total cards (including variants): {result.count}")
 
 
 if __name__ == "__main__":
