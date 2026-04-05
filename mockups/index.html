@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CardBoard UI Mockups — Before / After</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --background: #111318;
+      --surface: #161921;
+      --elevated: #1e2230;
+      --border: #252a36;
+      --border-light: #2d3344;
+      --text-primary: #ebedf0;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --text-dim: #4b5563;
+      --accent: #2dd4a8;
+      --accent-hover: #26b892;
+      --accent-translucent: rgba(45, 212, 168, 0.12);
+      --accent-border: rgba(45, 212, 168, 0.3);
+      --accent-glow: rgba(45, 212, 168, 0.1);
+      --red: #f87171;
+      --blue: #60a5fa;
+      --yellow: #facc15;
+      --purple: #a78bfa;
+      --green: #4ade80;
+      --success: #4ade80;
+    }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--background); color: var(--text-primary); }
+    .mockup-section { border-bottom: 1px solid var(--border); }
+    .before-label, .after-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+      padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 12px;
+    }
+    .before-label { background: rgba(248,113,113,0.15); color: var(--red); }
+    .after-label { background: rgba(74,222,128,0.15); color: var(--green); }
+
+    /* Lucide-style inline SVGs */
+    .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .icon-sm { width: 15px; height: 15px; }
+    .icon-lg { width: 22px; height: 22px; }
+
+    /* Nav sticky */
+    #toc { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
+  </style>
+</head>
+<body class="pb-20">
+
+  <!-- Table of Contents -->
+  <nav id="toc" class="border-b border-[var(--border)]" style="background: var(--surface); backdrop-filter: blur(16px);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6 overflow-x-auto text-sm">
+      <span class="font-bold whitespace-nowrap" style="color: var(--text-primary)">UI Mockups</span>
+      <a href="#logo" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">1. Logo</a>
+      <a href="#hover" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">2. Hovers</a>
+      <a href="#stats" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">3. Stats</a>
+      <a href="#landing" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">4. Landing</a>
+      <a href="#accent" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">5. Accent</a>
+      <a href="#containers" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">6. Containers</a>
+      <a href="#tabs" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">7. Tabs</a>
+      <a href="#login" class="whitespace-nowrap hover:underline" style="color: var(--text-secondary)">8. Login</a>
+    </div>
+  </nav>
+
+  <div class="pt-16 max-w-6xl mx-auto px-6">
+
+    <div class="py-10 text-center">
+      <h1 class="text-3xl font-bold">CardBoard UI Refresh Mockups</h1>
+      <p class="mt-2 text-sm" style="color: var(--text-secondary)">Before / After comparisons for each proposed change. Hover over interactive elements to see effects.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 1. LOGO -->
+    <!-- ============================================================ -->
+    <section id="logo" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">1. Logo — Drop the Emoji</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">Emoji logos are the #1 AI tell. Replace with a clean wordmark or a subtle SVG icon.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE</span>
+          <div class="rounded-xl border border-[var(--border)] p-4" style="background: var(--surface)">
+            <nav class="flex items-center justify-between">
+              <span class="text-lg font-bold">📦 Card<span style="color: var(--accent)">Board</span></span>
+              <div class="flex gap-1 rounded-lg p-0.5" style="background: var(--elevated)">
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="background: var(--accent); color: var(--background)">Home</span>
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Database</span>
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Collection</span>
+              </div>
+              <span class="rounded-lg px-3 py-1.5 text-sm font-medium" style="background: var(--accent); color: var(--background)">Sign In</span>
+            </nav>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER</span>
+          <div class="rounded-xl border border-[var(--border)] p-4" style="background: var(--surface)">
+            <nav class="flex items-center justify-between">
+              <span class="text-lg font-bold">
+                <svg class="inline-block mr-1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); vertical-align: -3px;">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                Card<span style="color: var(--accent)">Board</span>
+              </span>
+              <div class="flex gap-1 rounded-lg p-0.5" style="background: var(--elevated)">
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="background: var(--accent); color: var(--background)">Home</span>
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Database</span>
+                <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Collection</span>
+              </div>
+              <span class="rounded-lg px-3 py-1.5 text-sm font-medium" style="background: var(--accent); color: var(--background)">Sign In</span>
+            </nav>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Option A: LayoutGrid SVG icon. Could also be just the wordmark with no icon at all.</p>
+        </div>
+      </div>
+
+      <!-- Wordmark-only variant -->
+      <div class="mt-6">
+        <span class="after-label">AFTER — Variant B (wordmark only)</span>
+        <div class="rounded-xl border border-[var(--border)] p-4 inline-block" style="background: var(--surface)">
+          <span class="text-lg font-bold tracking-tight">card<span class="font-extrabold" style="color: var(--accent)">board</span></span>
+        </div>
+        <span class="ml-4 rounded-xl border border-[var(--border)] p-4 inline-block" style="background: var(--surface)">
+          <span class="text-lg"><span class="font-light">Card</span><span class="font-bold" style="color: var(--accent)">Board</span></span>
+        </span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 2. HOVER EFFECTS -->
+    <!-- ============================================================ -->
+    <section id="hover" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">2. Hover Effects — Vary by Context</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">Currently every card has the same lift+glow. Different elements should feel different.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE — All identical</span>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="rounded-lg border border-[var(--border)] p-2 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_4px_16px_var(--accent-glow)]" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.borderColor='var(--accent-border)'" onmouseleave="this.style.borderColor='var(--border)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Agumon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-010</p>
+            </div>
+            <div class="rounded-lg border border-[var(--border)] p-2 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_4px_16px_var(--accent-glow)]" style="background: var(--surface);" onmouseenter="this.style.borderColor='var(--accent-border)'" onmouseleave="this.style.borderColor='var(--border)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Gabumon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-029</p>
+            </div>
+            <div class="rounded-lg border border-[var(--border)] p-2 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_4px_16px_var(--accent-glow)]" style="background: var(--surface);" onmouseenter="this.style.borderColor='var(--accent-border)'" onmouseleave="this.style.borderColor='var(--border)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Patamon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-048</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Contextual hovers</span>
+          <div class="grid grid-cols-3 gap-3">
+            <!-- Card thumb: subtle border brighten, no lift -->
+            <div class="rounded-lg border p-2 cursor-pointer transition-colors duration-150" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.borderColor='var(--border-light)'; this.style.background='var(--elevated)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.background='var(--surface)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Agumon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-010</p>
+            </div>
+            <div class="rounded-lg border p-2 cursor-pointer transition-colors duration-150" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.borderColor='var(--border-light)'; this.style.background='var(--elevated)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.background='var(--surface)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Gabumon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-029</p>
+            </div>
+            <div class="rounded-lg border p-2 cursor-pointer transition-colors duration-150" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.borderColor='var(--border-light)'; this.style.background='var(--elevated)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.background='var(--surface)'">
+              <div class="aspect-[5/7] rounded" style="background: var(--elevated)"></div>
+              <p class="mt-1.5 text-xs font-medium truncate">Patamon</p>
+              <p class="text-xs" style="color: var(--text-muted)">BT1-048</p>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Card thumbnails: just a background shift + lighter border. No lift, no glow.</p>
+        </div>
+      </div>
+
+      <!-- Deck card hover comparison -->
+      <div class="grid md:grid-cols-2 gap-8 mt-8">
+        <div>
+          <span class="before-label">BEFORE — Deck card (same glow)</span>
+          <div class="rounded-xl border p-4 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_var(--accent-glow)]" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.borderColor='var(--accent-border)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold">Red Aggro</h3>
+              <span class="text-xs" style="color: var(--text-muted)">50 cards</span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-center justify-between text-xs">
+                <span style="color: var(--text-muted)">Completion</span>
+                <span>72%</span>
+              </div>
+              <div class="mt-1 h-2 rounded-full overflow-hidden" style="background: var(--elevated)">
+                <div class="h-full rounded-full" style="background: var(--accent); width: 72%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <span class="after-label">AFTER — Deck card (bg shift only)</span>
+          <div class="rounded-xl border p-4 cursor-pointer transition-colors duration-150" style="background: var(--surface); border-color: var(--border);" onmouseenter="this.style.background='var(--elevated)'" onmouseleave="this.style.background='var(--surface)'">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold">Red Aggro</h3>
+              <span class="text-xs" style="color: var(--text-muted)">50 cards</span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-center justify-between text-xs">
+                <span style="color: var(--text-muted)">Completion</span>
+                <span>72%</span>
+              </div>
+              <div class="mt-1 h-2 rounded-full overflow-hidden" style="background: var(--elevated)">
+                <div class="h-full rounded-full" style="background: var(--accent); width: 72%"></div>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Deck cards: background elevates on hover. Quieter, more refined.</p>
+        </div>
+      </div>
+
+      <!-- Expansion tile hover -->
+      <div class="grid md:grid-cols-2 gap-8 mt-8">
+        <div>
+          <span class="before-label">BEFORE — Expansion tile</span>
+          <div class="inline-block rounded-xl border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_var(--accent-glow)]" style="background: var(--surface); border-color: var(--border); width: 160px;" onmouseenter="this.style.borderColor='var(--accent-border)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div class="aspect-square flex items-center justify-center" style="background: var(--elevated)">
+              <span class="text-2xl font-bold" style="color: var(--text-dim)">BT-18</span>
+            </div>
+            <div class="p-3">
+              <div class="text-sm font-bold" style="color: var(--accent)">BT-18</div>
+              <div class="text-xs" style="color: var(--text-muted)">112 cards</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <span class="after-label">AFTER — Expansion tile (scale, no glow)</span>
+          <div class="inline-block rounded-xl border overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-[1.03]" style="background: var(--surface); border-color: var(--border); width: 160px;">
+            <div class="aspect-square flex items-center justify-center" style="background: var(--elevated)">
+              <span class="text-2xl font-bold" style="color: var(--text-dim)">BT-18</span>
+            </div>
+            <div class="p-3">
+              <div class="text-sm font-bold" style="color: var(--text-primary)">BT-18</div>
+              <div class="text-xs" style="color: var(--text-muted)">112 cards</div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Subtle scale on hover. Code text uses text-primary instead of accent.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 3. STAT WIDGETS -->
+    <!-- ============================================================ -->
+    <section id="stats" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">3. Stat Widgets — Kill the Cookie Cutter</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">The "icon box + number + UPPERCASE label" pattern is the most generic AI dashboard widget. Make it feel intentional.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-3 rounded-xl p-4" style="background: var(--surface)">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style="background: var(--elevated); color: var(--accent)">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+              </div>
+              <div>
+                <div class="text-lg font-bold">847</div>
+                <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Total Cards</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl p-4" style="background: var(--surface)">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style="background: var(--elevated); color: var(--blue)">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1.02.76 2 2 2s2-.98 2-2a2 2 0 0 0-2-2z"/><path d="M4 4v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.34a2 2 0 0 0-.34-1.12l-3.88-5.88A2 2 0 0 0 14.12 0H6a2 2 0 0 0-2 2z"/></svg>
+              </div>
+              <div>
+                <div class="text-lg font-bold">312</div>
+                <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Unique</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl p-4" style="background: var(--surface)">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style="background: var(--elevated); color: var(--green)">
+                <svg class="icon" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              </div>
+              <div>
+                <div class="text-lg font-bold">€142.50</div>
+                <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Collection Value</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl p-4" style="background: var(--surface)">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style="background: var(--elevated); color: var(--yellow)">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M15.5 9.4c-.3-.8-1.5-1.4-3.5-1.4s-3.2.6-3.5 1.4c-.3.9.5 1.6 3.5 2.1 3 .5 3.8 1.2 3.5 2.1-.3.8-1.5 1.4-3.5 1.4s-3.2-.6-3.5-1.4"/></svg>
+              </div>
+              <div>
+                <div class="text-lg font-bold">€23.80</div>
+                <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Surplus Value</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Featured stat + compact row</span>
+          <!-- Featured stat -->
+          <div class="rounded-xl p-5 mb-3" style="background: var(--surface)">
+            <div class="text-xs font-medium" style="color: var(--text-muted)">Collection Value</div>
+            <div class="text-3xl font-bold mt-1" style="color: var(--text-primary)">€142.50</div>
+            <div class="text-xs mt-1" style="color: var(--green)">+€23.80 surplus</div>
+          </div>
+          <!-- Compact stats -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="rounded-xl p-4" style="background: var(--surface)">
+              <div class="text-lg font-bold">847</div>
+              <div class="text-xs" style="color: var(--text-muted)">Total cards</div>
+            </div>
+            <div class="rounded-xl p-4" style="background: var(--surface)">
+              <div class="text-lg font-bold">312</div>
+              <div class="text-xs" style="color: var(--text-muted)">Unique</div>
+            </div>
+            <div class="rounded-xl p-4" style="background: var(--surface)">
+              <div class="text-lg font-bold">4</div>
+              <div class="text-xs" style="color: var(--text-muted)">Decks</div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">No icon boxes. No UPPERCASE TRACKING-WIDE. Primary stat gets prominence. Others are compact.</p>
+        </div>
+      </div>
+
+      <!-- Alt After: inline stats -->
+      <div class="mt-8">
+        <span class="after-label">AFTER — Variant B (inline stats bar)</span>
+        <div class="rounded-xl p-4 flex items-baseline gap-6 flex-wrap" style="background: var(--surface)">
+          <div>
+            <span class="text-xl font-bold">847</span>
+            <span class="text-xs ml-1" style="color: var(--text-muted)">cards</span>
+          </div>
+          <div style="color: var(--border-light)">|</div>
+          <div>
+            <span class="text-xl font-bold">312</span>
+            <span class="text-xs ml-1" style="color: var(--text-muted)">unique</span>
+          </div>
+          <div style="color: var(--border-light)">|</div>
+          <div>
+            <span class="text-xl font-bold" style="color: var(--green)">€142.50</span>
+            <span class="text-xs ml-1" style="color: var(--text-muted)">value</span>
+          </div>
+          <div style="color: var(--border-light)">|</div>
+          <div>
+            <span class="text-xl font-bold" style="color: var(--yellow)">€23.80</span>
+            <span class="text-xs ml-1" style="color: var(--text-muted)">surplus</span>
+          </div>
+        </div>
+        <p class="mt-3 text-xs" style="color: var(--text-dim)">Even simpler — just numbers in a row. Dense and scannable.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 4. LANDING PAGE -->
+    <!-- ============================================================ -->
+    <section id="landing" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">4. Landing Page — Break the 3-Card Symmetry</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">Centered icon + title + description x3 is the universal AI landing page. Break the pattern.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE</span>
+          <div class="rounded-xl border border-[var(--border)] p-8" style="background: var(--surface)">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold">Track your <span style="color: var(--accent)">Digimon TCG</span> collection</h1>
+              <p class="mt-2 text-sm" style="color: var(--text-secondary)">Build decks, track completion, and find surplus cards worth selling.</p>
+              <div class="flex justify-center gap-3 mt-6">
+                <span class="rounded-xl px-5 py-2.5 text-sm font-semibold" style="background: var(--accent); color: var(--background)">Get Started</span>
+                <span class="rounded-xl border px-5 py-2.5 text-sm" style="border-color: var(--border-light); background: var(--elevated); color: var(--text-secondary)">Browse Database</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-10">
+              <div class="flex flex-col items-center rounded-xl border p-5 text-center" style="border-color: var(--border); background: var(--surface)">
+                <div class="h-10 w-10 rounded-lg flex items-center justify-center" style="background: var(--elevated); color: var(--accent)">
+                  <svg class="icon-lg" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+                </div>
+                <h3 class="mt-2 text-sm font-semibold">Track Collection</h3>
+                <p class="mt-1 text-xs" style="color: var(--text-muted)">Keep count of every card you own.</p>
+              </div>
+              <div class="flex flex-col items-center rounded-xl border p-5 text-center" style="border-color: var(--border); background: var(--surface)">
+                <div class="h-10 w-10 rounded-lg flex items-center justify-center" style="background: var(--elevated); color: var(--blue)">
+                  <svg class="icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+                </div>
+                <h3 class="mt-2 text-sm font-semibold">Build Decks</h3>
+                <p class="mt-1 text-xs" style="color: var(--text-muted)">Track which cards you still need.</p>
+              </div>
+              <div class="flex flex-col items-center rounded-xl border p-5 text-center" style="border-color: var(--border); background: var(--surface)">
+                <div class="h-10 w-10 rounded-lg flex items-center justify-center" style="background: var(--elevated); color: var(--yellow)">
+                  <svg class="icon-lg" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                </div>
+                <h3 class="mt-2 text-sm font-semibold">Sell Surplus</h3>
+                <p class="mt-1 text-xs" style="color: var(--text-muted)">Find cards worth selling.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Left-aligned, no feature boxes</span>
+          <div class="rounded-xl border border-[var(--border)] p-8" style="background: var(--surface)">
+            <div>
+              <h1 class="text-2xl font-bold leading-tight">Track your<br><span style="color: var(--accent)">Digimon TCG</span> collection</h1>
+              <p class="mt-3 text-sm max-w-sm leading-relaxed" style="color: var(--text-secondary)">
+                Build decks, track completion, and find surplus cards worth selling on Cardmarket.
+              </p>
+              <div class="flex gap-3 mt-6">
+                <span class="rounded-lg px-5 py-2.5 text-sm font-semibold cursor-pointer" style="background: var(--accent); color: var(--background)">Get Started</span>
+                <span class="rounded-lg px-5 py-2.5 text-sm cursor-pointer" style="color: var(--text-secondary)">Browse Database &rarr;</span>
+              </div>
+            </div>
+            <!-- Features as a simple list, not cards -->
+            <div class="mt-10 space-y-4">
+              <div class="flex items-start gap-3">
+                <svg class="icon flex-shrink-0 mt-0.5" viewBox="0 0 24 24" style="color: var(--accent)"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+                <div>
+                  <span class="text-sm font-medium">Track your collection</span>
+                  <span class="text-sm" style="color: var(--text-muted)"> — card counts, estimated value, and completion stats.</span>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <svg class="icon flex-shrink-0 mt-0.5" viewBox="0 0 24 24" style="color: var(--blue)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+                <div>
+                  <span class="text-sm font-medium">Build and complete decks</span>
+                  <span class="text-sm" style="color: var(--text-muted)"> — see what you're missing and what you have.</span>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <svg class="icon flex-shrink-0 mt-0.5" viewBox="0 0 24 24" style="color: var(--yellow)"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                <div>
+                  <span class="text-sm font-medium">Find surplus to sell</span>
+                  <span class="text-sm" style="color: var(--text-muted)"> — live Cardmarket pricing on extra copies.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Left-aligned hero. Features as inline list, not boxed cards. Secondary CTA is text-only with arrow.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 5. ACCENT COLOR USAGE -->
+    <!-- ============================================================ -->
+    <section id="accent" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">5. Accent Color — Use It Less</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">When the accent is on everything, nothing pops. Reserve it for actions and links only.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE — Accent everywhere</span>
+          <div class="rounded-xl border border-[var(--border)] p-5 space-y-4" style="background: var(--surface)">
+            <!-- Expansion code in accent -->
+            <div class="flex items-center gap-3 rounded-lg p-3" style="background: var(--elevated)">
+              <div class="w-10 h-10 rounded" style="background: var(--border)"></div>
+              <div>
+                <div class="text-sm font-bold" style="color: var(--accent)">BT-18</div>
+                <div class="text-xs" style="color: var(--text-muted)">112 cards</div>
+              </div>
+            </div>
+            <!-- Badge in accent -->
+            <div class="flex items-center gap-3">
+              <span class="text-sm">Quantity badge:</span>
+              <span class="rounded-full px-2 py-0.5 text-xs font-bold" style="background: var(--accent); color: var(--background)">x4</span>
+            </div>
+            <!-- Progress bar in accent -->
+            <div>
+              <span class="text-sm">Progress bar (45%):</span>
+              <div class="mt-1.5 h-2 rounded-full overflow-hidden" style="background: var(--elevated)">
+                <div class="h-full rounded-full" style="background: var(--accent); width: 45%"></div>
+              </div>
+            </div>
+            <!-- Nav active in accent -->
+            <div class="flex gap-1 rounded-lg p-0.5" style="background: var(--elevated)">
+              <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="background: var(--accent); color: var(--background)">Home</span>
+              <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Database</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Accent reserved for actions</span>
+          <div class="rounded-xl border border-[var(--border)] p-5 space-y-4" style="background: var(--surface)">
+            <!-- Expansion code in primary -->
+            <div class="flex items-center gap-3 rounded-lg p-3" style="background: var(--elevated)">
+              <div class="w-10 h-10 rounded" style="background: var(--border)"></div>
+              <div>
+                <div class="text-sm font-bold" style="color: var(--text-primary)">BT-18</div>
+                <div class="text-xs" style="color: var(--text-muted)">112 cards</div>
+              </div>
+            </div>
+            <!-- Badge in neutral -->
+            <div class="flex items-center gap-3">
+              <span class="text-sm">Quantity badge:</span>
+              <span class="rounded-full px-2 py-0.5 text-xs font-bold" style="background: var(--elevated); color: var(--text-primary); border: 1px solid var(--border-light)">x4</span>
+            </div>
+            <!-- Progress bar in muted blue-gray -->
+            <div>
+              <span class="text-sm">Progress bar (45%):</span>
+              <div class="mt-1.5 h-2 rounded-full overflow-hidden" style="background: var(--elevated)">
+                <div class="h-full rounded-full" style="background: var(--blue); opacity: 0.5; width: 45%"></div>
+              </div>
+            </div>
+            <!-- Nav active: elevated bg instead of accent fill -->
+            <div class="flex gap-1 rounded-lg p-0.5" style="background: var(--elevated)">
+              <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="background: var(--surface); color: var(--text-primary)">Home</span>
+              <span class="rounded-md px-3 py-1.5 text-sm font-medium" style="color: var(--text-muted)">Database</span>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Expansion codes: white. Badges: neutral pill. Progress: muted blue. Nav: surface bg. Accent only on CTAs and links.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 6. CONTAINERS -->
+    <!-- ============================================================ -->
+    <section id="containers" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">6. Containers — Not Everything Needs a Box</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">When every element is a rounded-xl bordered card, the page looks like a wireframe. Use whitespace and hierarchy instead.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE — Everything in a box</span>
+          <div class="space-y-3">
+            <div class="rounded-xl border p-4" style="border-color: var(--border); background: var(--surface)">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--elevated); color: var(--purple)">
+                  <svg class="icon" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+                </div>
+                <div>
+                  <div class="text-lg font-bold">24</div>
+                  <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Surplus Cards</div>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border p-4" style="border-color: var(--border); background: var(--surface)">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--elevated); color: var(--yellow)">
+                  <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <div>
+                  <div class="text-lg font-bold">€23.80</div>
+                  <div class="text-[11px] uppercase tracking-wide" style="color: var(--text-muted)">Total Value</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Mixed: open stats, bordered lists</span>
+          <div class="space-y-4">
+            <!-- Stats without a box wrapper -->
+            <div class="flex gap-6 px-1">
+              <div>
+                <div class="text-2xl font-bold">24</div>
+                <div class="text-xs" style="color: var(--text-muted)">Surplus cards</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold" style="color: var(--green)">€23.80</div>
+                <div class="text-xs" style="color: var(--text-muted)">Total value</div>
+              </div>
+            </div>
+            <!-- List items in subtle boxes -->
+            <div class="rounded-xl border p-3 flex items-center gap-3 cursor-pointer transition-colors duration-150" style="border-color: var(--border); background: var(--surface);" onmouseenter="this.style.background='var(--elevated)'" onmouseleave="this.style.background='var(--surface)'">
+              <div class="w-10 h-14 rounded flex-shrink-0" style="background: var(--elevated)"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">Agumon - Bond of Bravery</div>
+                <div class="text-xs" style="color: var(--text-muted)">BT6-018</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-medium" style="color: var(--green)">€4.20</div>
+                <div class="text-xs" style="color: var(--yellow)">x3 surplus</div>
+              </div>
+            </div>
+            <div class="rounded-xl border p-3 flex items-center gap-3 cursor-pointer transition-colors duration-150" style="border-color: var(--border); background: var(--surface);" onmouseenter="this.style.background='var(--elevated)'" onmouseleave="this.style.background='var(--surface)'">
+              <div class="w-10 h-14 rounded flex-shrink-0" style="background: var(--elevated)"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">Omnimon</div>
+                <div class="text-xs" style="color: var(--text-muted)">BT5-086</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-medium" style="color: var(--green)">€3.10</div>
+                <div class="text-xs" style="color: var(--yellow)">x2 surplus</div>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Stats float freely — no box. Only list items get bordered containers. Creates visual hierarchy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 7. TABS -->
+    <!-- ============================================================ -->
+    <section id="tabs" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">7. Inline Tabs — Differentiate from Nav</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">The expansion filter tabs look identical to the main navigation pills. Inline content tabs should look different.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE — Same pill style as nav</span>
+          <div class="flex gap-1 rounded-lg p-1" style="background: var(--elevated)">
+            <span class="flex-1 text-center rounded-md px-3 py-2 text-sm font-medium" style="background: var(--accent); color: var(--background)">Boosters <span class="text-xs opacity-70">(18)</span></span>
+            <span class="flex-1 text-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text-muted)">Extra <span class="text-xs opacity-70">(8)</span></span>
+            <span class="flex-1 text-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text-muted)">Starters <span class="text-xs opacity-70">(20)</span></span>
+            <span class="flex-1 text-center rounded-md px-3 py-2 text-sm font-medium" style="color: var(--text-muted)">Other <span class="text-xs opacity-70">(5)</span></span>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Underline tabs</span>
+          <div class="flex gap-6 border-b" style="border-color: var(--border)">
+            <span class="pb-2.5 text-sm font-medium border-b-2 cursor-pointer" style="border-color: var(--accent); color: var(--text-primary)">Boosters <span class="text-xs" style="color: var(--text-muted)">18</span></span>
+            <span class="pb-2.5 text-sm font-medium border-b-2 border-transparent cursor-pointer" style="color: var(--text-muted)">Extra <span class="text-xs">8</span></span>
+            <span class="pb-2.5 text-sm font-medium border-b-2 border-transparent cursor-pointer" style="color: var(--text-muted)">Starters <span class="text-xs">20</span></span>
+            <span class="pb-2.5 text-sm font-medium border-b-2 border-transparent cursor-pointer" style="color: var(--text-muted)">Other <span class="text-xs">5</span></span>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Underline style for content filters. Visually distinct from the pill nav in the header.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 8. LOGIN -->
+    <!-- ============================================================ -->
+    <section id="login" class="mockup-section py-12">
+      <h2 class="text-xl font-bold mb-1">8. Login Page — Less Template, More Personality</h2>
+      <p class="text-sm mb-8" style="color: var(--text-secondary)">Centered emoji + icon-prefixed inputs is the default AI auth template.</p>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div>
+          <span class="before-label">BEFORE</span>
+          <div class="rounded-xl border border-[var(--border)] p-8 flex items-center justify-center" style="background: var(--surface); min-height: 340px;">
+            <div class="w-full max-w-xs space-y-5">
+              <div class="text-center">
+                <h1 class="text-xl font-bold">📦 Card<span style="color: var(--accent)">Board</span></h1>
+                <p class="mt-1 text-sm" style="color: var(--text-muted)">Sign in to your account</p>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5" style="border-color: var(--border-light); background: var(--elevated)">
+                  <svg class="icon-sm flex-shrink-0" style="color: var(--text-dim)" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  <span class="text-sm" style="color: var(--text-dim)">Email</span>
+                </div>
+                <div class="flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5" style="border-color: var(--border-light); background: var(--elevated)">
+                  <svg class="icon-sm flex-shrink-0" style="color: var(--text-dim)" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <span class="text-sm" style="color: var(--text-dim)">Password</span>
+                </div>
+                <div class="rounded-xl py-2.5 text-sm font-semibold text-center" style="background: var(--accent); color: var(--background)">Sign In</div>
+              </div>
+              <p class="text-center text-sm" style="color: var(--text-muted)">Don't have an account? <span style="color: var(--accent)">Sign up</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <span class="after-label">AFTER — Left-aligned, labeled inputs, no icon prefix</span>
+          <div class="rounded-xl border border-[var(--border)] p-8" style="background: var(--surface); min-height: 340px;">
+            <div class="max-w-xs">
+              <h1 class="text-xl font-bold">Sign in</h1>
+              <p class="mt-1 text-sm" style="color: var(--text-muted)">Welcome back to CardBoard</p>
+              <div class="mt-6 space-y-4">
+                <div>
+                  <label class="block text-xs font-medium mb-1.5" style="color: var(--text-secondary)">Email</label>
+                  <div class="rounded-lg border px-3 py-2.5" style="border-color: var(--border-light); background: var(--elevated)">
+                    <span class="text-sm" style="color: var(--text-dim)">you@example.com</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-medium" style="color: var(--text-secondary)">Password</label>
+                    <span class="text-xs cursor-pointer" style="color: var(--text-muted)">Forgot?</span>
+                  </div>
+                  <div class="rounded-lg border px-3 py-2.5" style="border-color: var(--border-light); background: var(--elevated)">
+                    <span class="text-sm" style="color: var(--text-dim)">••••••••</span>
+                  </div>
+                </div>
+                <div class="rounded-lg py-2.5 text-sm font-semibold text-center cursor-pointer" style="background: var(--accent); color: var(--background)">Sign In</div>
+              </div>
+              <p class="mt-5 text-sm" style="color: var(--text-muted)">No account? <span style="color: var(--accent)" class="cursor-pointer">Create one</span></p>
+            </div>
+          </div>
+          <p class="mt-3 text-xs" style="color: var(--text-dim)">Left-aligned. Proper labels above inputs (not icon prefixes). Rounded-lg not rounded-xl. "Forgot?" link adds real utility.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="py-12 text-center">
+      <p class="text-sm" style="color: var(--text-muted)">End of mockups. Pick which changes you'd like to implement.</p>
+    </div>
+
+  </div>
+</body>
+</html>

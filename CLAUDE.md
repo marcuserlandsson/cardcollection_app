@@ -46,3 +46,25 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
 See `supabase/migrations/` for the full schema.
 Tables: `cards`, `card_variants`, `collection`, `decks`, `deck_cards`, `card_prices`
+
+## UI Design System
+
+For any UI/design work, invoke the `/ui-ux-pro-max` skill to get design system recommendations before implementing.
+
+### Color Palette (CSS variables in `globals.css`)
+- **Backgrounds:** Neutral dark slate (`--background: #111318`, `--surface: #161921`, `--elevated: #1e2230`) — never tint backgrounds with the accent hue
+- **Accent:** Teal `--accent: #2dd4a8` — reserved for CTAs, links, and main navigation active states only. Do not apply to metadata text, badges, progress bars, or decorative elements
+- **Semantic colors:** Red (danger), blue (info/progress), yellow (attention/surplus), purple (tags), green (success/value) — each has `--{color}`, `--{color}-translucent`, `--{color}-border` variants
+- **Text hierarchy:** `--text-primary` (headings/values), `--text-secondary` (body), `--text-muted` (labels), `--text-dim` (placeholders)
+
+### Component Patterns
+- **Icons:** Lucide React throughout — never use emojis as UI elements (logo uses `LayoutGrid` icon)
+- **Hover effects vary by context:** card thumbnails get border + bg shift; deck/sell rows get bg shift only; expansion tiles get subtle scale. No uniform lift+glow on everything
+- **Stat widgets:** Featured primary stat large, secondary stats compact. No icon-in-box widgets, no `uppercase tracking-wide` labels
+- **Containers:** Not everything needs a bordered card. Stats can float open; only list items and interactive cards need border+surface wrappers
+- **Tabs:** Main nav uses pill style with accent fill. Inline content tabs (e.g., expansion filters) use underline style to differentiate
+- **Forms:** Use proper `<label>` elements above inputs, not icon prefixes inside inputs. Left-align forms, avoid centering everything
+- **Landing/marketing:** Left-aligned hero text, features as inline list (icon + text), not centered 3-column boxed cards
+- **Progress bars:** Muted `--blue` at 50% opacity for incomplete, `--green`/`--success` at 100%
+- **Quantity badges:** Neutral `--elevated` pill with border, not accent-colored
+- **Border radius:** `rounded-lg` for inputs/buttons, `rounded-xl` for cards/containers

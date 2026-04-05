@@ -37,7 +37,7 @@ export default function ExpansionGrid({ expansions, setImages, onSelect }: Expan
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1 rounded-lg bg-[var(--elevated)] p-1">
+      <div className="flex gap-6 border-b border-[var(--border)]">
         {TABS.map((tab) => {
           const count = (grouped[tab.key] || []).length;
           if (count === 0) return null;
@@ -45,14 +45,14 @@ export default function ExpansionGrid({ expansions, setImages, onSelect }: Expan
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={`pb-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.key
-                  ? "bg-[var(--accent)] text-[var(--background)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--text-primary)]"
+                  : "border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               }`}
             >
               {tab.label}
-              <span className="ml-1.5 text-xs opacity-70">({count})</span>
+              <span className="ml-1.5 text-xs text-[var(--text-muted)]">{count}</span>
             </button>
           );
         })}
@@ -65,7 +65,7 @@ export default function ExpansionGrid({ expansions, setImages, onSelect }: Expan
             <button
               key={exp.code}
               onClick={() => onSelect(exp)}
-              className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent-border)] hover:shadow-[0_4px_16px_var(--accent-glow)]"
+              className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-transform duration-200 hover:scale-[1.03]"
             >
               {imageUrl ? (
                 <div className="relative aspect-square w-full overflow-hidden bg-[var(--elevated)]">
@@ -83,7 +83,7 @@ export default function ExpansionGrid({ expansions, setImages, onSelect }: Expan
                 </div>
               )}
               <div className="p-3">
-                <div className="text-sm font-bold text-[var(--accent)]">{exp.code}</div>
+                <div className="text-sm font-bold text-[var(--text-primary)]">{exp.code}</div>
                 <div className="text-xs text-[var(--text-muted)]">{exp.card_count} cards</div>
               </div>
             </button>

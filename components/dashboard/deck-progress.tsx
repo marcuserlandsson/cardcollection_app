@@ -35,7 +35,7 @@ function DeckProgressRow({ deck }: { deck: Deck }) {
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--elevated)]">
         <div
           className={`h-full rounded-full transition-all ${
-            completionPercent === 100 ? "bg-[var(--green)]" : "bg-[var(--accent)]"
+            completionPercent === 100 ? "bg-[var(--green)]" : "bg-[var(--blue)] opacity-50"
           }`}
           style={{ width: `${completionPercent}%` }}
         />

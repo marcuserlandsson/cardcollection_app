@@ -6,7 +6,7 @@ import { usePrices } from "@/lib/hooks/use-prices";
 import { buildSellableCards, formatPrice } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { Layers, Fingerprint, TrendingUp, CircleDollarSign } from "lucide-react";
+import {} from "lucide-react";
 import type { Card } from "@/lib/types";
 
 const supabase = createClient();
@@ -46,42 +46,32 @@ export default function DashboardStats() {
       : [];
   const surplusValue = sellableCards.reduce((sum, s) => sum + (s.total_value ?? 0), 0);
 
-  const stats = [
-    { label: "Total Cards", value: totalCards, icon: Layers, color: "var(--accent)" },
-    { label: "Unique", value: uniqueCards, icon: Fingerprint, color: "var(--blue)" },
-    {
-      label: "Collection Value",
-      value: collectionValue !== null ? formatPrice(collectionValue) : "—",
-      icon: TrendingUp,
-      color: "var(--green)",
-    },
-    {
-      label: "Surplus Value",
-      value: surplusValue > 0 ? formatPrice(surplusValue) : "—",
-      icon: CircleDollarSign,
-      color: "var(--yellow)",
-    },
-  ];
+  const formattedCollectionValue = collectionValue !== null ? formatPrice(collectionValue) : "—";
+  const formattedSurplusValue = surplusValue > 0 ? formatPrice(surplusValue) : null;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:flex">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <div key={stat.label} className="flex flex-1 items-center gap-3 rounded-xl bg-[var(--surface)] p-4">
-            <div
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--elevated)]"
-              style={{ color: stat.color }}
-            >
-              <Icon size={18} />
-            </div>
-            <div>
-              <div className="text-lg font-bold">{stat.value}</div>
-              <div className="text-[11px] uppercase tracking-wide text-[var(--text-muted)]">{stat.label}</div>
-            </div>
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      <div className="rounded-xl bg-[var(--surface)] p-5">
+        <div className="text-xs font-medium text-[var(--text-muted)]">Collection Value</div>
+        <div className="mt-1 text-3xl font-bold">{formattedCollectionValue}</div>
+        {formattedSurplusValue && (
+          <div className="mt-1 text-xs text-[var(--green)]">+{formattedSurplusValue} surplus</div>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl bg-[var(--surface)] p-4">
+          <div className="text-lg font-bold">{totalCards}</div>
+          <div className="text-xs text-[var(--text-muted)]">Total cards</div>
+        </div>
+        <div className="rounded-xl bg-[var(--surface)] p-4">
+          <div className="text-lg font-bold">{uniqueCards}</div>
+          <div className="text-xs text-[var(--text-muted)]">Unique</div>
+        </div>
+        <div className="rounded-xl bg-[var(--surface)] p-4">
+          <div className="text-lg font-bold">{sellableCards.length}</div>
+          <div className="text-xs text-[var(--text-muted)]">To sell</div>
+        </div>
+      </div>
     </div>
   );
 }

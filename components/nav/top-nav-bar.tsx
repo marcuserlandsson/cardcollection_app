@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Home, Search, Layers, SquareStack, TrendingUp, LogOut, LogIn } from "lucide-react";
+import { Home, Search, Layers, SquareStack, TrendingUp, LogOut, LogIn, LayoutGrid } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const tabs = [
@@ -38,8 +38,9 @@ export default function TopNavBar() {
   return (
     <nav className="hidden border-b border-[var(--accent-border)] bg-[var(--surface)]/80 backdrop-blur-xl md:block">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
-        <Link href="/" className="text-lg font-bold text-[var(--text-primary)]">
-          📦 Card<span className="text-[var(--accent)]">Board</span>
+        <Link href="/" className="flex items-center gap-1.5 text-lg font-bold text-[var(--text-primary)]">
+          <LayoutGrid size={20} className="text-[var(--accent)]" />
+          Card<span className="text-[var(--accent)]">Board</span>
         </Link>
         <div className="flex items-center gap-0.5 rounded-lg bg-[var(--elevated)] p-0.5">
           {tabs.map((tab) => {
