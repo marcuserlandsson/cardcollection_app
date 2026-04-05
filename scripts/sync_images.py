@@ -52,6 +52,8 @@ def normalize_version(version: str) -> str:
     v = re.sub(r"\s*\|\s*alternate?\s*art$", "", v)
     # Remove trailing "secret rare" decorator
     v = re.sub(r"\s*secret\s*rare$", "", v)
+    # Normalize "pre-release stamped" to "pre-release"
+    v = re.sub(r"^pre-release\s+stamped$", "pre-release", v)
 
     return v.strip() or "regular"
 
@@ -137,16 +139,27 @@ def fetch_all_digimon_blueprints(headers: dict) -> list[dict]:
 def extract_expansion_code(ct_expansion_name: str) -> str:
     """Extract our expansion code from a CardTrader expansion name.
 
+    Prerelease expansions get a "P" suffix to distinguish them from the
+    base set (matching how Cardmarket separates these).
+
     Examples:
         "BT-17: Secret Crisis" -> "BT-17"
+        "BT-17: Secret Crisis Prerelease Promos" -> "BT-17P"
+        "BT-14: Blast Ace Pre-Release Promos" -> "BT-14P"
+        "ST-16: Prerelease Promos" -> "ST-16P"
         "EX-9: Versus Monsters" -> "EX-9"
         "AD-01: Advanced Booster Digimon Generation" -> "AD-01"
-        "ST-9: Starter Deck Ultimate Ancient Dragon" -> "ST-9"
         "Promo" -> "Promo"
         "Premium Bandai Products" -> "Premium Bandai Products"
     """
+    is_prerelease = bool(
+        re.search(r"pre-?release", ct_expansion_name, re.IGNORECASE)
+    )
     match = re.match(r"^([A-Z]+-?\d+)", ct_expansion_name)
-    return match.group(1) if match else ct_expansion_name
+    if match:
+        code = match.group(1)
+        return f"{code}P" if is_prerelease else code
+    return ct_expansion_name
 
 
 def build_blueprint_lookup(
@@ -298,6 +311,40 @@ def sync_images():
             if (i + 1) % 500 == 0:
                 print(f"  Cleaned {i + 1}/{len(expansion_cleanups)}")
         print(f"  Cleaned {len(expansion_cleanups)}/{len(expansion_cleanups)}")
+
+    # Create expansion_metadata for new prerelease expansions
+    prerelease_codes = set()
+    for card in all_cards:
+        if card.get("expansion", "").endswith("P"):
+            prerelease_codes.add(card["expansion"])
+
+    # Also include newly fixed expansions
+    for _, new_exp in expansion_fixes:
+        if new_exp.endswith("P"):
+            prerelease_codes.add(new_exp)
+
+    if prerelease_codes:
+        existing = supabase.table("expansion_metadata").select("expansion").execute()
+        existing_codes = {e["expansion"] for e in existing.data}
+        new_prerelease = prerelease_codes - existing_codes
+
+        if new_prerelease:
+            print(f"Creating {len(new_prerelease)} prerelease expansion metadata entries...")
+            for code in sorted(new_prerelease):
+                # Derive parent set code (e.g. "BT-17P" -> "BT-17")
+                parent_code = code[:-1]
+                parent = supabase.table("expansion_metadata").select("*").eq(
+                    "expansion", parent_code
+                ).execute()
+
+                meta = {"expansion": code}
+                if parent.data:
+                    # Reuse parent's set_image_url
+                    meta["set_image_url"] = parent.data[0].get("set_image_url")
+                    meta["set_id"] = parent.data[0].get("set_id")
+
+                supabase.table("expansion_metadata").upsert(meta).execute()
+                print(f"  Created {code}")
 
     if not image_updates and not expansion_fixes and not expansion_cleanups:
         print("Nothing to update.")

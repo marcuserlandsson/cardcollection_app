@@ -273,7 +273,8 @@ def sync_cards():
             if v_index == 1:
                 variant_name = "Regular"
             elif tcgplayer_name == raw.get("name", ""):
-                variant_name = "Regular"
+                # V2+ with identical tcgplayer_name → pre-release stamped
+                variant_name = "Pre-Release"
             else:
                 match = re.search(r"\(([^)]+)\)$", tcgplayer_name)
                 variant_name = match.group(1) if match else tcgplayer_name
