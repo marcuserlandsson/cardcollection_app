@@ -14,14 +14,30 @@ const TABS = [
   { key: "booster", label: "Boosters" },
   { key: "extra", label: "Extra" },
   { key: "starter", label: "Starters" },
+  { key: "promo", label: "Promo" },
   { key: "other", label: "Other" },
 ] as const;
 
 function getTab(code: string): string {
+  // Pre-release stamped sets (e.g. BT-17P, ST-15P)
+  if (/^(BT|EX|ST|SB|AD)-?\d+P$/i.test(code)) return "promo";
+  // Main booster sets
   if (/^BT-?\d/.test(code)) return "booster";
   if (/^EX-?\d/.test(code)) return "extra";
   if (/^ST-?\d/.test(code)) return "starter";
+  // Known promo/event categories
+  if (/^(AD|RB|LM|PB)-?\d/i.test(code)) return "promo";
+  if (/promo|event|tournament|cup|champion|winner|dash|memorial|campaign|regional|tamer battle|update pack|battle area/i.test(code)) return "promo";
+  if (/special booster|special promotion|box topper/i.test(code)) return "promo";
+  if (/^(BTC|DC)-?\d/i.test(code)) return "promo";
   return "other";
+}
+
+/** Sort expansion codes numerically (BT-1 before BT-2 before BT-10). */
+function expansionSortKey(code: string): string {
+  // Extract prefix and number, pad number for correct ordering
+  // e.g. "BT-17P" -> "BT-017P", "EX-1" -> "EX-001", "ST-9" -> "ST-009"
+  return code.replace(/(\d+)/g, (_, num) => num.padStart(3, "0"));
 }
 
 export default function ExpansionGrid({ expansions, setImages, onSelect }: ExpansionGridProps) {
@@ -32,6 +48,11 @@ export default function ExpansionGrid({ expansions, setImages, onSelect }: Expan
     (acc[tab] ??= []).push(exp);
     return acc;
   }, {});
+
+  // Sort each group numerically (BT-1 before BT-2 before BT-10)
+  for (const group of Object.values(grouped)) {
+    group.sort((a, b) => expansionSortKey(a.code).localeCompare(expansionSortKey(b.code)));
+  }
 
   const visibleExpansions = grouped[activeTab] || [];
 
