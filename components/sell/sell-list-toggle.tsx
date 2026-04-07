@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSellList, useAddToSellList, useRemoveFromSellList } from "@/lib/hooks/use-sell-list";
+import { createClient } from "@/lib/supabase/client";
 import { ClipboardList, Check, Loader2 } from "lucide-react";
 
 interface SellListToggleProps {
@@ -8,9 +10,16 @@ interface SellListToggleProps {
 }
 
 export default function SellListToggle({ cardNumber }: SellListToggleProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { data: sellList } = useSellList();
   const addMutation = useAddToSellList();
   const removeMutation = useRemoveFromSellList();
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      setIsAuthenticated(!!user);
+    });
+  }, []);
 
   const isOnList = sellList?.some((s) => s.card_number === cardNumber) ?? false;
   const isPending = addMutation.isPending || removeMutation.isPending;
@@ -23,6 +32,8 @@ export default function SellListToggle({ cardNumber }: SellListToggleProps) {
       addMutation.mutate(cardNumber);
     }
   };
+
+  if (!isAuthenticated) return null;
 
   return (
     <button

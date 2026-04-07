@@ -19,7 +19,7 @@ import type { SellFilter } from "@/components/sell/sell-filter-chips";
 import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
 import { TrendingUp, Clock, LogIn } from "lucide-react";
-import type { Card } from "@/lib/types";
+import type { Card, SellableCard } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
 const supabase = createClient();
@@ -76,6 +76,23 @@ export default function SellPage() {
     return findSpikedCards(cards, collection, prices, priceHistory, sellList ?? []);
   }, [cards, collection, prices, priceHistory, sellList]);
 
+  // Build spiked-only cards (owned cards that spiked but aren't surplus or on sell list)
+  const spikedOnlyCards = useMemo(() => {
+    const sellableSet = new Set(sellableCards.map((c) => c.card.base_card_number));
+    return spikedCards
+      .filter((s) => !sellableSet.has(s.card.base_card_number))
+      .map((s): SellableCard => ({
+        card: s.card,
+        owned: s.owned,
+        needed: 0,
+        surplus: 0,
+        price: s.price,
+        total_value: s.price.price_trend ? s.owned * s.price.price_trend : null,
+        source: "surplus",
+        spike_pct: s.spike_pct,
+      }));
+  }, [spikedCards, sellableCards]);
+
   // Filter logic
   const filteredCards = useMemo(() => {
     switch (filter) {
@@ -83,19 +100,26 @@ export default function SellPage() {
         return sellableCards.filter((c) => c.source === "surplus" || c.source === "both");
       case "sell-list":
         return sellableCards.filter((c) => c.source === "sell-list" || c.source === "both");
-      case "spiked":
-        return sellableCards.filter((c) => c.spike_pct !== null);
+      case "spiked": {
+        const spikedSellable = sellableCards.filter((c) => c.spike_pct !== null);
+        return [...spikedSellable, ...spikedOnlyCards].sort(
+          (a, b) => (b.total_value ?? -1) - (a.total_value ?? -1)
+        );
+      }
       default:
         return sellableCards;
     }
-  }, [sellableCards, filter]);
+  }, [sellableCards, spikedOnlyCards, filter]);
 
-  const filterCounts = useMemo(() => ({
-    all: sellableCards.length,
-    surplus: sellableCards.filter((c) => c.source === "surplus" || c.source === "both").length,
-    sellList: sellableCards.filter((c) => c.source === "sell-list" || c.source === "both").length,
-    spiked: sellableCards.filter((c) => c.spike_pct !== null).length,
-  }), [sellableCards]);
+  const filterCounts = useMemo(() => {
+    const spikedInSellable = sellableCards.filter((c) => c.spike_pct !== null).length;
+    return {
+      all: sellableCards.length,
+      surplus: sellableCards.filter((c) => c.source === "surplus" || c.source === "both").length,
+      sellList: sellableCards.filter((c) => c.source === "sell-list" || c.source === "both").length,
+      spiked: spikedInSellable + spikedOnlyCards.length,
+    };
+  }, [sellableCards, spikedOnlyCards]);
 
   const totalSurplus = sellableCards.reduce((sum, s) => sum + s.surplus, 0);
   const totalValue = sellableCards.reduce((sum, s) => sum + (s.total_value ?? 0), 0);
