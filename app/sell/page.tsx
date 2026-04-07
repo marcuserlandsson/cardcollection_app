@@ -6,7 +6,8 @@ import { useAllDeckCards } from "@/lib/hooks/use-decks";
 import { usePrices } from "@/lib/hooks/use-prices";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { buildSellableCards, timeAgo } from "@/lib/utils";
+import { timeAgo } from "@/lib/utils";
+import { buildSellableCards } from "@/lib/sell-utils";
 import SellSummary from "@/components/sell/sell-summary";
 import SellCardRow from "@/components/sell/sell-card-row";
 import CardPanel from "@/components/cards/card-panel";
@@ -46,7 +47,7 @@ export default function SellPage() {
   });
 
   const sellableCards = cards && collection && allDeckCards && prices
-    ? buildSellableCards(cards, collection, allDeckCards ?? [], prices)
+    ? buildSellableCards(cards, collection, allDeckCards ?? [], prices, [], [])
     : [];
 
   const totalSurplus = sellableCards.reduce((sum, s) => sum + s.surplus, 0);

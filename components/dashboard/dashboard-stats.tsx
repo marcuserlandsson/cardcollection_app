@@ -3,7 +3,8 @@
 import { useCollection } from "@/lib/hooks/use-collection";
 import { useAllDeckCards } from "@/lib/hooks/use-decks";
 import { usePrices } from "@/lib/hooks/use-prices";
-import { buildSellableCards, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
+import { buildSellableCards } from "@/lib/sell-utils";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import {} from "lucide-react";
@@ -42,7 +43,7 @@ export default function DashboardStats() {
 
   const sellableCards =
     cards && collection && allDeckCards && prices
-      ? buildSellableCards(cards, collection, allDeckCards, prices)
+      ? buildSellableCards(cards, collection, allDeckCards, prices, [], [])
       : [];
   const surplusValue = sellableCards.reduce((sum, s) => sum + (s.total_value ?? 0), 0);
 

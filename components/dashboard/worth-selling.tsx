@@ -6,7 +6,8 @@ import { useAllDeckCards } from "@/lib/hooks/use-decks";
 import { usePrices } from "@/lib/hooks/use-prices";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { buildSellableCards, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
+import { buildSellableCards } from "@/lib/sell-utils";
 import CardImage from "@/components/cards/card-image";
 import { TrendingUp, PackageMinus, Coins } from "lucide-react";
 import type { Card } from "@/lib/types";
@@ -32,7 +33,7 @@ export default function WorthSelling() {
 
   const sellableCards =
     cards && collection && allDeckCards && prices
-      ? buildSellableCards(cards, collection, allDeckCards, prices)
+      ? buildSellableCards(cards, collection, allDeckCards, prices, [], [])
       : [];
 
   const top5 = sellableCards.slice(0, 5);
