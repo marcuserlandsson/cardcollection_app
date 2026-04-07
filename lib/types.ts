@@ -61,3 +61,17 @@ export interface SellableCard {
   price: CardPrice | null;
   total_value: number | null;
 }
+
+export interface SellListEntry {
+  user_id: string;
+  card_number: string;
+  added_at: string;
+}
+
+export interface PriceHistoryEntry {
+  card_number: string;
+  recorded_at: string;
+  price_avg: number | null;
+  price_low: number | null;
+  price_trend: number | null;
+}
