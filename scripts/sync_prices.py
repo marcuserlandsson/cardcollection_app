@@ -48,11 +48,20 @@ def ct_get(session: requests.Session, path: str, params: dict = None):
 def find_digimon_game_id(session: requests.Session) -> int:
     """Return the Cardtrader game_id for the Digimon TCG."""
     games = ct_get(session, "/games")
-    for game in games:
-        name = game.get("name", "").lower()
-        if "digimon" in name:
-            print(f"  Found Digimon game: '{game['name']}' (id={game['id']})")
-            return game["id"]
+
+    # API may return a list of {id, name} objects or a dict of {name: id}
+    if isinstance(games, dict):
+        for name, game_id in games.items():
+            if "digimon" in name.lower():
+                print(f"  Found Digimon game: '{name}' (id={game_id})")
+                return game_id
+    else:
+        for game in games:
+            name = game.get("name", "").lower()
+            if "digimon" in name:
+                print(f"  Found Digimon game: '{game['name']}' (id={game['id']})")
+                return game["id"]
+
     raise RuntimeError("Digimon TCG not found in Cardtrader /games response")
 
 
