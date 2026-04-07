@@ -194,6 +194,15 @@ def build_blueprint_lookup(
     return lookup
 
 
+def new_supabase_client():
+    """Create a fresh Supabase client to avoid HTTP/2 connection limits."""
+    return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+
+# Refresh the Supabase client every N requests to avoid HTTP/2 connection termination
+REFRESH_INTERVAL = 2000
+
+
 def sync_images():
     if not CARDTRADER_ACCESS_TOKEN:
         print("Error: CARDTRADER_ACCESS_TOKEN not configured.")
@@ -216,7 +225,7 @@ def sync_images():
 
     # Connect to Supabase and fetch cards
     print("Connecting to Supabase...")
-    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    supabase = new_supabase_client()
 
     # Fetch all cards
     page_size = 1000
@@ -276,12 +285,16 @@ def sync_images():
     print(f"Expansion entry cleanups: {len(expansion_cleanups)}")
 
     # Apply image updates
+    req_count = 0
     if image_updates:
         print(f"Updating {len(image_updates)} card images...")
         for i, update in enumerate(image_updates):
             supabase.table("cards").update(
                 {"image_url": update["image_url"]}
             ).eq("card_number", update["card_number"]).execute()
+            req_count += 1
+            if req_count % REFRESH_INTERVAL == 0:
+                supabase = new_supabase_client()
             if (i + 1) % 500 == 0:
                 print(f"  Updated {i + 1}/{len(image_updates)}")
         print(f"  Updated {len(image_updates)}/{len(image_updates)}")
@@ -293,6 +306,9 @@ def sync_images():
             supabase.table("cards").update(
                 {"expansion": new_exp}
             ).eq("card_number", card_number).execute()
+            req_count += 1
+            if req_count % REFRESH_INTERVAL == 0:
+                supabase = new_supabase_client()
             if (i + 1) % 500 == 0:
                 print(f"  Fixed {i + 1}/{len(expansion_fixes)}")
         print(f"  Fixed {len(expansion_fixes)}/{len(expansion_fixes)}")
@@ -305,12 +321,19 @@ def sync_images():
             supabase.table("card_expansions").delete().eq(
                 "card_number", card_number
             ).execute()
+            req_count += 1
             supabase.table("card_expansions").upsert(
                 {"card_number": card_number, "expansion": correct_exp}
             ).execute()
+            req_count += 1
+            if req_count % REFRESH_INTERVAL == 0:
+                supabase = new_supabase_client()
             if (i + 1) % 500 == 0:
                 print(f"  Cleaned {i + 1}/{len(expansion_cleanups)}")
         print(f"  Cleaned {len(expansion_cleanups)}/{len(expansion_cleanups)}")
+
+    # Fresh client for metadata queries
+    supabase = new_supabase_client()
 
     # Create expansion_metadata for new prerelease expansions
     prerelease_codes = set()
