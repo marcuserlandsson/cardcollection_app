@@ -47,6 +47,20 @@ export interface CardPrice {
   fetched_at: string;
 }
 
+export interface PriceHistoryEntry {
+  card_number: string;
+  recorded_at: string;
+  price_avg: number | null;
+  price_low: number | null;
+  price_trend: number | null;
+}
+
+export interface SellListEntry {
+  user_id: string;
+  card_number: string;
+  added_at: string;
+}
+
 export interface Expansion {
   code: string;
   name: string;
@@ -60,6 +74,8 @@ export interface SellableCard {
   surplus: number;
   price: CardPrice | null;
   total_value: number | null;
+  source: "surplus" | "sell-list" | "both";
+  spike_pct: number | null;
 }
 
 export interface SellListEntry {

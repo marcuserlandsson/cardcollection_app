@@ -21,6 +21,6 @@ export function usePriceHistory(days: number = 7) {
       if (error) throw error;
       return data as PriceHistoryEntry[];
     },
-    staleTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 30, // 30 minutes — history doesn't change often
   });
 }

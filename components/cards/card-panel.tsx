@@ -5,11 +5,14 @@ import Image from "next/image";
 import { ImageOff, X, Coins } from "lucide-react";
 import { formatPrice, getCardImageUrl } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
+import { usePriceHistory } from "@/lib/hooks/use-price-history";
+import { computeSpikePct } from "@/lib/sell-utils";
 import { usePanelContext } from "@/contexts/panel-context";
 import QuantityControl from "@/components/collection/quantity-control";
 import CardSiblings from "@/components/cards/card-siblings";
 import CardDeckUsage from "@/components/cards/card-deck-usage";
 import CardExpansions from "@/components/cards/card-expansions";
+import SellListToggle from "@/components/sell/sell-list-toggle";
 import type { Card } from "@/lib/types";
 
 const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
@@ -24,6 +27,13 @@ const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
 
 export default function CardPanel({ card, onClose, onCardSelect }: { card: Card | null; onClose: () => void; onCardSelect?: (card: Card) => void }) {
   const { data: price } = useCardPrice(card?.card_number ?? null);
+  const { data: priceHistory } = usePriceHistory(7);
+  const spikePct = (() => {
+    if (!card || !price?.price_trend || !priceHistory) return null;
+    const base = card.base_card_number;
+    const history = priceHistory.filter((h) => h.card_number === base);
+    return computeSpikePct(price, history);
+  })();
   const { openPanel, closePanel } = usePanelContext();
   const [imageError, setImageError] = useState(false);
   const prevCardRef = useRef<string | null>(null);
@@ -154,6 +164,9 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
           <QuantityControl cardNumber={card.card_number} />
         </div>
 
+        {/* Sell List */}
+        <SellListToggle cardNumber={card.card_number} />
+
         {/* Deck Usage */}
         <CardDeckUsage cardNumber={card.card_number} />
 
@@ -162,12 +175,17 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
 
         {/* Price */}
         <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
-          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Cardmarket Price</div>
+          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Market Price</div>
           <div className="flex items-baseline gap-3">
             <span className="flex items-center gap-1.5 text-lg font-bold text-[var(--green)]">
               <Coins size={16} />
               {formatPrice(price?.price_trend ?? null)}
             </span>
+            {spikePct !== null && (
+              <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-bold text-[var(--green)] bg-[var(--green-translucent)]">
+                ↑ {Math.round(spikePct * 100)}%
+              </span>
+            )}
             {price?.price_low !== null && price?.price_low !== undefined && (
               <span className="text-xs text-[var(--text-muted)]">Low: {formatPrice(price.price_low)}</span>
             )}

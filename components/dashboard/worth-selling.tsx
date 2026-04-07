@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useCollection } from "@/lib/hooks/use-collection";
 import { useAllDeckCards } from "@/lib/hooks/use-decks";
 import { usePrices } from "@/lib/hooks/use-prices";
+import { useSellList } from "@/lib/hooks/use-sell-list";
+import { usePriceHistory } from "@/lib/hooks/use-price-history";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { buildSellableCards, formatPrice } from "@/lib/utils";
+import { buildSellableCards, findSpikedCards } from "@/lib/sell-utils";
+import { formatPrice } from "@/lib/utils";
 import CardImage from "@/components/cards/card-image";
-import { TrendingUp, PackageMinus, Coins } from "lucide-react";
+import { TrendingUp, PackageMinus, Coins, Zap } from "lucide-react";
 import type { Card } from "@/lib/types";
 
 const supabase = createClient();
@@ -17,6 +20,8 @@ export default function WorthSelling() {
   const { data: collection } = useCollection();
   const { data: allDeckCards } = useAllDeckCards();
   const { data: prices } = usePrices();
+  const { data: sellList } = useSellList();
+  const { data: priceHistory } = usePriceHistory(7);
 
   const cardNumbers = collection?.map((c) => c.card_number) ?? [];
   const { data: cards } = useQuery<Card[]>({
@@ -32,7 +37,12 @@ export default function WorthSelling() {
 
   const sellableCards =
     cards && collection && allDeckCards && prices
-      ? buildSellableCards(cards, collection, allDeckCards, prices)
+      ? buildSellableCards(cards, collection, allDeckCards, prices, sellList ?? [], priceHistory ?? [])
+      : [];
+
+  const spikedCards =
+    cards && collection && prices && priceHistory
+      ? findSpikedCards(cards, collection, prices, priceHistory, sellList ?? [])
       : [];
 
   const top5 = sellableCards.slice(0, 5);
@@ -57,6 +67,17 @@ export default function WorthSelling() {
           View all
         </Link>
       </div>
+
+      {spikedCards.length > 0 && (
+        <Link
+          href="/sell?filter=spiked"
+          className="mt-2 flex items-center gap-1.5 rounded-lg bg-[var(--yellow-translucent)] border border-[var(--yellow-border)] px-3 py-2 text-xs font-medium text-[var(--yellow)] transition-colors hover:bg-[var(--yellow-translucent)]"
+        >
+          <Zap size={12} />
+          {spikedCards.length} card{spikedCards.length !== 1 ? "s" : ""} spiked this week
+        </Link>
+      )}
+
       <div className="mt-3 space-y-2">
         {top5.map((item) => (
           <Link
@@ -69,10 +90,17 @@ export default function WorthSelling() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium">{item.card.name}</p>
-              <p className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-                <PackageMinus size={10} />
-                x{item.surplus} surplus
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+                  <PackageMinus size={10} />
+                  x{item.surplus} surplus
+                </p>
+                {item.spike_pct !== null && (
+                  <span className="inline-flex items-center rounded px-1 py-0.5 text-[9px] font-bold text-[var(--green)] bg-[var(--green-translucent)]">
+                    ↑ {Math.round(item.spike_pct * 100)}%
+                  </span>
+                )}
+              </div>
             </div>
             <div className="text-right">
               <p className="flex items-center gap-1 text-sm font-bold text-[var(--yellow)]">

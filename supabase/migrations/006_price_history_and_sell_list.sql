@@ -1,5 +1,5 @@
 -- ============================================
--- Card price history table (30-day rolling)
+-- Price history table (30-day rolling snapshots)
 -- ============================================
 create table public.card_price_history (
   card_number text not null references public.cards(card_number) on delete cascade,
@@ -10,13 +10,14 @@ create table public.card_price_history (
   primary key (card_number, recorded_at)
 );
 
+create index idx_price_history_lookup
+  on public.card_price_history (card_number, recorded_at desc);
+
 alter table public.card_price_history enable row level security;
 
-create policy "Card price history is publicly readable"
+create policy "Price history is publicly readable"
   on public.card_price_history for select
   using (true);
-
-create index idx_card_price_history_lookup on public.card_price_history (card_number, recorded_at desc);
 
 -- ============================================
 -- Sell list table (user's manual sell flags)
@@ -34,10 +35,10 @@ create policy "Users can view their own sell list"
   on public.sell_list for select
   using (auth.uid() = user_id);
 
-create policy "Users can insert into their own sell list"
+create policy "Users can add to their own sell list"
   on public.sell_list for insert
   with check (auth.uid() = user_id);
 
-create policy "Users can delete from their own sell list"
+create policy "Users can remove from their own sell list"
   on public.sell_list for delete
   using (auth.uid() = user_id);
