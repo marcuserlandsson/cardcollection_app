@@ -7,7 +7,6 @@ import { formatPrice } from "@/lib/utils";
 import { buildSellableCards } from "@/lib/sell-utils";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import {} from "lucide-react";
 import type { Card } from "@/lib/types";
 
 const supabase = createClient();
