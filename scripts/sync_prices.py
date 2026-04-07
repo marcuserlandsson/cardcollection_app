@@ -16,6 +16,7 @@ Required env vars:
 """
 
 import os
+import re
 import sys
 import time
 import statistics
@@ -168,28 +169,44 @@ def sync_prices():
     print("Connecting to Supabase...")
     supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    # Load all known base_card_numbers from the DB
+    # Load all cards from the DB with variant info
     # Supabase default limit is 1000 rows — paginate to get all cards
     print("Loading cards from database...")
-    known_base_numbers: set[str] = set()
+    all_cards: list[dict] = []
     offset = 0
     page_size = 1000
     while True:
         result = (
             supabase.table("cards")
-            .select("base_card_number")
+            .select("card_number,base_card_number,variant_name")
             .range(offset, offset + page_size - 1)
             .execute()
         )
         if not result.data:
             break
-        for row in result.data:
-            if row.get("base_card_number"):
-                known_base_numbers.add(row["base_card_number"])
+        all_cards.extend(result.data)
         if len(result.data) < page_size:
             break
         offset += page_size
-    print(f"  Loaded {len(known_base_numbers)} unique base card numbers")
+
+    # Build variant map: base_card_number -> sorted list of card_numbers
+    # Regular variant first, then V2, V3, etc.
+    from collections import defaultdict
+    variants_by_base: dict[str, list[str]] = defaultdict(list)
+    known_card_numbers: set[str] = set()
+    for card in all_cards:
+        variants_by_base[card["base_card_number"]].append(card["card_number"])
+        known_card_numbers.add(card["card_number"])
+
+    def v_sort_key(cn: str) -> int:
+        m = re.search(r"-V(\d+)$", cn)
+        return int(m.group(1)) if m else 0
+
+    for base in variants_by_base:
+        variants_by_base[base].sort(key=v_sort_key)
+
+    known_base_numbers = set(variants_by_base.keys())
+    print(f"  Loaded {len(all_cards)} cards ({len(known_base_numbers)} unique base numbers)")
 
     session = requests.Session()
     session.headers.update({"Authorization": f"Bearer {CARDTRADER_ACCESS_TOKEN}"})
@@ -238,18 +255,61 @@ def sync_prices():
 
         exp_prices = aggregate_prices(marketplace_data, blueprint_map)
 
-        # Filter to only cards we know about
-        matched = {cn: p for cn, p in exp_prices.items() if cn in known_base_numbers}
-        print(f"  Prices aggregated: {len(exp_prices)} total, {len(matched)} matched to DB")
+        # Map CT collector_numbers to our card_numbers (per-variant pricing)
+        matched_count = 0
+        for ct_collector_num, price_data in exp_prices.items():
+            # Split CT collector_number into base + suffix
+            # e.g. "AD1-008a" -> base="AD1-008", suffix="a"
+            m = re.match(r"^([A-Za-z0-9]+-\d+)(.*)", ct_collector_num)
+            if not m:
+                continue
+            base, suffix = m.group(1), m.group(2)
 
-        # Merge (keep lowest price_low if a card appears in multiple expansions)
-        for card_number, price_data in matched.items():
-            if card_number not in all_prices:
-                all_prices[card_number] = price_data
+            if base not in known_base_numbers:
+                continue
+
+            our_variants = variants_by_base[base]
+
+            if not suffix:
+                # No suffix = Regular variant (first in sorted list, V0)
+                target = our_variants[0] if our_variants else None
             else:
-                existing = all_prices[card_number]
+                # Suffixed variant: collect all CT suffixes for this base in this
+                # expansion and pair with our non-Regular variants by sort order
+                ct_suffixes_for_base = sorted(
+                    s for cn, s in (
+                        (cn2, re.match(r"^[A-Za-z0-9]+-\d+(.*)", cn2).group(1))
+                        for cn2 in exp_prices
+                        if cn2.startswith(base) and re.match(r"^[A-Za-z0-9]+-\d+(.*)", cn2)
+                    )
+                    if s  # only suffixed ones
+                )
+                our_non_regular = our_variants[1:]  # skip Regular (V0)
+
+                try:
+                    suffix_idx = ct_suffixes_for_base.index(suffix)
+                except ValueError:
+                    suffix_idx = -1
+
+                if 0 <= suffix_idx < len(our_non_regular):
+                    target = our_non_regular[suffix_idx]
+                else:
+                    # More CT variants than we have — store under CT name directly
+                    target = ct_collector_num if ct_collector_num in known_card_numbers else None
+
+            if not target:
+                continue
+
+            matched_count += 1
+            # Merge: keep lowest price_low if card appears in multiple expansions
+            if target not in all_prices:
+                all_prices[target] = price_data
+            else:
+                existing = all_prices[target]
                 if price_data["price_low"] < existing["price_low"]:
-                    all_prices[card_number] = price_data
+                    all_prices[target] = price_data
+
+        print(f"  Prices aggregated: {len(exp_prices)} total, {matched_count} matched to DB")
 
     # Step 4: Upsert current prices into card_prices
     today = datetime.date.today().isoformat()

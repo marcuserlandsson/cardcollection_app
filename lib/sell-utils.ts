@@ -131,7 +131,7 @@ export function buildSellableCards(
         const owned = collectionMap.get(variant.card_number) || 0;
         if (owned === 0) continue;
         const sellQty = Math.min(owned, remaining);
-        const price = priceMap.get(base) || null;
+        const price = priceMap.get(variant.card_number) || priceMap.get(base) || null;
         const totalValue =
           price?.price_trend ? sellQty * price.price_trend : null;
         const history = historyByCard.get(variant.card_number) || historyByCard.get(base) || [];
@@ -172,7 +172,7 @@ export function buildSellableCards(
       usages.reduce((sum, dc) => sum + dc.quantity, 0)
     );
 
-    const price = priceMap.get(base) || null;
+    const price = priceMap.get(entry.card_number) || priceMap.get(base) || null;
     const totalValue = price?.price_trend ? owned * price.price_trend : null;
     const history = historyByCard.get(entry.card_number) || historyByCard.get(base) || [];
     const spike_pct = price ? computeSpikePct(price, history) : null;
@@ -243,7 +243,7 @@ export function findSpikedCards(
 
     if (!bestVariant || bestOwned === 0) continue;
 
-    const price = priceMap.get(base);
+    const price = priceMap.get(bestVariant.card_number) || priceMap.get(base);
     if (!price) continue;
 
     const history =

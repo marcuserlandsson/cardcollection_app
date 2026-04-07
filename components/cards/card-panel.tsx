@@ -26,7 +26,7 @@ const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
 };
 
 export default function CardPanel({ card, onClose, onCardSelect }: { card: Card | null; onClose: () => void; onCardSelect?: (card: Card) => void }) {
-  const { data: price } = useCardPrice(card?.base_card_number ?? null);
+  const { data: price } = useCardPrice(card?.card_number ?? null);
   const { data: priceHistory } = usePriceHistory(7);
   const spikePct = (() => {
     if (!card || !price?.price_trend || !priceHistory) return null;
