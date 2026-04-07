@@ -161,6 +161,145 @@ def aggregate_prices(marketplace_data, blueprint_map: dict[int, str]) -> dict[st
     return aggregated
 
 
+# Keywords for matching CT suffixes/expansion names to our variant_name
+SUFFIX_KEYWORDS: dict[str, list[str]] = {
+    "a": ["alternate art", "alt art"],
+    "s": ["sp", "special rare"],
+    "sec": ["secret"],
+    "g": ["gold"],
+    "b": ["black & white", "black and white"],
+    "P1": ["pre-release", "promo"],
+    "p": ["participant"],
+    "c": ["champion"],
+    "f": ["finalist"],
+}
+
+EXPANSION_KEYWORDS: list[tuple[str, list[str]]] = [
+    ("pre-release", ["pre-release"]),
+    ("resurgence", ["resurgence", "reprint"]),
+    ("championship 2022", ["championship 2022"]),
+    ("championship 2023", ["championship 2023", "2023"]),
+    ("championship 2024", ["championship 2024", "2024"]),
+    ("championship 2025", ["championship 2025", "2025"]),
+    ("championship 2026", ["championship 2026", "2026"]),
+    ("evolution cup", ["evolution cup"]),
+    ("ultimate cup", ["ultimate cup"]),
+    ("tamer's set", ["tamer"]),
+    ("revision", ["revision"]),
+    ("special booster ver 2.0", ["special booster ver 2.0", "ver 2.0"]),
+    ("special booster ver 2.5", ["special booster ver 2.5", "ver 2.5"]),
+    ("special booster ver 1.0", ["special booster ver 1.0", "ver 1.0"]),
+    ("special booster ver 1.5", ["special booster ver 1.5", "ver 1.5"]),
+    ("winner pack", ["winner"]),
+    ("official tournament", ["official tournament", "tournament pack"]),
+    ("judge", ["judge"]),
+    ("box topper", ["box topper"]),
+    ("event pack", ["event pack"]),
+    ("demo deck", ["demo"]),
+    ("limited card pack", ["limited card pack"]),
+    ("fest", ["fest"]),
+    ("illustration competition", ["illustration"]),
+    ("anniversary", ["anniversary"]),
+    ("premium bandai", ["premium bandai"]),
+    ("liberator", ["liberator"]),
+]
+
+
+def _variant_score(variant_name: str, suffix: str, exp_name: str) -> int:
+    """Score how well a CT entry (suffix + expansion) matches a variant_name.
+
+    Higher score = better match. 0 = no match.
+    """
+    vn = variant_name.lower()
+    exp_lower = exp_name.lower()
+    score = 0
+
+    # Suffix-based matching
+    if suffix and suffix in SUFFIX_KEYWORDS:
+        for kw in SUFFIX_KEYWORDS[suffix]:
+            if kw in vn:
+                score += 10
+                break
+
+    # Expansion name-based matching
+    for exp_pattern, keywords in EXPANSION_KEYWORDS:
+        if exp_pattern in exp_lower:
+            for kw in keywords:
+                if kw in vn:
+                    score += 5
+                    break
+
+    # Special case: no suffix + main expansion = Regular
+    if not suffix and "pre-release" not in exp_lower and "promo" not in exp_lower:
+        if vn == "regular":
+            score += 20
+
+    return score
+
+
+def match_ct_to_variants(
+    ct_entries: list[tuple[str, str, str, dict]],
+    variants_by_base: dict[str, list[str]],
+    variant_names: dict[str, str],
+) -> dict[str, dict]:
+    """Match CT price entries to our card_number variants.
+
+    ct_entries: list of (base_card_number, suffix, expansion_name, price_data)
+    Returns: {card_number: price_data}
+    """
+    from collections import defaultdict
+
+    # Group CT entries by base card number
+    ct_by_base: dict[str, list[tuple[str, str, dict]]] = defaultdict(list)
+    for base, suffix, exp_name, price_data in ct_entries:
+        ct_by_base[base].append((suffix, exp_name, price_data))
+
+    all_prices: dict[str, dict] = {}
+
+    for base, ct_list in ct_by_base.items():
+        our_variants = variants_by_base.get(base, [])
+        if not our_variants:
+            continue
+
+        # For each of our variants, find the best matching CT entry
+        assigned: set[int] = set()  # indices of ct_list already assigned
+
+        for card_number in our_variants:
+            vn = variant_names.get(card_number, "Regular")
+
+            # Score each CT entry against this variant
+            best_score = 0
+            best_idx = -1
+            best_price = None
+
+            for i, (suffix, exp_name, price_data) in enumerate(ct_list):
+                if i in assigned:
+                    continue
+                score = _variant_score(vn, suffix, exp_name)
+                if score > best_score:
+                    best_score = score
+                    best_idx = i
+                    best_price = price_data
+
+            if best_score > 0 and best_idx >= 0:
+                assigned.add(best_idx)
+                # If this card_number already has a price, keep the one with more listings
+                if card_number not in all_prices:
+                    all_prices[card_number] = best_price
+                # else keep existing (first match wins for now)
+
+        # For unassigned CT entries with no suffix that match the base,
+        # assign to Regular if Regular hasn't been assigned yet
+        regular_cn = our_variants[0] if our_variants else None
+        if regular_cn and regular_cn not in all_prices:
+            for i, (suffix, exp_name, price_data) in enumerate(ct_list):
+                if i not in assigned and not suffix:
+                    all_prices[regular_cn] = price_data
+                    break
+
+    return all_prices
+
+
 def sync_prices():
     if not CARDTRADER_ACCESS_TOKEN:
         print("ERROR: CARDTRADER_ACCESS_TOKEN is not set.")
@@ -205,6 +344,11 @@ def sync_prices():
     for base in variants_by_base:
         variants_by_base[base].sort(key=v_sort_key)
 
+    # Also build card_number -> variant_name lookup
+    variant_names_by_card: dict[str, str] = {
+        card["card_number"]: card["variant_name"] for card in all_cards
+    }
+
     known_base_numbers = set(variants_by_base.keys())
     print(f"  Loaded {len(all_cards)} cards ({len(known_base_numbers)} unique base numbers)")
 
@@ -227,8 +371,9 @@ def sync_prices():
         print(f"FATAL: Could not fetch expansions: {e}")
         sys.exit(1)
 
-    # Step 3: Process each expansion
-    all_prices: dict[str, dict] = {}
+    # Step 3: Collect prices from all expansions
+    # Each entry: (collector_number, suffix, expansion_name, price_data)
+    ct_entries: list[tuple[str, str, str, dict]] = []
     failed_expansions = 0
 
     for idx, expansion in enumerate(expansions, start=1):
@@ -255,61 +400,20 @@ def sync_prices():
 
         exp_prices = aggregate_prices(marketplace_data, blueprint_map)
 
-        # Map CT collector_numbers to our card_numbers (per-variant pricing)
-        matched_count = 0
         for ct_collector_num, price_data in exp_prices.items():
-            # Split CT collector_number into base + suffix
-            # e.g. "AD1-008a" -> base="AD1-008", suffix="a"
             m = re.match(r"^([A-Za-z0-9]+-\d+)(.*)", ct_collector_num)
             if not m:
                 continue
             base, suffix = m.group(1), m.group(2)
+            if base in known_base_numbers:
+                ct_entries.append((base, suffix, exp_name, price_data))
 
-            if base not in known_base_numbers:
-                continue
+        matched_in_exp = sum(1 for cn in exp_prices if re.match(r"^([A-Za-z0-9]+-\d+)", cn) and re.match(r"^([A-Za-z0-9]+-\d+)", cn).group(1) in known_base_numbers)
+        print(f"  Prices aggregated: {len(exp_prices)} total, {matched_in_exp} matched to DB")
 
-            our_variants = variants_by_base[base]
-
-            if not suffix:
-                # No suffix = Regular variant (first in sorted list, V0)
-                target = our_variants[0] if our_variants else None
-            else:
-                # Suffixed variant: collect all CT suffixes for this base in this
-                # expansion and pair with our non-Regular variants by sort order
-                ct_suffixes_for_base = sorted(
-                    s for cn, s in (
-                        (cn2, re.match(r"^[A-Za-z0-9]+-\d+(.*)", cn2).group(1))
-                        for cn2 in exp_prices
-                        if cn2.startswith(base) and re.match(r"^[A-Za-z0-9]+-\d+(.*)", cn2)
-                    )
-                    if s  # only suffixed ones
-                )
-                our_non_regular = our_variants[1:]  # skip Regular (V0)
-
-                try:
-                    suffix_idx = ct_suffixes_for_base.index(suffix)
-                except ValueError:
-                    suffix_idx = -1
-
-                if 0 <= suffix_idx < len(our_non_regular):
-                    target = our_non_regular[suffix_idx]
-                else:
-                    # More CT variants than we have — store under CT name directly
-                    target = ct_collector_num if ct_collector_num in known_card_numbers else None
-
-            if not target:
-                continue
-
-            matched_count += 1
-            # Merge: keep lowest price_low if card appears in multiple expansions
-            if target not in all_prices:
-                all_prices[target] = price_data
-            else:
-                existing = all_prices[target]
-                if price_data["price_low"] < existing["price_low"]:
-                    all_prices[target] = price_data
-
-        print(f"  Prices aggregated: {len(exp_prices)} total, {matched_count} matched to DB")
+    # Step 4: Match CT entries to our card_number variants
+    print(f"\nMatching {len(ct_entries)} CT prices to card variants...")
+    all_prices = match_ct_to_variants(ct_entries, variants_by_base, variant_names_by_card)
 
     # Step 4: Upsert current prices into card_prices
     today = datetime.date.today().isoformat()
