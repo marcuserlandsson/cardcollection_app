@@ -3,7 +3,7 @@
 import { useCollection } from "@/lib/hooks/use-collection";
 import { useAllDeckCards } from "@/lib/hooks/use-decks";
 import { usePrices } from "@/lib/hooks/use-prices";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getBaseCardNumber } from "@/lib/utils";
 import { buildSellableCards } from "@/lib/sell-utils";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -35,7 +35,7 @@ export default function DashboardStats() {
   if (collection && prices) {
     const priceMap = new Map(prices.map((p) => [p.card_number, p.price_trend]));
     collectionValue = collection.reduce((sum, c) => {
-      const price = priceMap.get(c.card_number);
+      const price = priceMap.get(getBaseCardNumber(c.card_number));
       return sum + (price ? price * c.quantity : 0);
     }, 0);
   }

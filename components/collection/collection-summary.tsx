@@ -2,7 +2,7 @@
 
 import { useCollection } from "@/lib/hooks/use-collection";
 import { usePrices } from "@/lib/hooks/use-prices";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getBaseCardNumber } from "@/lib/utils";
 import { Layers, Sparkles, Coins } from "lucide-react";
 
 export default function CollectionSummary() {
@@ -16,7 +16,7 @@ export default function CollectionSummary() {
   if (collection && prices) {
     const priceMap = new Map(prices.map((p) => [p.card_number, p.price_trend]));
     estimatedValue = collection.reduce((sum, c) => {
-      const price = priceMap.get(c.card_number);
+      const price = priceMap.get(getBaseCardNumber(c.card_number));
       return sum + (price ? price * c.quantity : 0);
     }, 0);
   }
