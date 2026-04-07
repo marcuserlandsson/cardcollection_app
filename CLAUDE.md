@@ -68,3 +68,44 @@ For any UI/design work, invoke the `/ui-ux-pro-max` skill to get design system r
 - **Progress bars:** Muted `--blue` at 50% opacity for incomplete, `--green`/`--success` at 100%
 - **Quantity badges:** Neutral `--elevated` pill with border, not accent-colored
 - **Border radius:** `rounded-lg` for inputs/buttons, `rounded-xl` for cards/containers
+
+<!-- BEGIN PROJECT-INIT -->
+
+## Session Workflow
+
+### Session Start
+At the beginning of every session:
+1. Read all files in `.claude/memory/`
+2. Read `.claude/learnings.md`
+3. Read `.claude/handoff.md`
+4. Acknowledge context briefly — do not dump everything back at the user
+
+### Session End
+When the user signals they are done (goodbye, that's all, wrapping up, etc.):
+1. Update any `.claude/memory/` files with new information learned during the session
+2. Add any mistakes or corrections received to `.claude/learnings.md` under the appropriate category
+3. Update `.claude/handoff.md` with:
+   - Summary of what was accomplished
+   - Any work still in progress
+   - Suggested next steps
+   - Open questions or blockers
+
+### Memory System
+- Memory files live in `.claude/memory/`
+- Read them at session start, update them when you learn something new
+- If new information does not fit an existing file, create a new `.md` file in `.claude/memory/` with an appropriate name
+- Keep entries concise and actionable
+
+### Self-Improvement
+- `.claude/learnings.md` tracks mistakes and corrective rules
+- Read it before starting any implementation work
+- When you make a mistake or receive a correction, add it immediately
+- Format: `- **[what went wrong]**: [what to do instead]`
+
+### Review Gate
+Before committing code or claiming work is complete:
+1. Re-read `.claude/learnings.md`
+2. Verify none of the documented mistakes are being repeated in your current changes
+3. Review your own changes for quality and correctness
+
+<!-- END PROJECT-INIT -->
