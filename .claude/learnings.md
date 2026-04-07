@@ -12,6 +12,7 @@ Each entry format: `- **[description]`: [actionable corrective rule]`
 
 - **Supabase client default 1000-row limit**: Always paginate with `.range()` when querying tables that may exceed 1000 rows. This bit us in both the Python sync script and the frontend React hooks (`usePrices`, `usePriceHistory`). Check any `select("*")` call.
 - **FK constraints block inserts for orphaned keys**: The `card_prices` FK to `cards.card_number` prevented storing prices keyed by `base_card_number` when no Regular variant existed. Migration 007 dropped these FKs. Be aware of this pattern.
+- **Supabase HTTP/2 connection limit (~10K requests)**: The hosted Supabase terminates HTTP/2 connections after ~10,000 stream pairs. Python sync scripts that make many sequential updates must recreate the client periodically (every ~2,000 requests). See `REFRESH_INTERVAL` in `sync_images.py`.
 
 ## Workflow
 

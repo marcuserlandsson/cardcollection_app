@@ -4,18 +4,16 @@ Current state of work for session continuity. Updated at the end of each session
 
 ## Last Session Summary
 
-Implemented full Cardtrader price sync pipeline and enhanced sell advisor UI:
+Two fixes this session:
 
-- **Price sync** (`scripts/sync_prices.py`): Rewrote to properly use Cardtrader API per-expansion. Fetches blueprints + marketplace products for all 110 Digimon expansions, aggregates into low/avg/median prices. Handles per-variant pricing via suffix matching (a=alt art, s=SP, etc.) and cross-expansion matching (pre-release, resurgence, championship expansions). Result: ~5,875 individually priced cards.
-- **DB migration 006**: Added `card_price_history` (30-day rolling snapshots) and `sell_list` (manual sell flags with per-user RLS).
-- **DB migration 007**: Dropped FK constraints on price tables so prices can be keyed by base_card_number even when no exact card_number row exists.
-- **Sell advisor page** (`app/sell/page.tsx`): Rewritten with price spike carousel, filter chips (All/Surplus/Sell List/Spiked), unified card list with source badges and spike indicators.
-- **Sell utilities** (`lib/sell-utils.ts`): Extracted from utils.ts with spike detection (≥30% over 7 days), sell list integration, findSpikedCards.
-- **New hooks**: `use-sell-list.ts` (CRUD), `use-price-history.ts` (7-day history for spike detection).
-- **New components**: `PriceSpikeCards`, `SellFilterChips`, `SellListToggle`, updated `SellCardRow`.
-- **Card panel**: Renamed "Cardmarket Price" → "Market Price", added spike indicator, added sell list toggle (hidden for guests).
-- **Dashboard widget**: Added spike banner linking to sell advisor, inline spike badges.
-- **Next.js config**: Added `world.digimoncard.com` to allowed image hosts.
+1. **sync_images.py HTTP/2 connection fix**: The GitHub Actions cron job was failing because Supabase's HTTP/2 connection gets terminated after ~10,000 requests (`last_stream_id:19999`). The script was making ~12,800 individual requests on a single connection. Added `new_supabase_client()` helper that recreates the client every 2,000 requests to stay under the limit.
+
+2. **Switched pricing to use minimum listing (`price_low`)**: All price displays and value calculations now default to `price_low` instead of `price_trend` (median). This affects:
+   - Card panel (primary price display)
+   - Sell card rows (unit price)
+   - Sell total value calculations
+   - Collection value (collection-summary + dashboard-stats)
+   - Added **outlier detection**: when `price_low < 50%` of `price_trend`, a yellow warning badge appears ("Outlier?") indicating the cheapest listing may be mispriced or damaged. Uses `isOutlierLow()` in `sell-utils.ts`.
 
 ## In Progress
 
@@ -23,12 +21,13 @@ Nothing actively in progress.
 
 ## Next Steps
 
-- **Improve variant matching coverage**: The sync matches ~5,875 of 9,244 cards. More CT expansion keyword mappings can be added to `EXPANSION_KEYWORDS` and `SUFFIX_KEYWORDS` in `sync_prices.py` as new patterns are discovered.
-- **Push to origin / deploy**: All changes are on main but not yet pushed.
-- **Test the sell advisor** with real collection data — verify spike detection works once price history accumulates (needs 7+ days of daily sync runs).
+- **Commit and push** the changes from this session (sync_images fix + price_low switch).
+- **Improve variant matching coverage**: The sync matches ~5,875 of 9,244 cards. More CT expansion keyword mappings can be added.
+- **Test the sell advisor** with real collection data — verify spike detection works once price history accumulates.
 - **Consider**: Export sell list to CSV/Cardmarket format, price history charts in UI.
 
 ## Open Questions
 
-- Some niche promo variants (regionals finalist, specific event promos) have no Cardtrader listings — these will always show "No listings".
-- The Cardtrader API `collector_number` mapping to our V-number variants is heuristic-based. If mismatches are found, the keyword scoring in `_variant_score()` can be tuned.
+- The outlier threshold (50% of median) may need tuning based on real data — some legitimate cheap listings could get flagged. Monitor and adjust `OUTLIER_THRESHOLD` in `sell-utils.ts` if needed.
+- Some niche promo variants have no Cardtrader listings — these will always show "No listings".
+- The sell page has a pre-existing Suspense boundary warning during `next build` (useSearchParams not wrapped). Not related to this session's changes.
