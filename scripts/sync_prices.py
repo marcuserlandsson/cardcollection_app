@@ -47,27 +47,35 @@ def ct_get(session: requests.Session, path: str, params: dict = None):
 
 def find_digimon_game_id(session: requests.Session) -> int:
     """Return the Cardtrader game_id for the Digimon TCG."""
-    games = ct_get(session, "/games")
+    resp = ct_get(session, "/games")
 
-    # API may return a list of {id, name} objects or a dict of {name: id}
-    if isinstance(games, dict):
-        for name, game_id in games.items():
-            if "digimon" in name.lower():
-                print(f"  Found Digimon game: '{name}' (id={game_id})")
-                return game_id
-    else:
-        for game in games:
-            name = game.get("name", "").lower()
-            if "digimon" in name:
-                print(f"  Found Digimon game: '{game['name']}' (id={game['id']})")
-                return game["id"]
+    # API returns {"array": [{id, name, display_name}, ...]}
+    games = resp.get("array", resp) if isinstance(resp, dict) else resp
+    if not isinstance(games, list):
+        games = [games] if isinstance(games, dict) else []
+
+    for game in games:
+        name = (game.get("display_name") or game.get("name", "")).lower()
+        if "digimon" in name:
+            print(f"  Found Digimon game: '{game.get('display_name', game.get('name'))}' (id={game['id']})")
+            return game["id"]
 
     raise RuntimeError("Digimon TCG not found in Cardtrader /games response")
 
 
+def unwrap_response(resp) -> list:
+    """Unwrap Cardtrader API responses that may be wrapped in {"array": [...]}."""
+    if isinstance(resp, dict) and "array" in resp:
+        return resp["array"]
+    if isinstance(resp, list):
+        return resp
+    return []
+
+
 def fetch_digimon_expansions(session: requests.Session, game_id: int) -> list[dict]:
     """Return all Cardtrader expansions belonging to the Digimon game."""
-    expansions = ct_get(session, "/expansions")
+    resp = ct_get(session, "/expansions")
+    expansions = unwrap_response(resp)
     digimon = [e for e in expansions if e.get("game_id") == game_id]
     print(f"  Found {len(digimon)} Digimon expansions")
     return digimon
@@ -81,7 +89,8 @@ def fetch_blueprints(session: requests.Session, expansion_id: int) -> dict[int, 
     objects each containing an 'id' and a 'collector_number' (inside
     'fixed_properties' or as a top-level field depending on the API version).
     """
-    blueprints = ct_get(session, "/blueprints/export", params={"expansion_id": expansion_id})
+    resp = ct_get(session, "/blueprints/export", params={"expansion_id": expansion_id})
+    blueprints = unwrap_response(resp) if not isinstance(resp, list) else resp
     mapping = {}
     for bp in blueprints:
         bp_id = bp.get("id")
@@ -94,8 +103,8 @@ def fetch_blueprints(session: requests.Session, expansion_id: int) -> dict[int, 
     return mapping
 
 
-def fetch_marketplace_products(session: requests.Session, expansion_id: int) -> list[dict]:
-    """Return up to 25 cheapest listings per blueprint for an expansion."""
+def fetch_marketplace_products(session: requests.Session, expansion_id: int) -> dict:
+    """Return marketplace data for an expansion. Response is {blueprint_id: [listings]}."""
     return ct_get(
         session,
         "/marketplace/products",
@@ -103,26 +112,43 @@ def fetch_marketplace_products(session: requests.Session, expansion_id: int) -> 
     )
 
 
-def aggregate_prices(products: list[dict], blueprint_map: dict[int, str]) -> dict[str, dict]:
+def aggregate_prices(marketplace_data, blueprint_map: dict[int, str]) -> dict[str, dict]:
     """
     Aggregate marketplace listings into per-card price data.
+
+    marketplace_data is a dict keyed by blueprint_id (as string) where each
+    value is a list of product listings with price_cents fields.
 
     Returns { collector_number: { price_low, price_avg, price_trend } }
     """
     listings_by_card: dict[str, list[float]] = {}
 
-    for product in products:
-        bp_id = product.get("blueprint_id")
-        collector_number = blueprint_map.get(bp_id)
-        if not collector_number:
-            continue
-
-        price_cents = (product.get("price") or {}).get("cents")
-        if price_cents is None:
-            continue
-
-        price_eur = price_cents / 100.0
-        listings_by_card.setdefault(collector_number, []).append(price_eur)
+    # Response is {str(blueprint_id): [product, ...]}
+    if isinstance(marketplace_data, dict):
+        for bp_id_str, products in marketplace_data.items():
+            bp_id = int(bp_id_str) if bp_id_str.isdigit() else None
+            collector_number = blueprint_map.get(bp_id) if bp_id else None
+            if not collector_number:
+                continue
+            if not isinstance(products, list):
+                continue
+            for product in products:
+                price_cents = product.get("price_cents")
+                if price_cents is None:
+                    # Try nested price object as fallback
+                    price_cents = (product.get("price") or {}).get("cents")
+                if price_cents and price_cents > 0:
+                    listings_by_card.setdefault(collector_number, []).append(price_cents / 100.0)
+    elif isinstance(marketplace_data, list):
+        # Fallback: flat list of products
+        for product in marketplace_data:
+            bp_id = product.get("blueprint_id")
+            collector_number = blueprint_map.get(bp_id)
+            if not collector_number:
+                continue
+            price_cents = product.get("price_cents") or (product.get("price") or {}).get("cents")
+            if price_cents and price_cents > 0:
+                listings_by_card.setdefault(collector_number, []).append(price_cents / 100.0)
 
     aggregated = {}
     for card_number, prices in listings_by_card.items():
@@ -189,14 +215,15 @@ def sync_prices():
             continue
 
         try:
-            products = fetch_marketplace_products(session, exp_id)
-            print(f"  Marketplace listings: {len(products)}")
+            marketplace_data = fetch_marketplace_products(session, exp_id)
+            listing_count = sum(len(v) for v in marketplace_data.values()) if isinstance(marketplace_data, dict) else len(marketplace_data)
+            print(f"  Marketplace listings: {listing_count}")
         except Exception as e:
             print(f"  WARNING: Failed to fetch marketplace products for '{exp_name}': {e}")
             failed_expansions += 1
             continue
 
-        exp_prices = aggregate_prices(products, blueprint_map)
+        exp_prices = aggregate_prices(marketplace_data, blueprint_map)
 
         # Filter to only cards we know about
         matched = {cn: p for cn, p in exp_prices.items() if cn in known_base_numbers}
@@ -213,7 +240,7 @@ def sync_prices():
 
     # Step 4: Upsert current prices into card_prices
     today = datetime.date.today().isoformat()
-    fetched_at = datetime.datetime.utcnow().isoformat()
+    fetched_at = datetime.datetime.now(datetime.UTC).isoformat()
 
     print(f"\nUpserting {len(all_prices)} card prices into card_prices...")
     price_batch = []
