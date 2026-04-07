@@ -10,6 +10,8 @@ import type {
 
 const SPIKE_THRESHOLD = 0.3; // 30%
 const SPIKE_LOOKBACK_DAYS = 7;
+// If price_low is below this fraction of price_trend, flag as potential outlier
+const OUTLIER_THRESHOLD = 0.5;
 
 export type SpikedCard = {
   card: Card;
@@ -18,6 +20,20 @@ export type SpikedCard = {
   spike_pct: number;
   old_price: number;
 };
+
+/**
+ * Returns true if price_low is suspiciously below price_trend (median),
+ * suggesting the cheapest listing may be an outlier (e.g. misgraded, damaged).
+ */
+export function isOutlierLow(price: CardPrice): boolean {
+  if (
+    price.price_low === null ||
+    price.price_trend === null ||
+    price.price_trend === 0
+  )
+    return false;
+  return price.price_low < price.price_trend * OUTLIER_THRESHOLD;
+}
 
 /**
  * Computes the percentage price increase over 7 days.
@@ -132,8 +148,8 @@ export function buildSellableCards(
         if (owned === 0) continue;
         const sellQty = Math.min(owned, remaining);
         const price = priceMap.get(variant.card_number) || priceMap.get(base) || null;
-        const totalValue =
-          price?.price_trend ? sellQty * price.price_trend : null;
+        const unitPrice = price?.price_low ?? price?.price_trend ?? null;
+        const totalValue = unitPrice ? sellQty * unitPrice : null;
         const history = historyByCard.get(variant.card_number) || historyByCard.get(base) || [];
         const spike_pct = price ? computeSpikePct(price, history) : null;
         const inSellList = sellListSet.has(variant.card_number);
@@ -147,6 +163,7 @@ export function buildSellableCards(
           total_value: totalValue,
           source: inSellList ? "both" : "surplus",
           spike_pct,
+          outlier_low: price ? isOutlierLow(price) : false,
         });
         addedBySurplus.add(variant.card_number);
         remaining -= sellQty;
@@ -173,7 +190,8 @@ export function buildSellableCards(
     );
 
     const price = priceMap.get(entry.card_number) || priceMap.get(base) || null;
-    const totalValue = price?.price_trend ? owned * price.price_trend : null;
+    const unitPrice = price?.price_low ?? price?.price_trend ?? null;
+    const totalValue = unitPrice ? owned * unitPrice : null;
     const history = historyByCard.get(entry.card_number) || historyByCard.get(base) || [];
     const spike_pct = price ? computeSpikePct(price, history) : null;
 
@@ -186,6 +204,7 @@ export function buildSellableCards(
       total_value: totalValue,
       source: "sell-list",
       spike_pct,
+      outlier_low: price ? isOutlierLow(price) : false,
     });
   }
 

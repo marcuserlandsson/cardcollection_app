@@ -33,7 +33,7 @@ export default function DashboardStats() {
 
   let collectionValue: number | null = null;
   if (collection && prices) {
-    const priceMap = new Map(prices.map((p) => [p.card_number, p.price_trend]));
+    const priceMap = new Map(prices.map((p) => [p.card_number, p.price_low ?? p.price_trend]));
     collectionValue = collection.reduce((sum, c) => {
       const price = priceMap.get(c.card_number) ?? priceMap.get(getBaseCardNumber(c.card_number));
       return sum + (price ? price * c.quantity : 0);

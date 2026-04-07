@@ -9,7 +9,7 @@ import { useSellList } from "@/lib/hooks/use-sell-list";
 import { usePriceHistory } from "@/lib/hooks/use-price-history";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { buildSellableCards, findSpikedCards } from "@/lib/sell-utils";
+import { buildSellableCards, findSpikedCards, isOutlierLow } from "@/lib/sell-utils";
 import { timeAgo } from "@/lib/utils";
 import SellSummary from "@/components/sell/sell-summary";
 import SellCardRow from "@/components/sell/sell-card-row";
@@ -87,9 +87,10 @@ export default function SellPage() {
         needed: 0,
         surplus: 0,
         price: s.price,
-        total_value: s.price.price_trend ? s.owned * s.price.price_trend : null,
+        total_value: (s.price.price_low ?? s.price.price_trend) ? s.owned * (s.price.price_low ?? s.price.price_trend ?? 0) : null,
         source: "surplus",
         spike_pct: s.spike_pct,
+        outlier_low: isOutlierLow(s.price),
       }));
   }, [spikedCards, sellableCards]);
 

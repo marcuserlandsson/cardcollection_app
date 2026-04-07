@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ImageOff, X, Coins } from "lucide-react";
+import { ImageOff, X, Coins, AlertTriangle } from "lucide-react";
 import { formatPrice, getCardImageUrl } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
 import { usePriceHistory } from "@/lib/hooks/use-price-history";
-import { computeSpikePct } from "@/lib/sell-utils";
+import { computeSpikePct, isOutlierLow } from "@/lib/sell-utils";
 import { usePanelContext } from "@/contexts/panel-context";
 import QuantityControl from "@/components/collection/quantity-control";
 import CardSiblings from "@/components/cards/card-siblings";
@@ -179,17 +179,23 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
           <div className="flex items-baseline gap-3">
             <span className="flex items-center gap-1.5 text-lg font-bold text-[var(--green)]">
               <Coins size={16} />
-              {formatPrice(price?.price_trend ?? null)}
+              {formatPrice(price?.price_low ?? null)}
             </span>
+            {price && isOutlierLow(price) && (
+              <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-[var(--yellow)] bg-[var(--yellow-translucent)]" title="Lowest listing is significantly below the median — may be mispriced or damaged">
+                <AlertTriangle size={10} />
+                Outlier?
+              </span>
+            )}
             {spikePct !== null && (
               <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-bold text-[var(--green)] bg-[var(--green-translucent)]">
                 ↑ {Math.round(spikePct * 100)}%
               </span>
             )}
-            {price?.price_low !== null && price?.price_low !== undefined && (
-              <span className="text-xs text-[var(--text-muted)]">Low: {formatPrice(price.price_low)}</span>
-            )}
           </div>
+          {price?.price_trend !== null && price?.price_trend !== undefined && (
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Trend: {formatPrice(price.price_trend)}</p>
+          )}
         </div>
         </>}
       </div>

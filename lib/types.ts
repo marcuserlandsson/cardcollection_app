@@ -76,6 +76,7 @@ export interface SellableCard {
   total_value: number | null;
   source: "surplus" | "sell-list" | "both";
   spike_pct: number | null;
+  outlier_low: boolean;
 }
 
 export interface SellListEntry {

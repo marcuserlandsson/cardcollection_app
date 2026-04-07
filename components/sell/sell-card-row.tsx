@@ -1,6 +1,6 @@
 import CardImage from "@/components/cards/card-image";
 import { formatPrice } from "@/lib/utils";
-import { Coins, PackageMinus, ClipboardList } from "lucide-react";
+import { Coins, PackageMinus, ClipboardList, AlertTriangle } from "lucide-react";
 import type { SellableCard } from "@/lib/types";
 
 interface SellCardRowProps {
@@ -51,7 +51,14 @@ export default function SellCardRow({ item, onClick }: SellCardRowProps) {
               <Coins size={14} />
               {formatPrice(item.total_value)}
             </p>
-            <p className="text-xs text-[var(--text-muted)]">{formatPrice(item.price.price_trend)} each</p>
+            <div className="flex items-center justify-end gap-1">
+              <p className="text-xs text-[var(--text-muted)]">{formatPrice(item.price.price_low ?? item.price.price_trend)} each</p>
+              {item.outlier_low && (
+                <span title="Lowest listing may be an outlier">
+                  <AlertTriangle size={10} className="text-[var(--yellow)]" />
+                </span>
+              )}
+            </div>
           </>
         ) : (
           <p className="text-xs italic text-[var(--text-dim)]">No listings</p>
