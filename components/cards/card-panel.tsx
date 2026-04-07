@@ -10,6 +10,7 @@ import QuantityControl from "@/components/collection/quantity-control";
 import CardSiblings from "@/components/cards/card-siblings";
 import CardDeckUsage from "@/components/cards/card-deck-usage";
 import CardExpansions from "@/components/cards/card-expansions";
+import SellListToggle from "@/components/sell/sell-list-toggle";
 import type { Card } from "@/lib/types";
 
 const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
@@ -154,6 +155,9 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
           <QuantityControl cardNumber={card.card_number} />
         </div>
 
+        {/* Sell List */}
+        <SellListToggle cardNumber={card.card_number} />
+
         {/* Deck Usage */}
         <CardDeckUsage cardNumber={card.card_number} />
 
@@ -162,7 +166,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
 
         {/* Price */}
         <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
-          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Cardmarket Price</div>
+          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Market Price</div>
           <div className="flex items-baseline gap-3">
             <span className="flex items-center gap-1.5 text-lg font-bold text-[var(--green)]">
               <Coins size={16} />
