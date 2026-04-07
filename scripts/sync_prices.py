@@ -169,13 +169,26 @@ def sync_prices():
     supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     # Load all known base_card_numbers from the DB
+    # Supabase default limit is 1000 rows — paginate to get all cards
     print("Loading cards from database...")
-    result = supabase.table("cards").select("card_number,base_card_number").execute()
-    known_base_numbers: set[str] = {
-        row["base_card_number"]
-        for row in result.data
-        if row.get("base_card_number")
-    }
+    known_base_numbers: set[str] = set()
+    offset = 0
+    page_size = 1000
+    while True:
+        result = (
+            supabase.table("cards")
+            .select("base_card_number")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        if not result.data:
+            break
+        for row in result.data:
+            if row.get("base_card_number"):
+                known_base_numbers.add(row["base_card_number"])
+        if len(result.data) < page_size:
+            break
+        offset += page_size
     print(f"  Loaded {len(known_base_numbers)} unique base card numbers")
 
     session = requests.Session()
