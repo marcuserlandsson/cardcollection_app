@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         hostname: "cardtrader.com",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "world.digimoncard.com",
+        pathname: "/images/**",
+      },
     ],
   },
 };
