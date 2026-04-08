@@ -7,7 +7,8 @@ Also writes a daily snapshot to card_price_history and purges rows older
 than 30 days.
 
 Usage:
-    python scripts/sync_prices.py
+    python scripts/sync_prices.py              # Normal sync
+    python scripts/sync_prices.py --diagnose   # Print unmatched entries
 
 Required env vars:
     SUPABASE_URL
@@ -424,12 +425,9 @@ def sync_prices(diagnose: bool = False):
             matched_bases.add(base)
 
         # Group unmatched CT entries by expansion name
-        from collections import defaultdict
+        # An entry is unmatched if no variant of its base got a price assigned
         unmatched_by_exp: dict[str, list[tuple[str, str]]] = defaultdict(list)
         for base, suffix, exp_name, _price_data in ct_entries:
-            # An entry is unmatched if its base didn't yield a matched card_number for it
-            # We consider it unmatched if the base+suffix combo isn't represented in all_prices.
-            # Simple heuristic: if any card_number with this base is in all_prices, skip it.
             if base not in matched_bases:
                 unmatched_by_exp[exp_name].append((base, suffix))
 
