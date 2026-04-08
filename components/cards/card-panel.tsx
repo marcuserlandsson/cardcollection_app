@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageOff, X, Coins, AlertTriangle } from "lucide-react";
 import { formatPrice, getCardImageUrl } from "@/lib/utils";
@@ -14,6 +14,7 @@ import CardDeckUsage from "@/components/cards/card-deck-usage";
 import CardExpansions from "@/components/cards/card-expansions";
 import SellListToggle from "@/components/sell/sell-list-toggle";
 import type { Card } from "@/lib/types";
+import PriceSparkline from "@/components/cards/price-sparkline";
 
 const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
   Red: { color: "var(--red)", bg: "var(--red-translucent)" },
@@ -27,13 +28,19 @@ const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
 
 export default function CardPanel({ card, onClose, onCardSelect }: { card: Card | null; onClose: () => void; onCardSelect?: (card: Card) => void }) {
   const { data: price } = useCardPrice(card?.card_number ?? null);
-  const { data: priceHistory } = usePriceHistory(7);
+  const { data: priceHistory7d } = usePriceHistory(7);
+  const { data: priceHistory30d } = usePriceHistory(30);
   const spikePct = (() => {
-    if (!card || !price?.price_trend || !priceHistory) return null;
+    if (!card || !price?.price_trend || !priceHistory7d) return null;
     const base = card.base_card_number;
-    const history = priceHistory.filter((h) => h.card_number === base);
+    const history = priceHistory7d.filter((h) => h.card_number === base);
     return computeSpikePct(price, history);
   })();
+  const cardHistory30d = useMemo(() => {
+    if (!card || !priceHistory30d) return [];
+    const base = card.base_card_number;
+    return priceHistory30d.filter((h) => h.card_number === base);
+  }, [card, priceHistory30d]);
   const { openPanel, closePanel } = usePanelContext();
   const [imageError, setImageError] = useState(false);
   const prevCardRef = useRef<string | null>(null);
@@ -196,6 +203,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
           {price?.price_trend !== null && price?.price_trend !== undefined && (
             <p className="mt-1 text-xs text-[var(--text-muted)]">Trend: {formatPrice(price.price_trend)}</p>
           )}
+          <PriceSparkline history={cardHistory30d} />
         </div>
         </>}
       </div>
