@@ -18,7 +18,8 @@ import SellFilterChips from "@/components/sell/sell-filter-chips";
 import type { SellFilter } from "@/components/sell/sell-filter-chips";
 import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
-import { TrendingUp, Clock, LogIn } from "lucide-react";
+import { TrendingUp, Clock, LogIn, Download } from "lucide-react";
+import { generateSellCsv, downloadCsv } from "@/lib/export-csv";
 import type { Card, SellableCard } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -131,6 +132,13 @@ export default function SellPage() {
 
   const handleCardClick = useCallback((card: Card) => { setSelectedCard(card); }, []);
 
+  const handleExport = useCallback(() => {
+    if (filteredCards.length === 0) return;
+    const csv = generateSellCsv(filteredCards);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCsv(csv, `cardboard-sell-export-${date}.csv`);
+  }, [filteredCards]);
+
   if (authChecked && !user) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
@@ -149,7 +157,17 @@ export default function SellPage() {
       <h1 className="text-2xl font-bold">Sell Advisor</h1>
 
       {sellableCards.length > 0 && (
-        <SellSummary surplusCount={totalSurplus} totalValue={totalValue > 0 ? totalValue : null} />
+        <div className="flex items-start justify-between">
+          <SellSummary surplusCount={totalSurplus} totalValue={totalValue > 0 ? totalValue : null} />
+          <button
+            onClick={handleExport}
+            disabled={filteredCards.length === 0}
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download size={15} />
+            Export CSV
+          </button>
+        </div>
       )}
 
       {latestFetch && (
