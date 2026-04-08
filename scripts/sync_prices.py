@@ -424,7 +424,7 @@ def sync_prices(diagnose: bool = False):
             if not m:
                 continue
             base, suffix = m.group(1), m.group(2)
-            if base in known_base_numbers:
+            if base in known_base_numbers or diagnose:
                 ct_entries.append((base, suffix, exp_name, price_data))
 
         matched_in_exp = sum(1 for cn in exp_prices if re.match(r"^([A-Za-z0-9]+-\d+)", cn) and re.match(r"^([A-Za-z0-9]+-\d+)", cn).group(1) in known_base_numbers)
