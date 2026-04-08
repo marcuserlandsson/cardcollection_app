@@ -290,14 +290,31 @@ def match_ct_to_variants(
                     all_prices[card_number] = best_price
                 # else keep existing (first match wins for now)
 
-        # For unassigned CT entries with no suffix that match the base,
-        # assign to Regular if Regular hasn't been assigned yet
+        # Fallback 1: for unassigned CT entries with no suffix that match the
+        # base, assign to Regular if Regular hasn't been assigned yet.
         regular_cn = our_variants[0] if our_variants else None
         if regular_cn and regular_cn not in all_prices:
             for i, (suffix, exp_name, price_data) in enumerate(ct_list):
                 if i not in assigned and not suffix:
                     all_prices[regular_cn] = price_data
                     break
+
+    # Second pass: for bases that got zero matches from scoring, assign
+    # the first no-suffix CT entry to Regular regardless of expansion name.
+    # This catches cards from "Pre-Release" or "Promo" expansions that are
+    # really just the same Regular card.
+    for base, ct_list in ct_by_base.items():
+        our_variants = variants_by_base.get(base, [])
+        if not our_variants:
+            continue
+        regular_cn = our_variants[0]
+        if regular_cn in all_prices:
+            continue  # already has a price from first pass
+
+        for _i, (suffix, exp_name, price_data) in enumerate(ct_list):
+            if not suffix:
+                all_prices[regular_cn] = price_data
+                break
 
     return all_prices
 
