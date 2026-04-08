@@ -265,9 +265,18 @@ def sync_images():
         if not bp_data:
             continue
 
-        # Update image if card still has default base image
+        # Update image:
+        # - Regular cards: only if still using default base image (digimoncard.io is higher res)
+        # - Variant cards: always prefer CardTrader image (most reliable per-variant source)
         default_image = f"https://images.digimoncard.io/images/cards/{base_cn}.jpg"
-        if bp_data["image_url"] and (not current_image or current_image == default_image):
+        is_cardtrader_image = current_image and "cardtrader.com" in current_image
+        should_update = False
+        if bp_data["image_url"]:
+            if not current_image or current_image == default_image:
+                should_update = True
+            elif is_variant and not is_cardtrader_image:
+                should_update = True
+        if should_update:
             image_updates.append(
                 {"card_number": card_number, "image_url": bp_data["image_url"]}
             )

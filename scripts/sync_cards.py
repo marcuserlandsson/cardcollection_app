@@ -32,7 +32,7 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 DIGIMON_API_SEARCH = "https://digimoncard.io/api-public/search.php"
 IMAGE_BASE_URL = "https://images.digimoncard.io/images/cards"
-ALT_IMAGE_BASE_URL = "https://images.digimoncard.io/images/cards/alt"
+WORLD_IMAGE_BASE_URL = "https://world.digimoncard.com/images/cardlist/card"
 SET_IDS_PATH = Path(__file__).parent / "set_ids.json"
 
 RARITY_MAP = {
@@ -136,39 +136,23 @@ def load_set_ids() -> dict[str, int]:
     return set_ids
 
 
-def build_expansion_to_set_id(set_ids: dict[str, int]) -> dict[str, int]:
-    """Map expansion codes (e.g. 'EX-09', 'BT-01') to set IDs.
 
-    Prefers the main booster/extra set entry when multiple packs share the
-    same expansion code prefix.
+def get_variant_image_url(card_number: str, variant_index: int) -> str:
+    """Build variant image URL on the world.digimoncard.com CDN.
+
+    Regular (variant_index=1): {card_number}.png
+    Variant N (variant_index>1): {card_number}_P{N-1}.png
     """
-    mapping: dict[str, int] = {}
-    for pack_name, sid in set_ids.items():
-        match = re.match(r"^([A-Z]+-?\d+)", pack_name)
-        if match:
-            code = match.group(1)
-            if (
-                code not in mapping
-                or "Booster" in pack_name
-                or "Theme" in pack_name
-                or "Extra" in pack_name
-            ):
-                mapping[code] = sid
-    return mapping
-
-
-def get_alt_art_url(
-    card_number: str, set_id: int, variant_idx: int = 1
-) -> str:
-    """Build alt art image URL on the digimoncard.io CDN."""
-    return f"{ALT_IMAGE_BASE_URL}/{card_number}-set-{set_id}-{variant_idx}.webp"
+    if variant_index <= 1:
+        return f"{WORLD_IMAGE_BASE_URL}/{card_number}.png"
+    return f"{WORLD_IMAGE_BASE_URL}/{card_number}_P{variant_index - 1}.png"
 
 
 def transform_card(
     raw: dict,
     variant_index: int = 1,
     variant_name: str = "Regular",
-    alt_art_url: str | None = None,
+    image_url_override: str | None = None,
 ) -> dict:
     card_number = raw["id"]
     rarity_raw = (raw.get("rarity") or "").lower().strip()
@@ -200,8 +184,8 @@ def transform_card(
     if variant_index > 1:
         suffixed_card_number = f"{card_number}-V{variant_index}"
 
-    # Use alt art image URL if available, otherwise default
-    image_url = alt_art_url if alt_art_url else f"{IMAGE_BASE_URL}/{card_number}.jpg"
+    # Use override if provided, otherwise default
+    image_url = image_url_override if image_url_override else f"{IMAGE_BASE_URL}/{card_number}.jpg"
 
     return {
         "card_number": suffixed_card_number,
@@ -228,9 +212,8 @@ def sync_cards():
     print("Connecting to Supabase...")
     supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    # Load set IDs for alt art image URLs
+    # Load set IDs for expansion metadata (set images)
     set_ids = load_set_ids()
-    expansion_set_ids = build_expansion_to_set_id(set_ids)
 
     print("Fetching all cards from Digimon Card API (bulk)...")
     all_raw = fetch_all_cards()
@@ -252,9 +235,6 @@ def sync_cards():
     alt_art_count = 0
 
     for card_id, entries in card_entries.items():
-        expansion_code = ""
-        set_id = None
-
         # Collect all expansions this card belongs to
         set_names = entries[0].get("set_name", [])
         for sn in set_names:
@@ -262,12 +242,8 @@ def sync_cards():
             if exp_code:
                 card_expansion_set.add((card_id, exp_code))
 
-        # Track alt art index separately (for image URL variant_idx)
-        alt_art_idx = 0
-
         for v_index, raw in enumerate(entries, start=1):
             tcgplayer_name = raw.get("tcgplayer_name") or ""
-            is_alt_art = "Alternate Art" in tcgplayer_name
 
             # Determine variant name
             if v_index == 1:
@@ -279,24 +255,19 @@ def sync_cards():
                 match = re.search(r"\(([^)]+)\)$", tcgplayer_name)
                 variant_name = match.group(1) if match else tcgplayer_name
 
-            # Build alt art image URL
-            alt_art_url = None
-            if is_alt_art:
-                # Resolve set_id lazily (only when needed)
-                if set_id is None:
-                    first_card = transform_card(entries[0])
-                    expansion_code = first_card["expansion"]
-                    set_id = expansion_set_ids.get(expansion_code, 0)
-                if set_id:
-                    alt_art_idx += 1
-                    alt_art_url = get_alt_art_url(card_id, set_id, alt_art_idx)
-                    alt_art_count += 1
+            # Build variant image URL using world.digimoncard.com CDN
+            # Regular cards keep the images.digimoncard.io JPG (higher res)
+            # Variants use world CDN _P{N} pattern (reliable across all sets)
+            image_url = None
+            if v_index > 1:
+                image_url = get_variant_image_url(card_id, v_index)
+                alt_art_count += 1
 
             card_row = transform_card(
                 raw,
                 variant_index=v_index,
                 variant_name=variant_name,
-                alt_art_url=alt_art_url,
+                image_url_override=image_url,
             )
             cards[card_row["card_number"]] = card_row
 
@@ -310,7 +281,7 @@ def sync_cards():
 
     if skipped:
         print(f"Skipped {skipped} cards with no ID")
-    print(f"Total card rows (including variants): {len(card_list)} ({alt_art_count} with alt art images)")
+    print(f"Total card rows (including variants): {len(card_list)} ({alt_art_count} with variant images)")
 
     # Upsert cards
     print(f"Upserting {len(card_list)} cards in batches...")

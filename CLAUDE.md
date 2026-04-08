@@ -34,8 +34,9 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
 ## Key Architecture Decisions
 
-- Card images served from digimoncard.io CDN: `https://images.digimoncard.io/images/cards/{card_number}.jpg`
-- Alt art images: `https://images.digimoncard.io/images/cards/alt/{card_number}-set-{set_id}-{idx}.webp`
+- Regular card images: `https://images.digimoncard.io/images/cards/{card_number}.jpg`
+- Variant card images: `https://world.digimoncard.com/images/cardlist/card/{card_number}_P{N}.png` (N = variant_index - 1)
+- CardTrader images override variant URLs when available (most reliable per-variant source)
 - Card variants (alt arts, reprints) documented in `docs/card-variants.md`
 - Sell logic: `surplus = owned - max(max_copies, sum across all decks)`
 - Guest browsing allowed for card database; auth required for collection/decks/sell

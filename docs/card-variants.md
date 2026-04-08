@@ -42,19 +42,25 @@ variants of the same game card.
 - The API provides a `pretty_url` field for linking to digimoncard.io
 - The API does **not** expose image URLs, set IDs, or Cardmarket product mappings
 
-### Card Images (`images.digimoncard.io`)
+### Card Images
 
-**Regular images:**
+**Regular images** (from `images.digimoncard.io`):
 ```
 https://images.digimoncard.io/images/cards/{card_number}.jpg
 ```
 
-**Alt art images:**
+**Variant images** (from `world.digimoncard.com`):
 ```
-https://images.digimoncard.io/images/cards/alt/{card_number}-set-{set_id}-{variant_idx}.webp
+https://world.digimoncard.com/images/cardlist/card/{card_number}_P{N}.png
 ```
-- `set_id` — internal numeric ID from digimoncard.io (see "Set ID Discovery")
-- `variant_idx` — 1-based index counting only alt art variants within the card
+- `_P1` = 2nd variant (variant_index 2), `_P2` = 3rd variant, etc.
+- This CDN is reliable across all sets including newer ones (AD1, BT12+)
+- The older `images.digimoncard.io/images/cards/alt/` pattern is deprecated
+  (returns 404 for many newer sets)
+
+**CardTrader images** (applied by `sync_images.py`):
+- Per-variant images from CardTrader blueprints override the CDN URLs
+- Most reliable source for variant-specific artwork
 
 **Set cover images:**
 ```
@@ -159,8 +165,9 @@ sync_cards.py
 
 ## Limitations
 
-- **Alt art images:** Only available when the set ID is known AND the image exists
-  on the CDN. Very new sets may not have images yet.
+- **Variant images:** The `world.digimoncard.com` CDN covers most sets but may
+  lack some promos and starter deck variants. `sync_images.py` fills gaps with
+  CardTrader images.
 - **Cardmarket URLs:** Cannot be reliably constructed. Use digimoncard.io instead.
 - **Set ID staleness:** New sets need IDs discovered via scraping (weekly refresh).
 - **Per-variant pricing:** Not yet implemented. All variants of a card share the
