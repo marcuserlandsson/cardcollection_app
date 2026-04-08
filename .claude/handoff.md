@@ -4,15 +4,27 @@ Current state of work for session continuity. Updated at the end of each session
 
 ## Last Session Summary
 
-Three features implemented:
+**Prepared the app for public hosting: security hardening + legal compliance.**
 
-1. **Improved variant matching coverage**: Added `--diagnose` flag to `sync_prices.py`, relaxed the Regular fallback to match cards from promo/pre-release CT expansions, stripped whitespace suffixes, and added `pr` suffix keyword. Match count improved from ~5,875 to 5,897. Only 61 CT entries remain unmatched, of which 53 are cards not in our database (ST12, ST13 starter decks, misc promos) and 8 are niche variant mismatches.
+### Security Changes
+- **`proxy.ts`**: Upgraded from session-only refresh to include auth guards on protected routes (`/collection`, `/decks`, `/sell`) — unauthenticated users redirected to `/login?next=...`. Added security headers: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`.
+- **`app/auth/callback/route.ts`**: Hardened against open redirect — validates `next` param is relative path, uses env-based origin instead of request origin.
+- **`lib/hooks/use-decks.ts`**: `useDeck()` now verifies user ownership via `user_id` filter (defense-in-depth alongside RLS).
+- **`app/login/page.tsx`**: Password minimum increased to 8 chars, hint text on signup, respects `?next=` param for post-login redirect, Suspense boundary for `useSearchParams`.
+- **`components/decks/deck-form.tsx`**: Deck name capped at 100 chars, description at 500 chars.
 
-2. **Sell list CSV export**: Added `lib/export-csv.ts` with `generateSellCsv()` and `downloadCsv()`. Export button on the sell page exports the currently filtered cards with hardcoded English + Near Mint. Includes UTF-8 BOM for Excel compatibility.
+### Legal Pages & Footer
+- **`components/nav/footer.tsx`**: Footer with Bandai trademark disclaimer, data source attribution (digimoncard.io, Cardtrader, Cardmarket), price disclaimer, links to legal/privacy/terms. Shifts with card detail panel.
+- **`app/legal/page.tsx`**: Trademark disclaimer, fair use, data attribution, price disclaimer, liability limitation.
+- **`app/privacy/page.tsx`**: Privacy policy — account data, collection data, no tracking, Supabase/Vercel third parties, data deletion.
+- **`app/terms/page.tsx`**: Terms of service — acceptable use, IP disclaimer, pricing disclaimer, liability limitation.
 
-3. **Price history sparkline**: Added Recharts dependency and `components/cards/price-sparkline.tsx` — a 60px sparkline showing 30-day `price_trend` history in the card panel's Market Price section. Green line, tooltip on hover, no axes. Card panel now fetches both 7-day (for spike detection) and 30-day (for sparkline) history via separate TanStack Query cache entries.
+### UI Tweak
+- **`components/cards/card-panel.tsx`**: Card image now stacked on top (full width, `aspect-[5/7]`, max 280px) instead of small side-by-side thumbnail.
 
-Also fixed: wrapped sell page `useSearchParams()` in Suspense boundary (pre-existing `next build` failure).
+### Security Review
+- Ran comprehensive security audit (20 automated tests). All passed.
+- Independent security review found 0 high-confidence vulnerabilities. Three initial findings were all validated as false positives (Next.js router prevents open redirects, Supabase RLS enforces DB-level auth, Next.js Image enforces domain whitelist).
 
 ## In Progress
 
@@ -20,12 +32,15 @@ Nothing actively in progress.
 
 ## Next Steps
 
-- **Run a full price sync** (`python scripts/sync_prices.py`) to push the improved matching live.
-- **Alt art rework**: Treat alt art cards as separate DB entities with independent pricing/collection tracking. This is the next major architectural change.
-- **Duplicate type interfaces**: `PriceHistoryEntry` and `SellListEntry` are defined twice in `lib/types.ts` (lines 50+88, 58+82). Should be deduplicated.
-- **Remaining 8 unmatched `base_in_db=yes` cards**: AD1-024 (sec), BT9-111 (P1), P-207/208/209/210 (b), EX4-065 (P1), P-084 (a). These are niche variants where our DB variant_name doesn't match CT's suffix keywords. Low priority.
+- **Deploy to Vercel**: App is now hosting-ready. Set up Vercel project, configure env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`), deploy.
+- **Alt art rework**: Treat alt art cards as separate DB entities with independent pricing/collection tracking.
+- **Duplicate type interfaces**: `PriceHistoryEntry` and `SellListEntry` are defined twice in `lib/types.ts`.
+- **Remaining 8 unmatched `base_in_db=yes` cards**: AD1-024 (sec), BT9-111 (P1), P-207/208/209/210 (b), EX4-065 (P1), P-084 (a).
 
 ## Open Questions
 
-- The outlier threshold (50% of median) may need tuning — monitor and adjust `OUTLIER_THRESHOLD` in `sell-utils.ts`.
-- Sparkline will only be useful once price history accumulates over several days. Currently shows nothing for new cards.
+- The outlier threshold (50% of median) may need tuning — monitor `OUTLIER_THRESHOLD` in `sell-utils.ts`.
+- Sparkline only useful once price history accumulates over several days.
+- ~1,988 variants use world CDN `_P{N}` images — likely correct but unverified.
+- Next.js 16 uses `proxy.ts` not `middleware.ts` — keep this in mind for future middleware work.
+- `NEXT_PUBLIC_SITE_URL` env var needed for auth callback origin in production.
