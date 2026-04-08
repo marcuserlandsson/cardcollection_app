@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+import argparse
 import statistics
 import datetime
 import requests
@@ -300,7 +301,7 @@ def match_ct_to_variants(
     return all_prices
 
 
-def sync_prices():
+def sync_prices(diagnose: bool = False):
     if not CARDTRADER_ACCESS_TOKEN:
         print("ERROR: CARDTRADER_ACCESS_TOKEN is not set.")
         sys.exit(1)
@@ -415,6 +416,38 @@ def sync_prices():
     print(f"\nMatching {len(ct_entries)} CT prices to card variants...")
     all_prices = match_ct_to_variants(ct_entries, variants_by_base, variant_names_by_card)
 
+    if diagnose:
+        # Determine which bases were matched
+        matched_bases: set[str] = set()
+        for card_number in all_prices:
+            base = re.sub(r"-V\d+$", "", card_number)
+            matched_bases.add(base)
+
+        # Group unmatched CT entries by expansion name
+        from collections import defaultdict
+        unmatched_by_exp: dict[str, list[tuple[str, str]]] = defaultdict(list)
+        for base, suffix, exp_name, _price_data in ct_entries:
+            # An entry is unmatched if its base didn't yield a matched card_number for it
+            # We consider it unmatched if the base+suffix combo isn't represented in all_prices.
+            # Simple heuristic: if any card_number with this base is in all_prices, skip it.
+            if base not in matched_bases:
+                unmatched_by_exp[exp_name].append((base, suffix))
+
+        total_unmatched = sum(len(v) for v in unmatched_by_exp.values())
+
+        print("\n=== Unmatched CT Entries ===")
+        for exp_name in sorted(unmatched_by_exp.keys()):
+            entries = unmatched_by_exp[exp_name]
+            print(f'\nExpansion: "{exp_name}"')
+            for base, suffix in entries:
+                in_db = "yes" if base in known_base_numbers else "no"
+                suffix_display = f'"{suffix}"' if suffix else '""'
+                print(f"  {base:<12} suffix={suffix_display:<6}  base_in_db={in_db}")
+
+        print(f"\nSummary: {total_unmatched:,} unmatched / {len(ct_entries):,} total CT entries")
+        print(f"Matched: {len(all_prices):,} card prices assigned")
+        return
+
     # Step 4: Upsert current prices into card_prices
     today = datetime.date.today().isoformat()
     fetched_at = datetime.datetime.now(datetime.UTC).isoformat()
@@ -467,4 +500,8 @@ def sync_prices():
 
 
 if __name__ == "__main__":
-    sync_prices()
+    parser = argparse.ArgumentParser(description="Sync card prices from Cardtrader")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Print unmatched CT entries instead of upserting prices")
+    args = parser.parse_args()
+    sync_prices(diagnose=args.diagnose)
