@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { Suspense, useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCollection } from "@/lib/hooks/use-collection";
 import { useAllDeckCards } from "@/lib/hooks/use-decks";
@@ -26,6 +26,14 @@ import type { User } from "@supabase/supabase-js";
 const supabase = createClient();
 
 export default function SellPage() {
+  return (
+    <Suspense>
+      <SellPageContent />
+    </Suspense>
+  );
+}
+
+function SellPageContent() {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const supabaseAuth = createClient();
