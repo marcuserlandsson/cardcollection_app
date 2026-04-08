@@ -171,6 +171,7 @@ SUFFIX_KEYWORDS: dict[str, list[str]] = {
     "g": ["gold"],
     "b": ["black & white", "black and white"],
     "P1": ["pre-release", "promo"],
+    "pr": ["pre-release", "promo"],
     "p": ["participant"],
     "c": ["champion"],
     "f": ["finalist"],
@@ -423,7 +424,7 @@ def sync_prices(diagnose: bool = False):
             m = re.match(r"^([A-Za-z0-9]+-\d+)(.*)", ct_collector_num)
             if not m:
                 continue
-            base, suffix = m.group(1), m.group(2)
+            base, suffix = m.group(1), m.group(2).strip()
             if base in known_base_numbers or diagnose:
                 ct_entries.append((base, suffix, exp_name, price_data))
 
