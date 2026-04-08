@@ -23,7 +23,9 @@ export function useDeck(deckId: string) {
   return useQuery<Deck>({
     queryKey: ["decks", deckId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("decks").select("*").eq("id", deckId).single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase.from("decks").select("*").eq("id", deckId).eq("user_id", user.id).single();
       if (error) throw error;
       return data as Deck;
     },

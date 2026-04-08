@@ -75,8 +75,8 @@ export default function DeckForm({ onCreated, onCancel }: DeckFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Deck name" className="w-full rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" autoFocus />
-      <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optional)" className="w-full rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" />
+      <input type="text" value={name} onChange={(e) => setName(e.target.value.slice(0, 100))} placeholder="Deck name" maxLength={100} className="w-full rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" autoFocus />
+      <input type="text" value={description} onChange={(e) => setDescription(e.target.value.slice(0, 500))} placeholder="Description (optional)" maxLength={500} className="w-full rounded-xl border border-[var(--border-light)] bg-[var(--elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" />
       <button
         type="button"
         onClick={() => setShowImport(!showImport)}

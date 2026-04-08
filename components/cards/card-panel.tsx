@@ -95,37 +95,37 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
         </button>
 
         {!card ? null : <>
-        {/* Card Header */}
-        <div className="flex gap-4">
-          <div className="relative h-[180px] w-[128px] flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
-            {imageError ? (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--elevated)] text-[var(--text-dim)]">
-                <ImageOff size={20} />
-                <span className="text-[10px]">{card.card_number}</span>
-              </div>
-            ) : (
-              <Image
-                key={displayImageUrl}
-                src={displayImageUrl}
-                alt={card.name}
-                fill
-                sizes="128px"
-                className="object-cover"
-                onError={() => setImageError(true)}
-              />
-            )}
-          </div>
-          <div className="flex-1 space-y-2.5">
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">{card.name}</h2>
-            <p className="text-sm text-[var(--text-muted)]">{card.card_number}</p>
-            <div className="flex flex-wrap gap-1.5">
-              <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--purple-translucent)", color: "var(--purple)" }}>{card.card_type}</span>
-              {card.rarity && <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--yellow-translucent)", color: "var(--yellow)" }}>{card.rarity}</span>}
-              <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: colorStyle!.bg, color: colorStyle!.color }}>{card.color}</span>
-              {card.variant_name !== "Regular" && (
-                <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--accent-translucent)", color: "var(--accent)" }}>{card.variant_name}</span>
-              )}
+        {/* Card Image */}
+        <div className="relative mx-auto aspect-[5/7] w-full max-w-[280px] overflow-hidden rounded-xl border border-[var(--border)]">
+          {imageError ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--elevated)] text-[var(--text-dim)]">
+              <ImageOff size={24} />
+              <span className="text-xs">{card.card_number}</span>
             </div>
+          ) : (
+            <Image
+              key={displayImageUrl}
+              src={displayImageUrl}
+              alt={card.name}
+              fill
+              sizes="280px"
+              className="object-cover"
+              onError={() => setImageError(true)}
+            />
+          )}
+        </div>
+
+        {/* Card Info */}
+        <div className="mt-3 space-y-2">
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">{card.name}</h2>
+          <p className="text-sm text-[var(--text-muted)]">{card.card_number}</p>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--purple-translucent)", color: "var(--purple)" }}>{card.card_type}</span>
+            {card.rarity && <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--yellow-translucent)", color: "var(--yellow)" }}>{card.rarity}</span>}
+            <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: colorStyle!.bg, color: colorStyle!.color }}>{card.color}</span>
+            {card.variant_name !== "Regular" && (
+              <span className="rounded-md px-2 py-0.5 text-xs font-medium" style={{ background: "var(--accent-translucent)", color: "var(--accent)" }}>{card.variant_name}</span>
+            )}
           </div>
         </div>
 
