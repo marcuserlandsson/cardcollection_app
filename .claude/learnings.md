@@ -20,6 +20,9 @@ Each entry format: `- **[description]`: [actionable corrective rule]`
 
 ## Project-Specific
 
+- **Cardtrader collector numbers can have trailing whitespace**: Always `.strip()` the suffix extracted from the regex match. Trailing spaces were causing ~13 cards to be classified as having a suffix when they were really Regular cards.
+- **Next.js useSearchParams requires Suspense boundary**: Any page using `useSearchParams()` must wrap the consuming component in `<Suspense>`. The database page already had this; the sell page was missing it.
+
 - **Alt art cards have completely different prices from regular cards**: Never share prices between variants. AD1-008 Regular = €19, Alt Art = €56, SP = €410. The sync must store per-variant prices, not per-base-card.
 - **Cardtrader API response formats vary by endpoint**: `/games` returns `{"array": [...]}`, `/marketplace/products` returns `{blueprint_id_str: [listings]}`, `/blueprints/export` returns a flat list. Always inspect the actual response structure.
 - **Cardtrader collector_number is in `fixed_properties`**: Not at the top level of blueprint objects. Access via `bp.get("fixed_properties", {}).get("collector_number")`.

@@ -52,7 +52,9 @@
       "Bash(node -e ':*)",
       "Bash(find:*)",
       "WebFetch(domain:github.com)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(npm install:*)",
+      "Bash(tee /tmp/diagnose_output.txt)"
     ]
   }
 }

@@ -4,16 +4,15 @@ Current state of work for session continuity. Updated at the end of each session
 
 ## Last Session Summary
 
-Two fixes this session:
+Three features implemented:
 
-1. **sync_images.py HTTP/2 connection fix**: The GitHub Actions cron job was failing because Supabase's HTTP/2 connection gets terminated after ~10,000 requests (`last_stream_id:19999`). The script was making ~12,800 individual requests on a single connection. Added `new_supabase_client()` helper that recreates the client every 2,000 requests to stay under the limit.
+1. **Improved variant matching coverage**: Added `--diagnose` flag to `sync_prices.py`, relaxed the Regular fallback to match cards from promo/pre-release CT expansions, stripped whitespace suffixes, and added `pr` suffix keyword. Match count improved from ~5,875 to 5,897. Only 61 CT entries remain unmatched, of which 53 are cards not in our database (ST12, ST13 starter decks, misc promos) and 8 are niche variant mismatches.
 
-2. **Switched pricing to use minimum listing (`price_low`)**: All price displays and value calculations now default to `price_low` instead of `price_trend` (median). This affects:
-   - Card panel (primary price display)
-   - Sell card rows (unit price)
-   - Sell total value calculations
-   - Collection value (collection-summary + dashboard-stats)
-   - Added **outlier detection**: when `price_low < 50%` of `price_trend`, a yellow warning badge appears ("Outlier?") indicating the cheapest listing may be mispriced or damaged. Uses `isOutlierLow()` in `sell-utils.ts`.
+2. **Sell list CSV export**: Added `lib/export-csv.ts` with `generateSellCsv()` and `downloadCsv()`. Export button on the sell page exports the currently filtered cards with hardcoded English + Near Mint. Includes UTF-8 BOM for Excel compatibility.
+
+3. **Price history sparkline**: Added Recharts dependency and `components/cards/price-sparkline.tsx` — a 60px sparkline showing 30-day `price_trend` history in the card panel's Market Price section. Green line, tooltip on hover, no axes. Card panel now fetches both 7-day (for spike detection) and 30-day (for sparkline) history via separate TanStack Query cache entries.
+
+Also fixed: wrapped sell page `useSearchParams()` in Suspense boundary (pre-existing `next build` failure).
 
 ## In Progress
 
@@ -21,13 +20,12 @@ Nothing actively in progress.
 
 ## Next Steps
 
-- **Commit and push** the changes from this session (sync_images fix + price_low switch).
-- **Improve variant matching coverage**: The sync matches ~5,875 of 9,244 cards. More CT expansion keyword mappings can be added.
-- **Test the sell advisor** with real collection data — verify spike detection works once price history accumulates.
-- **Consider**: Export sell list to CSV/Cardmarket format, price history charts in UI.
+- **Run a full price sync** (`python scripts/sync_prices.py`) to push the improved matching live.
+- **Alt art rework**: Treat alt art cards as separate DB entities with independent pricing/collection tracking. This is the next major architectural change.
+- **Duplicate type interfaces**: `PriceHistoryEntry` and `SellListEntry` are defined twice in `lib/types.ts` (lines 50+88, 58+82). Should be deduplicated.
+- **Remaining 8 unmatched `base_in_db=yes` cards**: AD1-024 (sec), BT9-111 (P1), P-207/208/209/210 (b), EX4-065 (P1), P-084 (a). These are niche variants where our DB variant_name doesn't match CT's suffix keywords. Low priority.
 
 ## Open Questions
 
-- The outlier threshold (50% of median) may need tuning based on real data — some legitimate cheap listings could get flagged. Monitor and adjust `OUTLIER_THRESHOLD` in `sell-utils.ts` if needed.
-- Some niche promo variants have no Cardtrader listings — these will always show "No listings".
-- The sell page has a pre-existing Suspense boundary warning during `next build` (useSearchParams not wrapped). Not related to this session's changes.
+- The outlier threshold (50% of median) may need tuning — monitor and adjust `OUTLIER_THRESHOLD` in `sell-utils.ts`.
+- Sparkline will only be useful once price history accumulates over several days. Currently shows nothing for new cards.
