@@ -22,6 +22,7 @@ export default function AddCardsPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/collection"
+          aria-label="Back to collection"
           className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
         >
           <ArrowLeft size={18} />

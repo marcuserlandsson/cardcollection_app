@@ -29,16 +29,14 @@ export function useEntrySession() {
 
   const undo = useCallback(
     (cardNumber: string) => {
-      setSession((s) => {
-        const itemToUndo = s.find((x) => x.cardNumber === cardNumber);
-        if (itemToUndo) {
-          const current = owned.get(cardNumber) ?? 0;
-          mutate({ cardNumber, quantity: Math.max(0, current - itemToUndo.qtyAdded) });
-        }
-        return s.filter((x) => x.cardNumber !== cardNumber);
-      });
+      const itemToUndo = session.find((x) => x.cardNumber === cardNumber);
+      if (itemToUndo) {
+        const current = owned.get(cardNumber) ?? 0;
+        mutate({ cardNumber, quantity: Math.max(0, current - itemToUndo.qtyAdded) });
+      }
+      setSession((s) => s.filter((x) => x.cardNumber !== cardNumber));
     },
-    [owned, mutate],
+    [session, owned, mutate],
   );
 
   return { session, adjust, undo };

@@ -51,6 +51,34 @@ export function useUpdateQuantity() {
         if (error) throw error;
       }
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["collection"] }); },
+    // Optimistic update so useCollectionMap reflects the change immediately,
+    // keeping rapid +/- entry and the session tray consistent with the DB
+    // during the refetch window.
+    onMutate: async ({ cardNumber, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["collection"] });
+      const previous = queryClient.getQueryData<CollectionEntry[]>(["collection"]);
+      queryClient.setQueryData<CollectionEntry[]>(["collection"], (old) => {
+        const entries = old ?? [];
+        const rest = entries.filter((e) => e.card_number !== cardNumber);
+        if (quantity <= 0) return rest;
+        const existing = entries.find((e) => e.card_number === cardNumber);
+        return [
+          ...rest,
+          {
+            user_id: existing?.user_id ?? "",
+            card_number: cardNumber,
+            quantity,
+            updated_at: new Date().toISOString(),
+          },
+        ];
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["collection"], context.previous);
+      }
+    },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["collection"] }); },
   });
 }

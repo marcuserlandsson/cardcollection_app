@@ -13,7 +13,7 @@ export default function EntrySessionTray({ session, onUndo }: EntrySessionTrayPr
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">This session</p>
+      <p className="text-xs font-medium text-[var(--text-muted)]">This session</p>
       <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
         {total} <span className="text-sm font-normal text-[var(--text-muted)]">cards added</span>
       </p>
