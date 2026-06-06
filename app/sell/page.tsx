@@ -14,12 +14,13 @@ import { timeAgo } from "@/lib/utils";
 import SellSummary from "@/components/sell/sell-summary";
 import SellCardRow from "@/components/sell/sell-card-row";
 import CopyListButton from "@/components/sell/copy-list-button";
+import ShareModal from "@/components/sell/share-modal";
 import PriceSpikeCards from "@/components/sell/price-spike-cards";
 import SellFilterChips from "@/components/sell/sell-filter-chips";
 import type { SellFilter } from "@/components/sell/sell-filter-chips";
 import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
-import { TrendingUp, Clock, LogIn, Download } from "lucide-react";
+import { TrendingUp, Clock, LogIn, Download, Share2 } from "lucide-react";
 import { generateSellCsv, downloadCsv } from "@/lib/export-csv";
 import type { Card, SellableCard } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
@@ -39,6 +40,7 @@ function SellPageContent() {
   const [authChecked, setAuthChecked] = useState(false);
   const supabaseAuth = createClient();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const searchParams = useSearchParams();
   const initialFilter = (searchParams.get("filter") as SellFilter) || "all";
@@ -169,6 +171,13 @@ function SellPageContent() {
         <div className="flex items-start justify-between">
           <SellSummary surplusCount={totalSurplus} totalValue={totalValue > 0 ? totalValue : null} />
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShareOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)]"
+            >
+              <Share2 size={15} />
+              Share
+            </button>
             <CopyListButton items={filteredCards} />
             <button
               onClick={handleExport}
@@ -217,6 +226,7 @@ function SellPageContent() {
       </div>
 
       <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} onCardSelect={setSelectedCard} />
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} items={sellableCards} />
     </div>
   );
 }
