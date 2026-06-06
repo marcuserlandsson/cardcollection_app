@@ -40,12 +40,11 @@ sellable cards to the clipboard as a marketplace-ready text block.
 ## Design
 
 ### Output format (marketplace line)
+One line per card, nothing else — no total line, no footer:
 ```
 {qty}x {name}[ · {variant}] ({card_number}) — €{price} ea
+{qty}x {name}[ · {variant}] ({card_number}) — €{price} ea
 ...
-
-Total: €{sum}
-Prices via Cardmarket · shared from CardBoard
 ```
 
 Rules:
@@ -55,10 +54,9 @@ Rules:
   after the card number).
 - **Variant** — append ` · {variant_name}` after the name only when
   `variant_name !== "Regular"`.
-- **Total** — sum of `total_value` over the items (nulls treated as 0). The
-  `Total: €{sum}` line is included only when the sum is > 0.
-- **Footer** — the `Prices via Cardmarket · shared from CardBoard` line is
-  always included (after a blank line).
+- **No total line and no attribution footer** — the per-card prices are
+  enough. The sell page already shows the aggregate via `SellSummary`
+  ("Total value").
 - **Empty list** — `formatSellListText([])` returns an empty string; the button
   is disabled in this case anyway.
 
@@ -97,8 +95,8 @@ next to the existing "Export CSV" button (same row/container), passing the same
 
 ## Testing
 - **Unit (Vitest):** `formatSellListText` — quantity source (surplus vs owned),
-  variant suffix shown only for non-Regular, line with missing price, total
-  line included only when > 0, footer always present, empty list → "".
+  variant suffix shown only for non-Regular, line with missing price omits the
+  price segment, no total or footer lines are emitted, empty list → "".
 - **Manual:** click "Copy list" on the sell page under each filter, paste
   elsewhere, confirm contents match the on-screen rows; confirm the "Copied!"
   state and the disabled state when the list is empty.
