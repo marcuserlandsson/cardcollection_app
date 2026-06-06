@@ -8,9 +8,8 @@ import CollectionSummary from "@/components/collection/collection-summary";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import CardPanel from "@/components/cards/card-panel";
-import ImportModal from "@/components/collection/import-modal";
 import Link from "next/link";
-import { Layers, LogIn, Upload } from "lucide-react";
+import { Layers, LogIn, Plus } from "lucide-react";
 import type { Card } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -22,7 +21,6 @@ export default function CollectionPage() {
   const supabaseAuth = createClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [importOpen, setImportOpen] = useState(false);
   const { data: collection, isLoading } = useCollection();
   const quantities = useCollectionMap();
 
@@ -72,13 +70,13 @@ export default function CollectionPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">My Collection</h1>
-        <button
-          onClick={() => setImportOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-[var(--elevated)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+        <Link
+          href="/collection/add"
+          className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)]"
         >
-          <Upload size={15} />
-          Import
-        </button>
+          <Plus size={15} />
+          Add cards
+        </Link>
       </div>
       <CollectionSummary />
       <CardSearchBar onSearch={handleSearch} />
@@ -87,12 +85,13 @@ export default function CollectionPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <Layers size={40} className="mb-3 text-[var(--border)]" />
           <p className="text-sm text-[var(--text-muted)]">No cards in your collection yet.</p>
-          <p className="text-xs text-[var(--text-dim)]">Browse the database to add some!</p>
+          <Link href="/collection/add" className="mt-2 text-xs text-[var(--accent)] hover:underline">
+            Add cards to get started
+          </Link>
         </div>
       )}
       {filteredCards && <CardGrid cards={filteredCards} quantities={quantities} onCardClick={handleCardClick} />}
       <CardPanel card={selectedCard} onClose={handleClosePanel} onCardSelect={setSelectedCard} />
-      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
