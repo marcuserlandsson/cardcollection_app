@@ -14,10 +14,10 @@ export default function CardBoardLogo({ size = 20, className }: CardBoardLogoPro
       className={className}
     >
       <g transform="rotate(12, 62, 55)">
-        <rect x="30" y="14" width="52" height="70" rx="7" fill="#1e2230" stroke="#2dd4a8" strokeWidth="2.5" opacity="0.45" />
+        <rect x="30" y="14" width="52" height="70" rx="7" fill="#1f1f23" stroke="#2dd4a8" strokeWidth="2.5" opacity="0.45" />
       </g>
       <g transform="rotate(-6, 42, 55)">
-        <rect x="18" y="16" width="52" height="70" rx="7" fill="#1e2230" stroke="#2dd4a8" strokeWidth="2.5" />
+        <rect x="18" y="16" width="52" height="70" rx="7" fill="#1f1f23" stroke="#2dd4a8" strokeWidth="2.5" />
         <rect x="24" y="22" width="40" height="58" rx="4" fill="none" stroke="#2dd4a8" strokeWidth="1.2" opacity="0.25" />
         <text x="44" y="58" fontFamily="system-ui, -apple-system, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle">
           <tspan fill="#ffffff">C</tspan>

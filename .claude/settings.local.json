@@ -54,7 +54,21 @@
       "WebFetch(domain:github.com)",
       "Bash(gh run:*)",
       "Bash(npm install:*)",
-      "Bash(tee /tmp/diagnose_output.txt)"
+      "Bash(tee /tmp/diagnose_output.txt)",
+      "Bash(taskkill //F //IM node.exe)",
+      "WebFetch(domain:www.dhiwise.com)",
+      "Bash(vercel whoami:*)",
+      "Bash(command -v vercel)",
+      "Bash(vercel --version)",
+      "Bash(vercel teams:*)",
+      "Bash(vercel link:*)",
+      "Bash(vercel deploy:*)",
+      "Bash(vercel inspect:*)",
+      "Bash(vercel logs:*)",
+      "Bash(vercel env:*)",
+      "Bash(printf \"https://tyxftktbvrtqqksyjucx.supabase.co\")",
+      "Bash(VERCEL_DISABLE_PLUGIN=1 vercel env add NEXT_PUBLIC_SUPABASE_URL preview)",
+      "Bash(vercel project:*)"
     ]
   }
 }
