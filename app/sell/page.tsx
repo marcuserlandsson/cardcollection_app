@@ -13,6 +13,7 @@ import { buildSellableCards, findSpikedCards, isOutlierLow } from "@/lib/sell-ut
 import { timeAgo } from "@/lib/utils";
 import SellSummary from "@/components/sell/sell-summary";
 import SellCardRow from "@/components/sell/sell-card-row";
+import CopyListButton from "@/components/sell/copy-list-button";
 import PriceSpikeCards from "@/components/sell/price-spike-cards";
 import SellFilterChips from "@/components/sell/sell-filter-chips";
 import type { SellFilter } from "@/components/sell/sell-filter-chips";
@@ -167,14 +168,17 @@ function SellPageContent() {
       {sellableCards.length > 0 && (
         <div className="flex items-start justify-between">
           <SellSummary surplusCount={totalSurplus} totalValue={totalValue > 0 ? totalValue : null} />
-          <button
-            onClick={handleExport}
-            disabled={filteredCards.length === 0}
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)] disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Download size={15} />
-            Export CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <CopyListButton items={filteredCards} />
+            <button
+              onClick={handleExport}
+              disabled={filteredCards.length === 0}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)] disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download size={15} />
+              Export CSV
+            </button>
+          </div>
         </div>
       )}
 
