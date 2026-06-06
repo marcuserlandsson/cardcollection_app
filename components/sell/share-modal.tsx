@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import {
   useSellShare,
@@ -16,7 +16,7 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ open, onClose, items }: ShareModalProps) {
-  const { data: share } = useSellShare();
+  const { data: share, isFetched: shareFetched } = useSellShare();
   const publish = usePublishSellShare();
   const del = useDeleteSellShare();
 
@@ -25,15 +25,24 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
 
+  // Seed the form once per open (after the share query has fetched) so existing
+  // values load even if the query was still in flight when the modal opened, and
+  // so a later background refetch never clobbers an in-progress edit.
+  const seededRef = useRef(false);
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (open) {
+    if (!open) {
+      seededRef.current = false;
+      return;
+    }
+    if (!seededRef.current && shareFetched) {
       setTitle(share?.title ?? "");
       setContactNote(share?.contact_note ?? "");
       setConfirmStop(false);
       setCopied(false);
+      seededRef.current = true;
     }
-  }, [open, share]);
+  }, [open, shareFetched, share]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
@@ -64,9 +73,14 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
-      <div className="fixed inset-x-4 top-[12vh] z-50 mx-auto max-w-md rounded-2xl bg-[var(--surface)] p-5 shadow-xl md:inset-x-auto md:w-[420px]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-modal-title"
+        className="fixed inset-x-4 top-[12vh] z-50 mx-auto max-w-md rounded-2xl bg-[var(--surface)] p-5 shadow-xl md:inset-x-auto md:w-[420px]"
+      >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">
+          <h2 id="share-modal-title" className="text-lg font-bold">
             {share ? "Your sell list is shared" : "Share your sell list"}
           </h2>
           <button
@@ -85,8 +99,9 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
               their current prices. Anyone with the link can view it — no login needed.
             </p>
             <div>
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Page title (optional)</label>
+              <label htmlFor="share-title" className="mb-1 block text-xs text-[var(--text-muted)]">Page title (optional)</label>
               <input
+                id="share-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={80}
@@ -95,8 +110,9 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Contact note (optional)</label>
+              <label htmlFor="share-contact" className="mb-1 block text-xs text-[var(--text-muted)]">Contact note (optional)</label>
               <input
+                id="share-contact"
                 value={contactNote}
                 onChange={(e) => setContactNote(e.target.value)}
                 maxLength={140}
@@ -133,12 +149,12 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Page title</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} className={inputClass} />
+              <label htmlFor="share-title-edit" className="mb-1 block text-xs text-[var(--text-muted)]">Page title</label>
+              <input id="share-title-edit" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} className={inputClass} />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Contact note</label>
-              <input value={contactNote} onChange={(e) => setContactNote(e.target.value)} maxLength={140} className={inputClass} />
+              <label htmlFor="share-contact-edit" className="mb-1 block text-xs text-[var(--text-muted)]">Contact note</label>
+              <input id="share-contact-edit" value={contactNote} onChange={(e) => setContactNote(e.target.value)} maxLength={140} className={inputClass} />
             </div>
 
             <div className="flex gap-2">
