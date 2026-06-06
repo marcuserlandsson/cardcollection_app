@@ -30,7 +30,9 @@ export default function EntrySessionSheet({ session, onUndo }: EntrySessionSheet
         />
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 flex max-h-[80vh] flex-col">
+      {/* Offset above the mobile bottom tab bar (~60px, md:hidden); flush to
+          the bottom from md up where the tab bar is gone. */}
+      <div className="fixed inset-x-0 bottom-16 z-30 flex max-h-[80vh] flex-col md:bottom-0">
         {expanded && (
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-t-xl border-t border-[var(--border)] bg-[var(--surface)] px-2 py-3">
             <SessionItemList session={session} onUndo={onUndo} />
