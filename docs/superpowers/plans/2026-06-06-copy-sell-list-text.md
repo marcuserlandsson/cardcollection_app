@@ -32,10 +32,10 @@
 
 Output format, one line per card (no total, no footer):
 ```
-{qty}x {name}[ · {variant}] ({card_number})[ — €{price} ea]
+{qty}x {name}[ · {variant}] ({card_number})[ — €{price} each]
 ```
 - Quantity = `surplus > 0 ? surplus : owned`.
-- Price = `price_low ?? price_trend`; if null, omit the ` — €… ea` segment.
+- Price = `price_low ?? price_trend`; if null, omit the ` — €… each` segment.
 - Variant suffix ` · {variant_name}` only when `variant_name !== "Regular"`.
 - Empty list → `""`.
 
@@ -96,21 +96,21 @@ describe("formatSellListText", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-009", "WarGreymon"), owned: 5, surplus: 3, price: makePrice(19.99) }),
     ];
-    expect(formatSellListText(items)).toBe("3x WarGreymon (BT9-009) — €19.99 ea");
+    expect(formatSellListText(items)).toBe("3x WarGreymon (BT9-009) — €19.99 each");
   });
 
   it("falls back to owned quantity when surplus is 0", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-007", "Agumon"), owned: 2, surplus: 0, price: makePrice(1.5) }),
     ];
-    expect(formatSellListText(items)).toBe("2x Agumon (BT9-007) — €1.50 ea");
+    expect(formatSellListText(items)).toBe("2x Agumon (BT9-007) — €1.50 each");
   });
 
   it("appends the variant name only for non-Regular variants", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-008", "Greymon", "Alt Art"), owned: 1, surplus: 1, price: makePrice(56) }),
     ];
-    expect(formatSellListText(items)).toBe("1x Greymon · Alt Art (BT9-008) — €56.00 ea");
+    expect(formatSellListText(items)).toBe("1x Greymon · Alt Art (BT9-008) — €56.00 each");
   });
 
   it("omits the price segment when there is no price", () => {
@@ -124,7 +124,7 @@ describe("formatSellListText", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-011", "Meramon"), owned: 1, surplus: 1, price: makePrice(null, 4.25) }),
     ];
-    expect(formatSellListText(items)).toBe("1x Meramon (BT9-011) — €4.25 ea");
+    expect(formatSellListText(items)).toBe("1x Meramon (BT9-011) — €4.25 each");
   });
 
   it("joins multiple cards with newlines and emits no total or footer", () => {
@@ -133,7 +133,7 @@ describe("formatSellListText", () => {
       makeSellable({ card: makeCard("BT9-007", "Agumon"), owned: 2, surplus: 2, price: makePrice(1.5) }),
     ];
     expect(formatSellListText(items)).toBe(
-      "3x WarGreymon (BT9-009) — €19.99 ea\n2x Agumon (BT9-007) — €1.50 ea",
+      "3x WarGreymon (BT9-009) — €19.99 each\n2x Agumon (BT9-007) — €1.50 each",
     );
   });
 
@@ -155,7 +155,7 @@ import type { SellableCard } from "./types";
 
 /**
  * Formats sellable cards as a marketplace-ready text block, one line per card:
- *   {qty}x {name}[ · {variant}] ({card_number})[ — €{price} ea]
+ *   {qty}x {name}[ · {variant}] ({card_number})[ — €{price} each]
  * Quantity and price mirror the CSV export (generateSellCsv) so the two agree.
  * No total line and no footer — the sell page shows the aggregate separately.
  */
@@ -166,7 +166,7 @@ export function formatSellListText(items: SellableCard[]): string {
       const variant =
         item.card.variant_name !== "Regular" ? ` · ${item.card.variant_name}` : "";
       const price = item.price?.price_low ?? item.price?.price_trend ?? null;
-      const pricePart = price !== null ? ` — €${price.toFixed(2)} ea` : "";
+      const pricePart = price !== null ? ` — €${price.toFixed(2)} each` : "";
       return `${qty}x ${item.card.name}${variant} (${item.card.card_number})${pricePart}`;
     })
     .join("\n");
@@ -325,7 +325,7 @@ Run: `npm test` — expect all unit tests pass.
 
 Run `npm run dev`, sign in, open `/sell`:
 - Confirm a "Copy list" button sits beside "Export CSV".
-- Click it → label briefly shows "Copied!"; paste into a text editor and verify the lines match the on-screen rows (qty, name, variant for alt arts, card number, `€x.xx ea`).
+- Click it → label briefly shows "Copied!"; paste into a text editor and verify the lines match the on-screen rows (qty, name, variant for alt arts, card number, `€x.xx each`).
 - Switch filter chips (Surplus / Sell-list / Spiked) → copied content reflects the active filter.
 - With an empty filtered list, the button is disabled.
 

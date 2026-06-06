@@ -52,21 +52,21 @@ describe("formatSellListText", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-009", "WarGreymon"), owned: 5, surplus: 3, price: makePrice(19.99) }),
     ];
-    expect(formatSellListText(items)).toBe("3x WarGreymon (BT9-009) — €19.99 ea");
+    expect(formatSellListText(items)).toBe("3x WarGreymon (BT9-009) — €19.99 each");
   });
 
   it("falls back to owned quantity when surplus is 0", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-007", "Agumon"), owned: 2, surplus: 0, price: makePrice(1.5) }),
     ];
-    expect(formatSellListText(items)).toBe("2x Agumon (BT9-007) — €1.50 ea");
+    expect(formatSellListText(items)).toBe("2x Agumon (BT9-007) — €1.50 each");
   });
 
   it("appends the variant name only for non-Regular variants", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-008", "Greymon", "Alt Art"), owned: 1, surplus: 1, price: makePrice(56) }),
     ];
-    expect(formatSellListText(items)).toBe("1x Greymon · Alt Art (BT9-008) — €56.00 ea");
+    expect(formatSellListText(items)).toBe("1x Greymon · Alt Art (BT9-008) — €56.00 each");
   });
 
   it("omits the price segment when there is no price", () => {
@@ -80,7 +80,7 @@ describe("formatSellListText", () => {
     const items = [
       makeSellable({ card: makeCard("BT9-011", "Meramon"), owned: 1, surplus: 1, price: makePrice(null, 4.25) }),
     ];
-    expect(formatSellListText(items)).toBe("1x Meramon (BT9-011) — €4.25 ea");
+    expect(formatSellListText(items)).toBe("1x Meramon (BT9-011) — €4.25 each");
   });
 
   it("joins multiple cards with newlines and emits no total or footer", () => {
@@ -89,7 +89,7 @@ describe("formatSellListText", () => {
       makeSellable({ card: makeCard("BT9-007", "Agumon"), owned: 2, surplus: 2, price: makePrice(1.5) }),
     ];
     expect(formatSellListText(items)).toBe(
-      "3x WarGreymon (BT9-009) — €19.99 ea\n2x Agumon (BT9-007) — €1.50 ea",
+      "3x WarGreymon (BT9-009) — €19.99 each\n2x Agumon (BT9-007) — €1.50 each",
     );
   });
 

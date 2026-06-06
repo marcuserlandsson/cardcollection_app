@@ -42,15 +42,15 @@ sellable cards to the clipboard as a marketplace-ready text block.
 ### Output format (marketplace line)
 One line per card, nothing else — no total line, no footer:
 ```
-{qty}x {name}[ · {variant}] ({card_number}) — €{price} ea
-{qty}x {name}[ · {variant}] ({card_number}) — €{price} ea
+{qty}x {name}[ · {variant}] ({card_number}) — €{price} each
+{qty}x {name}[ · {variant}] ({card_number}) — €{price} each
 ...
 ```
 
 Rules:
 - **Quantity** — `surplus > 0 ? surplus : owned` (matches CSV).
-- **Price** — `price_low ?? price_trend`. Formatted as `€{n.toFixed(2)} ea`. If
-  a card has no price, omit the ` — €… ea` segment for that line (line ends
+- **Price** — `price_low ?? price_trend`. Formatted as `€{n.toFixed(2)} each`. If
+  a card has no price, omit the ` — €… each` segment for that line (line ends
   after the card number).
 - **Variant** — append ` · {variant_name}` after the name only when
   `variant_name !== "Regular"`.
