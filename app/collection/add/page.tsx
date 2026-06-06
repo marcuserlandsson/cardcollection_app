@@ -7,6 +7,7 @@ import AddModeTabs, { type AddMode } from "@/components/collection/add-mode-tabs
 import EntrySearch from "@/components/collection/entry-search";
 import SetChecklist from "@/components/collection/set-checklist";
 import EntrySessionTray from "@/components/collection/entry-session-tray";
+import EntrySessionSheet from "@/components/collection/entry-session-sheet";
 import ImportModal from "@/components/collection/import-modal";
 import ViewToggle, { type CardView } from "@/components/cards/view-toggle";
 import { useEntrySession } from "@/lib/hooks/use-entry-session";
@@ -18,7 +19,7 @@ export default function AddCardsPage() {
   const { session, adjust, undo } = useEntrySession();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24 lg:pb-0">
       <div className="flex items-center gap-3">
         <Link
           href="/collection"
@@ -54,10 +55,12 @@ export default function AddCardsPage() {
           )}
         </div>
 
-        <aside className="lg:w-72 lg:flex-none lg:sticky lg:top-4 lg:self-start">
+        <aside className="hidden lg:block lg:w-72 lg:flex-none lg:sticky lg:top-4 lg:self-start">
           <EntrySessionTray session={session} onUndo={undo} />
         </aside>
       </div>
+
+      <EntrySessionSheet session={session} onUndo={undo} />
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
