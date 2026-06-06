@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import PublicSellList from "@/components/share/public-sell-list";
@@ -35,9 +36,9 @@ export default async function SharePage({ params }: SharePageProps) {
 
       <div className="flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">
         <span>Prices via Cardmarket</span>
-        <a href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+        <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
           Shared from CardBoard →
-        </a>
+        </Link>
       </div>
     </div>
   );
