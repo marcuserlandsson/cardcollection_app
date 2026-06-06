@@ -79,16 +79,21 @@ export interface SellableCard {
   outlier_low: boolean;
 }
 
-export interface SellListEntry {
-  user_id: string;
+export interface SellSharePayloadItem {
   card_number: string;
-  added_at: string;
+  name: string;
+  variant_name: string;
+  image_url: string | null;
+  quantity: number;
+  price: number | null;
 }
 
-export interface PriceHistoryEntry {
-  card_number: string;
-  recorded_at: string;
-  price_avg: number | null;
-  price_low: number | null;
-  price_trend: number | null;
+export interface SellShare {
+  user_id: string;
+  token: string;
+  title: string | null;
+  contact_note: string | null;
+  payload: SellSharePayloadItem[];
+  created_at: string;
+  updated_at: string;
 }
