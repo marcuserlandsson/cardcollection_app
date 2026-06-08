@@ -35,7 +35,7 @@ export default async function SharePage({ params }: SharePageProps) {
       <PublicSellList items={items} />
 
       <div className="flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">
-        <span>Prices via Cardmarket</span>
+        <span>Prices via Cardtrader</span>
         <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
           Shared from CardBoard →
         </Link>
