@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import { X, Copy, Check, ExternalLink, Loader2, Download } from "lucide-react";
 import {
   useSellShare,
   usePublishSellShare,
@@ -205,6 +205,15 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
                 Open <ExternalLink size={14} />
               </a>
             </div>
+
+            <a
+              href={`/s/${share.token}/image`}
+              download={`cardboard-${share.token}.png`}
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-light)] py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)]"
+            >
+              <Download size={14} />
+              Download image
+            </a>
 
             {!confirmStop ? (
               <button

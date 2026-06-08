@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Mail, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import PublicSellList from "@/components/share/public-sell-list";
 import type { SellSharePayloadItem } from "@/lib/types";
@@ -31,6 +31,15 @@ export default async function SharePage({ params }: SharePageProps) {
           </p>
         )}
       </div>
+
+      <a
+        href={`/s/${token}/image`}
+        download={`cardboard-${token}.png`}
+        className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)]"
+      >
+        <Download size={15} />
+        Download image
+      </a>
 
       <PublicSellList items={items} />
 
