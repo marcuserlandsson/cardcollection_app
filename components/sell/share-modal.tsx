@@ -7,6 +7,8 @@ import {
   usePublishSellShare,
   useDeleteSellShare,
 } from "@/lib/hooks/use-sell-share";
+import { parsePrice } from "@/lib/share-price";
+import SharePriceEditor from "@/components/sell/share-price-editor";
 import type { SellableCard } from "@/lib/types";
 
 interface ShareModalProps {
@@ -22,12 +24,15 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
 
   const [title, setTitle] = useState("");
   const [contactNote, setContactNote] = useState("");
+  const [prices, setPrices] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
 
-  // Seed the form once per open (after the share query has fetched) so existing
-  // values load even if the query was still in flight when the modal opened, and
-  // so a later background refetch never clobbers an in-progress edit.
+  // Seed the form once per open (after the share query has fetched and the
+  // sellable cards are loaded) so existing values load even if data was still
+  // in flight when the modal opened, and so a later background refetch never
+  // clobbers an in-progress edit. Each price input is prefilled from the
+  // last-published price for that card, else the Cardtrader market price.
   const seededRef = useRef(false);
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -35,22 +40,44 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
       seededRef.current = false;
       return;
     }
-    if (!seededRef.current && shareFetched) {
+    if (!seededRef.current && shareFetched && items.length > 0) {
       setTitle(share?.title ?? "");
       setContactNote(share?.contact_note ?? "");
       setConfirmStop(false);
       setCopied(false);
+
+      const publishedByCard = new Map(
+        (share?.payload ?? []).map((p) => [p.card_number, p.price]),
+      );
+      const seeded: Record<string, string> = {};
+      for (const item of items) {
+        const market = item.price?.price_low ?? item.price?.price_trend ?? null;
+        const initial = publishedByCard.has(item.card.card_number)
+          ? publishedByCard.get(item.card.card_number) ?? null
+          : market;
+        seeded[item.card.card_number] = initial != null ? String(initial) : "";
+      }
+      setPrices(seeded);
+
       seededRef.current = true;
     }
-  }, [open, shareFetched, share]);
+  }, [open, shareFetched, share, items]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
 
   const shareUrl = share ? `${window.location.origin}/s/${share.token}` : "";
 
+  const handlePriceChange = (cardNumber: string, value: string) => {
+    setPrices((prev) => ({ ...prev, [cardNumber]: value }));
+  };
+
   const handlePublish = () => {
-    publish.mutate({ title, contactNote, items, existingToken: share?.token ?? null });
+    const priceMap: Record<string, number | null> = {};
+    for (const item of items) {
+      priceMap[item.card.card_number] = parsePrice(prices[item.card.card_number] ?? "");
+    }
+    publish.mutate({ title, contactNote, items, prices: priceMap, existingToken: share?.token ?? null });
   };
 
   const handleCopy = async () => {
@@ -95,8 +122,8 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
         {!share && (
           <div className="mt-3 space-y-3">
             <p className="text-sm text-[var(--text-secondary)]">
-              Publishes a public, read-only snapshot of your {items.length} sellable cards and
-              their current prices. Anyone with the link can view it — no login needed.
+              Publishes a public, read-only snapshot of your {items.length} sellable cards. Set
+              your asking prices below. Anyone with the link can view it — no login needed.
             </p>
             <div>
               <label htmlFor="share-title" className="mb-1 block text-xs text-[var(--text-muted)]">Page title (optional)</label>
@@ -120,6 +147,7 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
                 className={inputClass}
               />
             </div>
+            <SharePriceEditor items={items} prices={prices} onChange={handlePriceChange} />
             <button
               onClick={handlePublish}
               disabled={publish.isPending || items.length === 0}
@@ -134,7 +162,7 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
         {share && (
           <div className="mt-3 space-y-3">
             <p className="text-sm text-[var(--text-secondary)]">
-              Snapshot of {share.payload.length} cards · prices frozen at publish time.
+              Snapshot of {share.payload.length} cards · your asking prices.
             </p>
 
             <div>
@@ -156,6 +184,8 @@ export default function ShareModal({ open, onClose, items }: ShareModalProps) {
               <label htmlFor="share-contact-edit" className="mb-1 block text-xs text-[var(--text-muted)]">Contact note</label>
               <input id="share-contact-edit" value={contactNote} onChange={(e) => setContactNote(e.target.value)} maxLength={140} className={inputClass} />
             </div>
+
+            <SharePriceEditor items={items} prices={prices} onChange={handlePriceChange} />
 
             <div className="flex gap-2">
               <button

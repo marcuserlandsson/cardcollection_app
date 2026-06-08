@@ -32,11 +32,13 @@ export function usePublishSellShare() {
       title,
       contactNote,
       items,
+      prices,
       existingToken,
     }: {
       title: string;
       contactNote: string;
       items: SellableCard[];
+      prices: Record<string, number | null>;
       existingToken: string | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -47,7 +49,7 @@ export function usePublishSellShare() {
         token,
         title: title.trim() || null,
         contact_note: contactNote.trim() || null,
-        payload: buildSharePayload(items),
+        payload: buildSharePayload(items, prices),
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
