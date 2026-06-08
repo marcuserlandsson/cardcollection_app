@@ -17,7 +17,7 @@ const features = [
   {
     icon: TrendingUp,
     title: "Find surplus to sell",
-    description: "live Cardmarket pricing on extra copies.",
+    description: "live Cardtrader pricing on extra copies.",
     color: "var(--yellow)",
   },
 ];
@@ -31,7 +31,7 @@ export default function GuestLanding() {
           <span className="text-[var(--accent)]">Digimon TCG</span> collection
         </h1>
         <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--text-secondary)]">
-          Build decks, track completion, and find surplus cards worth selling on Cardmarket.
+          Build decks, track completion, and find surplus cards worth selling on Cardtrader.
         </p>
         <div className="mt-8 flex items-center gap-4">
           <Link

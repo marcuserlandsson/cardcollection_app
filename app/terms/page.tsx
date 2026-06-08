@@ -70,7 +70,7 @@ export default function TermsPage() {
         <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
           All card prices shown are estimates based on third-party marketplace data, updated
           periodically. CardBoard does not guarantee the accuracy of pricing information. Users
-          should verify current prices on the respective marketplace (Cardtrader, Cardmarket) before
+          should verify current prices on the respective marketplace (Cardtrader) before
           making financial decisions. CardBoard is not responsible for any financial loss resulting
           from reliance on displayed prices.
         </p>

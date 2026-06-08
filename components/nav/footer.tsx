@@ -27,8 +27,6 @@ export default function Footer() {
               <a href="https://digimoncard.io" target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">digimoncard.io</a>
               . Pricing from{" "}
               <a href="https://www.cardtrader.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">Cardtrader</a>
-              {" "}&amp;{" "}
-              <a href="https://www.cardmarket.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">Cardmarket</a>
               . Prices are estimates and may not reflect current market value.
             </p>
           </div>

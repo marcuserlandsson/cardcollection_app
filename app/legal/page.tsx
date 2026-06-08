@@ -62,15 +62,6 @@ export default function LegalPage() {
               className="text-[var(--text-primary)] hover:underline"
             >
               Cardtrader
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://www.cardmarket.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--text-primary)] hover:underline"
-            >
-              Cardmarket
             </a>
           </li>
         </ul>
