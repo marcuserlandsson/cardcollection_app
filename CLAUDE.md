@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-CardBoard — a responsive web app for tracking TCG card collections, planning decks, and identifying surplus cards worth selling on Cardmarket. Currently focused on Digimon TCG with plans to support additional TCGs.
+CardBoard — a responsive web app for tracking TCG card collections, planning decks, and identifying surplus cards worth selling on Cardtrader. Currently focused on Digimon TCG with plans to support additional TCGs.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ CardBoard — a responsive web app for tracking TCG card collections, planning d
 - **Backend:** Supabase (Postgres, Auth, Row Level Security)
 - **Hosting:** Vercel (free tier)
 - **Card Data:** Digimon Card API (https://digimoncard.io/api-public/)
-- **Price Data:** Cardmarket API (primary), Cardtrader API (fallback)
+- **Price Data:** Cardtrader API (Cardmarket was the original plan but its API signup is unavailable)
 - **Data Sync:** Python scripts + GitHub Actions (daily cron)
 - **Client Caching:** TanStack Query (React Query)
 
@@ -27,7 +27,7 @@ npm run lint    # ESLint check
 ```bash
 pip install -r scripts/requirements.txt
 python scripts/sync_cards.py    # Sync cards from Digimon Card API
-python scripts/sync_prices.py   # Sync prices from Cardmarket/Cardtrader
+python scripts/sync_prices.py   # Sync prices from Cardtrader
 ```
 
 Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
