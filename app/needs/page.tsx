@@ -78,8 +78,10 @@ export default function NeedsPage() {
 
   // Summary + actions show only when there is something to buy.
   const hasNeeds = buyList.items.length > 0;
-  // Empty state shows only when the user has no decks and no wishlist at all.
-  const isEmpty = sections.length === 0 && wishlistNeeds.length === 0;
+  // Empty state shows only once data has loaded and the user has no decks and no
+  // wishlist at all — avoids flashing the call-to-action during initial load.
+  const dataReady = !!(cards && collection && decks && allDeckCards && prices && wishlist);
+  const isEmpty = dataReady && sections.length === 0 && wishlistNeeds.length === 0;
 
   const handleCardClick = useCallback((card: Card) => setSelectedCard(card), []);
 
