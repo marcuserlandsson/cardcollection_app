@@ -1,4 +1,4 @@
-import type { SellableCard } from "./types";
+import type { BuyListItem, SellableCard } from "./types";
 
 /**
  * Escapes a CSV field value.
@@ -68,4 +68,41 @@ export function downloadCsv(csvContent: string, filename: string): void {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Generates a CSV string from a deduplicated buy list.
+ * Columns: Card Number, Name, Expansion, Variant, Rarity, Quantity Needed,
+ *          Price (EUR), Est. Cost (EUR)
+ */
+export function generateBuyCsv(items: BuyListItem[]): string {
+  const headers = [
+    "Card Number",
+    "Name",
+    "Expansion",
+    "Variant",
+    "Rarity",
+    "Quantity Needed",
+    "Price (EUR)",
+    "Est. Cost (EUR)",
+  ];
+
+  const rows = items.map((item) => {
+    const price = item.price?.price_low ?? item.price?.price_trend ?? null;
+    const priceStr = price !== null ? price.toFixed(2) : "";
+    const costStr = item.est_cost !== null ? item.est_cost.toFixed(2) : "";
+
+    return [
+      escapeCsvField(item.card.card_number),
+      escapeCsvField(item.card.name),
+      escapeCsvField(item.card.expansion),
+      escapeCsvField(item.card.variant_name),
+      escapeCsvField(item.card.rarity ?? ""),
+      String(item.need),
+      priceStr,
+      costStr,
+    ].join(",");
+  });
+
+  return [headers.join(","), ...rows].join("\n");
 }
