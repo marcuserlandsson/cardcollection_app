@@ -99,6 +99,10 @@ describe("pickRepresentativeVariant", () => {
     const variants = [makeCard("X_P2", "X", "Alt B", "X"), makeCard("X_P1", "X", "Alt A", "X")];
     expect(pickRepresentativeVariant(variants).card_number).toBe("X_P1");
   });
+
+  it("throws when given an empty array", () => {
+    expect(() => pickRepresentativeVariant([])).toThrow();
+  });
 });
 
 describe("buildDeckNeedSections", () => {
@@ -139,6 +143,24 @@ describe("buildDeckNeedSections", () => {
     const deckCards = [dcard("d1", "A", 1), dcard("d1", "B", 1)]; // A=1.5, B=10
     const sections = buildDeckNeedSections(cards, [], decks, deckCards, prices);
     expect(sections[0].rows.map((r) => r.card.card_number)).toEqual(["B", "A"]);
+  });
+
+  it("sorts null-cost rows below priced rows", () => {
+    const noPrice = makeCard("C", "Patamon");
+    const decks = [makeDeck("d1", "2026-01-01")];
+    const deckCards = [dcard("d1", "A", 1), dcard("d1", "B", 1), dcard("d1", "C", 1)];
+    const sections = buildDeckNeedSections([...cards, noPrice], [], decks, deckCards, prices);
+    expect(sections[0].rows.map((r) => r.card.card_number)).toEqual(["B", "A", "C"]);
+  });
+
+  it("retains a fully-satisfied deck with empty rows for the completion display", () => {
+    const decks = [makeDeck("d1", "2026-01-01")];
+    const deckCards = [dcard("d1", "A", 2)];
+    const collection = [coll("A", 4)]; // owns more than needed
+    const [section] = buildDeckNeedSections(cards, collection, decks, deckCards, prices);
+    expect(section.rows).toHaveLength(0);
+    expect(section.have).toBe(2);
+    expect(section.want).toBe(2);
   });
 });
 

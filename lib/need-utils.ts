@@ -33,6 +33,9 @@ export function totalOwnedByBase(
 
 /** Deterministic display variant for a base: Regular first, then lowest card_number. */
 export function pickRepresentativeVariant(variants: Card[]): Card {
+  if (variants.length === 0) {
+    throw new Error("pickRepresentativeVariant: variants must not be empty");
+  }
   return [...variants].sort((a, b) => {
     if (a.variant_name === "Regular" && b.variant_name !== "Regular") return -1;
     if (a.variant_name !== "Regular" && b.variant_name === "Regular") return 1;
