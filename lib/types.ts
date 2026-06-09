@@ -97,3 +97,32 @@ export interface SellShare {
   created_at: string;
   updated_at: string;
 }
+
+export interface WishlistEntry {
+  user_id: string;
+  card_number: string;
+  quantity: number; // target copies the user wants
+  added_at: string;
+}
+
+export interface NeededCard {
+  card: Card; // representative variant for deck needs; the wishlisted card for wishlist needs
+  need: number; // quantity still needed (> 0)
+  owned: number; // totalOwned across the base's variants
+  price: CardPrice | null;
+  est_cost: number | null; // need * unit price, or null when no price
+}
+
+export interface DeckNeedSection {
+  deck: Deck;
+  have: number; // sum of min(owned, deckWants) over the deck's cards
+  want: number; // sum of deckWants over the deck's cards
+  rows: NeededCard[]; // cards with deckNeed > 0, sorted by est_cost desc
+}
+
+export interface BuyListItem {
+  card: Card;
+  need: number; // global (deduplicated) need = max across decks + wishlist
+  price: CardPrice | null;
+  est_cost: number | null;
+}
