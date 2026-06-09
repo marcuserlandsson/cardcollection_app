@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Home, Search, Layers, SquareStack, TrendingUp, LogOut, LogIn } from "lucide-react";
+import { Home, Search, Layers, SquareStack, TrendingUp, ShoppingCart, LogOut, LogIn } from "lucide-react";
 import CardBoardLogo from "@/components/icons/cardboard-logo";
 import type { User } from "@supabase/supabase-js";
 
@@ -14,6 +14,7 @@ const tabs = [
   { href: "/collection", label: "Collection", icon: Layers },
   { href: "/decks", label: "Decks", icon: SquareStack },
   { href: "/sell", label: "Sell", icon: TrendingUp },
+  { href: "/needs", label: "Needs", icon: ShoppingCart },
 ];
 
 export default function TopNavBar() {

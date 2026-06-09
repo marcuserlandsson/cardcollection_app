@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Layers, SquareStack, TrendingUp } from "lucide-react";
+import { Home, Search, Layers, SquareStack, TrendingUp, ShoppingCart } from "lucide-react";
 
 const tabs = [
   { href: "/", label: "Home", icon: Home },
@@ -10,6 +10,7 @@ const tabs = [
   { href: "/collection", label: "Collection", icon: Layers },
   { href: "/decks", label: "Decks", icon: SquareStack },
   { href: "/sell", label: "Sell", icon: TrendingUp },
+  { href: "/needs", label: "Needs", icon: ShoppingCart },
 ];
 
 export default function BottomTabBar() {

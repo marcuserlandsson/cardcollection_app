@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PROTECTED_ROUTES = ["/collection", "/decks", "/sell"];
+const PROTECTED_ROUTES = ["/collection", "/decks", "/sell", "/needs"];
 
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Frame-Options": "DENY",
