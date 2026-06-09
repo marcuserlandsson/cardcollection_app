@@ -13,6 +13,7 @@ import CardSiblings from "@/components/cards/card-siblings";
 import CardDeckUsage from "@/components/cards/card-deck-usage";
 import CardExpansions from "@/components/cards/card-expansions";
 import SellListToggle from "@/components/sell/sell-list-toggle";
+import WishlistToggle from "@/components/needs/wishlist-toggle";
 import type { Card } from "@/lib/types";
 import PriceSparkline from "@/components/cards/price-sparkline";
 
@@ -173,6 +174,9 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
 
         {/* Sell List */}
         <SellListToggle cardNumber={card.card_number} />
+
+        {/* Wishlist */}
+        <WishlistToggle cardNumber={card.card_number} maxCopies={card.max_copies} />
 
         {/* Deck Usage */}
         <CardDeckUsage cardNumber={card.card_number} />
