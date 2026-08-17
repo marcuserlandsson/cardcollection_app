@@ -1187,12 +1187,16 @@ export function useExpansions() {
 
 `useCardSiblings` — key `["card-siblings", gameId, baseCardNumber]`, add `.eq("game", gameId)`.
 
-`useCardExpansions` — key `["card-expansions", gameId, baseCardNumber]`, filter with `.select("card_number, expansion, cards!inner(game)").eq("cards.game", gameId)` and strip the embed before casting:
+`useCardExpansions` — key `["card-expansions", gameId, baseCardNumber]`, filter with `.select("card_number, expansion, cards!inner(game)").eq("cards.game", gameId)`. The embed adds a nested `cards` key to each row, so pick the fields you want explicitly rather than rest-stripping:
 
 ```ts
-      return (data ?? []).map(({ cards: _cards, ...row }) =>
-        row) as { card_number: string; expansion: string }[];
+      return (data ?? []).map((row) => ({
+        card_number: row.card_number,
+        expansion: row.expansion,
+      })) as { card_number: string; expansion: string }[];
 ```
+
+**Do not use `({ cards: _cards, ...row }) => row`.** `eslint-config-next` sets no `varsIgnorePattern` for underscore-prefixed rest siblings, so the discarded binding is a `@typescript-eslint/no-unused-vars` error, and suppressing it trades a clean rule for nothing. The explicit pick also documents exactly which fields the hook returns.
 
 - [ ] **Step 3: Filter the deck hooks**
 
@@ -1285,12 +1289,20 @@ export function useCollection() {
         .eq("user_id", user.id)
         .eq("cards.game", gameId);
       if (error) throw error;
-      // Drop the joined column so the row shape stays CollectionEntry.
-      return (data ?? []).map(({ cards: _cards, ...entry }) => entry) as CollectionEntry[];
+      // Pick the entry's own fields so the joined `cards` key is dropped and
+      // the row shape stays CollectionEntry.
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        card_number: row.card_number,
+        quantity: row.quantity,
+        updated_at: row.updated_at,
+      })) as CollectionEntry[];
     },
   });
 }
 ```
+
+**Do not use `({ cards: _cards, ...entry }) => entry`.** `eslint-config-next` sets no `varsIgnorePattern` for underscore-prefixed rest siblings, so the discarded binding is a `@typescript-eslint/no-unused-vars` error. Pick fields explicitly in all three hooks below.
 
 - [ ] **Step 2: Repoint the optimistic update at the game-keyed cache**
 
@@ -1303,7 +1315,13 @@ Expected: no output.
 
 - [ ] **Step 3: Filter `useWishlist` and `useSellList`**
 
-Same shape as Step 1. `useWishlist`: key `["wishlist", gameId]`, `.select("*, cards!inner(game)").eq("user_id", user.id).eq("cards.game", gameId)`, strip and cast to `WishlistEntry[]`. `useSellList`: key `["sell-list", gameId]`, same filter, cast to `SellListEntry[]`.
+Same shape as Step 1, including the explicit field pick.
+
+`useWishlist`: key `["wishlist", gameId]`, `.select("*, cards!inner(game)").eq("user_id", user.id).eq("cards.game", gameId)`, then pick `user_id`, `card_number`, `quantity`, `added_at` and cast to `WishlistEntry[]`.
+
+`useSellList`: key `["sell-list", gameId]`, same filter, then pick `user_id`, `card_number`, `added_at` and cast to `SellListEntry[]`.
+
+Check the field lists against `lib/types.ts` before writing them — `WishlistEntry` and `SellListEntry` are defined there, and a picked field that does not exist on the interface is a type error while a missing one silently drops data.
 
 Their mutation hooks invalidate `["wishlist"]` / `["sell-list"]`, which still prefix-matches the game-keyed queries, so leave the mutations alone.
 
