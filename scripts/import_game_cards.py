@@ -8,6 +8,9 @@ file simply overwrites. Re-running it is a no-op.
 Aborts if any card_number in the file already belongs to a different game.
 That guard is what makes the shared single-column card_number primary key safe
 across games — see docs/superpowers/specs/2026-08-17-multi-game-support-design.md
+The same bet applies to expansion_metadata, whose primary key is `expansion`
+alone: an equivalent guard aborts if a seed's expansion code already belongs
+to a different game, rather than silently overwriting that game's row.
 
 Usage:
     pip install -r scripts/requirements.txt
@@ -91,9 +94,10 @@ def validate(rows: list[dict], game: str) -> list[str]:
                 problems.append(f"{label}: missing field '{field}'")
 
         number = row.get("card_number", "")
-        if number in seen:
-            problems.append(f"{label}: duplicated inside the seed file")
-        seen.add(number)
+        if number:
+            if number in seen:
+                problems.append(f"{label}: duplicated inside the seed file")
+            seen.add(number)
 
         if rules["card_number_case"] == "lower" and number != number.lower():
             problems.append(f"{label}: card_number must be lowercase")
@@ -108,7 +112,7 @@ def validate(rows: list[dict], game: str) -> list[str]:
             problems.append(f"{label}: unknown color {row.get('color')!r}")
 
         max_copies = row.get("max_copies")
-        if not isinstance(max_copies, int) or max_copies < 1:
+        if isinstance(max_copies, bool) or not isinstance(max_copies, int) or max_copies < 1:
             problems.append(f"{label}: max_copies must be a positive integer")
         elif row.get("card_type") == "Legend" and max_copies != 1:
             problems.append(f"{label}: Legend max_copies must be 1, got {max_copies}")
@@ -138,6 +142,30 @@ def find_collisions(supabase, rows: list[dict], game: str) -> list[str]:
             if found["game"] != game:
                 collisions.append(
                     f"{found['card_number']} already belongs to game '{found['game']}'"
+                )
+    return collisions
+
+
+def find_expansion_collisions(supabase, rows: list[dict], game: str) -> list[str]:
+    """Expansion codes already registered to a different game.
+
+    expansion_metadata's primary key is `expansion` alone, so an upsert from
+    another game would silently overwrite the row rather than erroring.
+    """
+    codes = sorted({r["expansion"] for r in rows if r.get("expansion")})
+    collisions: list[str] = []
+    for i in range(0, len(codes), BATCH_SIZE):
+        batch = codes[i : i + BATCH_SIZE]
+        existing = (
+            supabase.table("expansion_metadata")
+            .select("expansion, game")
+            .in_("expansion", batch)
+            .execute()
+        )
+        for found in existing.data or []:
+            if found["game"] != game:
+                collisions.append(
+                    f"expansion {found['expansion']!r} already belongs to game '{found['game']}'"
                 )
     return collisions
 
@@ -214,6 +242,15 @@ def main() -> int:
         print("Refusing to import — resolve the collision before retrying.")
         return 1
     print("No cross-game card number collisions")
+
+    expansion_collisions = find_expansion_collisions(supabase, rows, args.game)
+    if expansion_collisions:
+        print(f"ERROR: {len(expansion_collisions)} expansion collision(s) across games:")
+        for c in expansion_collisions:
+            print(f"  - {c}")
+        print("Refusing to import — resolve the collision before retrying.")
+        return 1
+    print("No cross-game expansion collisions")
 
     if args.dry_run:
         print(
