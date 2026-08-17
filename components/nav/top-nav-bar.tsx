@@ -6,14 +6,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Home, Search, Layers, SquareStack, TrendingUp, ShoppingCart, LogOut, LogIn } from "lucide-react";
 import CardBoardLogo from "@/components/icons/cardboard-logo";
+import { useGame } from "@/contexts/game-context";
+import GameSwitcher from "@/components/nav/game-switcher";
 import type { User } from "@supabase/supabase-js";
 
-const tabs = [
+const allTabs = [
   { href: "/", label: "Home", icon: Home },
   { href: "/database", label: "Database", icon: Search },
   { href: "/collection", label: "Collection", icon: Layers },
   { href: "/decks", label: "Decks", icon: SquareStack },
-  { href: "/sell", label: "Sell", icon: TrendingUp },
+  { href: "/sell", label: "Sell", icon: TrendingUp, requiresPrices: true },
   { href: "/needs", label: "Needs", icon: ShoppingCart },
 ];
 
@@ -22,6 +24,8 @@ export default function TopNavBar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const supabase = createClient();
+  const { game } = useGame();
+  const tabs = allTabs.filter((t) => !t.requiresPrices || game.hasPrices);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -40,10 +44,13 @@ export default function TopNavBar() {
   return (
     <nav className="hidden border-b border-[var(--accent-border)] bg-[var(--surface)]/80 backdrop-blur-xl md:block">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
-        <Link href="/" className="flex items-center gap-1.5 text-lg font-bold text-[var(--text-primary)]">
-          <CardBoardLogo size={40} className="shrink-0 translate-y-0.5" />
-          <span>Card<span className="text-[var(--accent)]">Board</span></span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-1.5 text-lg font-bold text-[var(--text-primary)]">
+            <CardBoardLogo size={40} className="shrink-0 translate-y-0.5" />
+            <span>Card<span className="text-[var(--accent)]">Board</span></span>
+          </Link>
+          <GameSwitcher />
+        </div>
         <div className="flex items-center gap-0.5 rounded-lg bg-[var(--elevated)] p-0.5">
           {tabs.map((tab) => {
             const isActive = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
