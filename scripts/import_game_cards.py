@@ -9,19 +9,31 @@ Aborts if any card_number in the file already belongs to a different game.
 That guard is what makes the shared single-column card_number primary key safe
 across games — see docs/superpowers/specs/2026-08-17-multi-game-support-design.md
 
---dry-run validates the seed file and reports the counts that would be
-upserted WITHOUT opening a Supabase connection at all. That means the
-games-table registration check and the cross-game card_number collision check
-(both of which require a live connection) do not run in dry-run mode — only
-on a real invocation. This is deliberate: a dry run should be safe to run
-without Supabase credentials in scope, and should never touch the network.
-
 Usage:
     pip install -r scripts/requirements.txt
-    python scripts/import_game_cards.py --game cyberpunk \
-        --file scripts/data/cyberpunk_cards.json [--dry-run]
 
-Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env or environment.
+    # 1. Shape-check a hand-edited seed file. Runs validate() only — no
+    #    Supabase client is ever created, so this needs no credentials at all.
+    #    Use this while iterating on the JSON as cards get revealed.
+    python scripts/import_game_cards.py --game cyberpunk \
+        --file scripts/data/cyberpunk_cards.json --validate-only
+
+    # 2. Rehearse the real import: validation, PLUS the games-table
+    #    registration check and the cross-game card_number collision check,
+    #    against the live database — but stops before writing anything.
+    #    Requires SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.
+    python scripts/import_game_cards.py --game cyberpunk \
+        --file scripts/data/cyberpunk_cards.json --dry-run
+
+    # 3. The real import: everything above, then upserts cards,
+    #    card_expansions and expansion_metadata. Requires the same credentials.
+    python scripts/import_game_cards.py --game cyberpunk \
+        --file scripts/data/cyberpunk_cards.json
+
+--validate-only and --dry-run are mutually exclusive.
+
+Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env or environment
+for modes 2 and 3 above.
 """
 
 import argparse
@@ -134,9 +146,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--game", required=True, help="game id, e.g. cyberpunk")
     parser.add_argument("--file", required=True, type=Path, help="seed JSON path")
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--dry-run", action="store_true",
-        help="validate and report counts without opening a Supabase connection",
+        help=(
+            "run every check (validation, games-table registration, "
+            "cross-game collisions) against the live database, then stop "
+            "before writing anything. Requires Supabase credentials."
+        ),
+    )
+    mode.add_argument(
+        "--validate-only", action="store_true",
+        help=(
+            "run validate() only and exit — no Supabase client is created, "
+            "no credentials required. For shape-checking a hand-edited file."
+        ),
     )
     args = parser.parse_args()
 
@@ -161,6 +185,9 @@ def main() -> int:
         return 1
     print("Validation passed")
 
+    if args.validate_only:
+        return 0
+
     card_rows = [{**r, "game": args.game} for r in rows]
     expansion_rows = [
         {"card_number": r["card_number"], "expansion": r["expansion"]} for r in rows
@@ -169,19 +196,6 @@ def main() -> int:
         {"expansion": e, "game": args.game}
         for e in sorted({r["expansion"] for r in rows})
     ]
-
-    if args.dry_run:
-        print(
-            f"DRY RUN — would upsert {len(card_rows)} cards, "
-            f"{len(expansion_rows)} card-expansion rows, "
-            f"{len(expansion_meta)} expansion metadata rows"
-        )
-        print(
-            "DRY RUN — skipped: games-table registration check and "
-            "cross-game card_number collision check (both require a live "
-            "Supabase connection; run without --dry-run to exercise them)"
-        )
-        return 0
 
     supabase = create_client(
         os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_ROLE_KEY"]
@@ -200,6 +214,14 @@ def main() -> int:
         print("Refusing to import — resolve the collision before retrying.")
         return 1
     print("No cross-game card number collisions")
+
+    if args.dry_run:
+        print(
+            f"DRY RUN — would upsert {len(card_rows)} cards, "
+            f"{len(expansion_rows)} card-expansion rows, "
+            f"{len(expansion_meta)} expansion metadata rows"
+        )
+        return 0
 
     for i in range(0, len(card_rows), BATCH_SIZE):
         batch = card_rows[i : i + BATCH_SIZE]
