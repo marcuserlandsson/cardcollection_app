@@ -3,11 +3,13 @@
 import { useCollection } from "@/lib/hooks/use-collection";
 import { usePrices } from "@/lib/hooks/use-prices";
 import { formatPrice, getBaseCardNumber } from "@/lib/utils";
+import { useGame } from "@/contexts/game-context";
 import { Layers, Sparkles, Coins } from "lucide-react";
 
 export default function CollectionSummary() {
   const { data: collection } = useCollection();
   const { data: prices } = usePrices();
+  const { game } = useGame();
 
   const totalCards = collection?.reduce((sum, c) => sum + c.quantity, 0) ?? 0;
   const uniqueCards = collection?.length ?? 0;
@@ -24,7 +26,9 @@ export default function CollectionSummary() {
   const stats = [
     { label: "Total Cards", value: totalCards, icon: Layers, color: "var(--accent)" },
     { label: "Unique", value: uniqueCards, icon: Sparkles, color: "var(--blue)" },
-    { label: "Est. Value", value: estimatedValue !== null ? formatPrice(estimatedValue) : "—", icon: Coins, color: "var(--yellow)" },
+    ...(game.hasPrices
+      ? [{ label: "Est. Value", value: estimatedValue !== null ? formatPrice(estimatedValue) : "—", icon: Coins, color: "var(--yellow)" }]
+      : []),
   ];
 
   return (

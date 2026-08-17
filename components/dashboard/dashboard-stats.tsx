@@ -7,6 +7,7 @@ import { formatPrice, getBaseCardNumber } from "@/lib/utils";
 import { buildSellableCards } from "@/lib/sell-utils";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { Card } from "@/lib/types";
 
 const supabase = createClient();
@@ -15,6 +16,7 @@ export default function DashboardStats() {
   const { data: collection } = useCollection();
   const { data: allDeckCards } = useAllDeckCards();
   const { data: prices } = usePrices();
+  const { game } = useGame();
 
   const cardNumbers = collection?.map((c) => c.card_number) ?? [];
   const { data: cards } = useQuery<Card[]>({
@@ -51,13 +53,15 @@ export default function DashboardStats() {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl bg-[var(--surface)] p-5">
-        <div className="text-xs font-medium text-[var(--text-muted)]">Collection Value</div>
-        <div className="mt-1 text-3xl font-bold">{formattedCollectionValue}</div>
-        {formattedSurplusValue && (
-          <div className="mt-1 text-xs text-[var(--green)]">+{formattedSurplusValue} surplus</div>
-        )}
-      </div>
+      {game.hasPrices && (
+        <div className="rounded-xl bg-[var(--surface)] p-5">
+          <div className="text-xs font-medium text-[var(--text-muted)]">Collection Value</div>
+          <div className="mt-1 text-3xl font-bold">{formattedCollectionValue}</div>
+          {formattedSurplusValue && (
+            <div className="mt-1 text-xs text-[var(--green)]">+{formattedSurplusValue} surplus</div>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-[var(--surface)] p-4">
           <div className="text-lg font-bold">{totalCards}</div>

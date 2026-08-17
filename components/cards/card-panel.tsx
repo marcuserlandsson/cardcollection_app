@@ -155,7 +155,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
         </div>
 
         {/* Sell List */}
-        <SellListToggle cardNumber={card.card_number} />
+        {game.hasPrices && <SellListToggle cardNumber={card.card_number} />}
 
         {/* Wishlist */}
         <WishlistToggle cardNumber={card.card_number} maxCopies={card.max_copies} />
@@ -167,30 +167,32 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
         <CardExpansions cardNumber={card.base_card_number} />
 
         {/* Price */}
-        <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
-          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Market Price</div>
-          <div className="flex items-baseline gap-3">
-            <span className="flex items-center gap-1.5 text-lg font-bold text-[var(--green)]">
-              <Coins size={16} />
-              {formatPrice(price?.price_low ?? null)}
-            </span>
-            {price && isOutlierLow(price) && (
-              <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-[var(--yellow)] bg-[var(--yellow-translucent)]" title="Lowest listing is significantly below the median — may be mispriced or damaged">
-                <AlertTriangle size={10} />
-                Outlier?
+        {game.hasPrices && (
+          <div className="mt-3 rounded-lg bg-[var(--elevated)] p-3">
+            <div className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Market Price</div>
+            <div className="flex items-baseline gap-3">
+              <span className="flex items-center gap-1.5 text-lg font-bold text-[var(--green)]">
+                <Coins size={16} />
+                {formatPrice(price?.price_low ?? null)}
               </span>
+              {price && isOutlierLow(price) && (
+                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-[var(--yellow)] bg-[var(--yellow-translucent)]" title="Lowest listing is significantly below the median — may be mispriced or damaged">
+                  <AlertTriangle size={10} />
+                  Outlier?
+                </span>
+              )}
+              {spikePct !== null && (
+                <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-bold text-[var(--green)] bg-[var(--green-translucent)]">
+                  ↑ {Math.round(spikePct * 100)}%
+                </span>
+              )}
+            </div>
+            {price?.price_trend !== null && price?.price_trend !== undefined && (
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Trend: {formatPrice(price.price_trend)}</p>
             )}
-            {spikePct !== null && (
-              <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-bold text-[var(--green)] bg-[var(--green-translucent)]">
-                ↑ {Math.round(spikePct * 100)}%
-              </span>
-            )}
+            <PriceSparkline history={cardHistory30d} />
           </div>
-          {price?.price_trend !== null && price?.price_trend !== undefined && (
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Trend: {formatPrice(price.price_trend)}</p>
-          )}
-          <PriceSparkline history={cardHistory30d} />
-        </div>
+        )}
         </>}
       </div>
     </>

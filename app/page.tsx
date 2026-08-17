@@ -6,11 +6,13 @@ import GuestLanding from "@/components/dashboard/guest-landing";
 import DashboardStats from "@/components/dashboard/dashboard-stats";
 import DeckProgress from "@/components/dashboard/deck-progress";
 import WorthSelling from "@/components/dashboard/worth-selling";
+import { useGame } from "@/contexts/game-context";
 import type { User } from "@supabase/supabase-js";
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const { game } = useGame();
   const supabase = createClient();
 
   useEffect(() => {
@@ -32,9 +34,9 @@ export default function HomePage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <DashboardStats />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className={`grid gap-4 ${game.hasPrices ? "md:grid-cols-2" : ""}`}>
         <DeckProgress />
-        <WorthSelling />
+        {game.hasPrices && <WorthSelling />}
       </div>
     </div>
   );
