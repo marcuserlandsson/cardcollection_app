@@ -1422,14 +1422,30 @@ In `components/decks/deck-form.tsx`, add `import { useGame } from "@/contexts/ga
   });
 ```
 
-- [ ] **Step 3: Scope the import modal's known-card lookup identically**
+- [ ] **Step 3: Scope the import modal's known-card lookup to the DECK's game**
 
-In `components/collection/import-modal.tsx`, add `import { useGame } from "@/contexts/game-context";` and `const { gameId } = useGame();`, then apply exactly the same change as Step 2 — key `["all-card-numbers", gameId]` and `.eq("game", gameId)` after `.select("card_number")`, keeping the `.range()` pagination loop intact.
+`ImportModal` serves two call sites: `app/collection/add/page.tsx` (no deck — the active game is correct) and `app/decks/[id]/page.tsx` (imports into one specific deck — the **deck's** game is correct). Scoping it to the active game in both cases is a fail-open bug: the switcher lives in the persistent app shell, so a user on a Cyberpunk deck's page can flip to Digimon, paste Digimon numbers, pass client validation against the active game's card set, and only be stopped by the `trg_deck_cards_game` trigger — which `handleImport` does not catch, leaving the modal stuck on its spinner.
+
+So give the modal an optional game override. In `components/collection/import-modal.tsx`:
+
+```ts
+// props
+game?: GameId;   // import type { GameId } from "@/lib/games";
+
+// inside the component, after const { gameId } = useGame();
+// A deck import must validate against the deck's own game, not whatever
+// game is active — the switcher is reachable without leaving the page.
+const effectiveGameId = game ?? gameId;
+```
+
+Use `effectiveGameId` in **both** the query key (`["all-card-numbers", effectiveGameId]`) and the `.eq("game", effectiveGameId)` filter, keeping the `.range()` pagination loop intact. Using it in one but not the other leaves two games' card sets sharing a cache entry — the same symptom, a different bug.
+
+Then in `app/decks/[id]/page.tsx`, pass `game={deck.game}` to `<ImportModal>`. `deck` is guaranteed non-null there because the component early-returns on `if (!deck)` first. Leave `app/collection/add/page.tsx` alone — the `?? gameId` default is what keeps collection imports correct.
 
 Verify both call sites now agree:
 
 Run: `grep -n 'all-card-numbers' components/collection/import-modal.tsx components/decks/deck-form.tsx`
-Expected: both lines read `queryKey: ["all-card-numbers", gameId],`.
+Expected: `deck-form.tsx` reads `queryKey: ["all-card-numbers", gameId],` (a new deck is always created in the active game) and `import-modal.tsx` reads `queryKey: ["all-card-numbers", effectiveGameId],` (an import may target a deck of another game).
 
 - [ ] **Step 4: Scope the needs page card lookup**
 
@@ -1868,7 +1884,17 @@ Expected: PASS — all pre-existing cases plus the three new ones.
 
 In `components/decks/deck-form.tsx`, `const { gameId } = useGame()` already exists from Task 9; change it to `const { gameId, game } = useGame();` and update the call: `const result = parseCardList(cardList, game.normalizeCardNumber);`
 
-In `components/collection/import-modal.tsx`, `useGame` is already imported and `const { gameId } = useGame();` already exists from Task 9 Step 3 — widen it to `const { gameId, game } = useGame();` and pass `game.normalizeCardNumber` to every `parseCardList` and `parseCSV` call in the file. Do not add a second `useGame()` call.
+In `components/collection/import-modal.tsx`, **do not destructure `game` from `useGame()`** — Task 9 added a prop already named `game` (the deck's game override), and a second binding of that name in the same scope shadows it.
+
+Instead derive the config from the effective game, so a deck import normalizes card numbers for the deck's game rather than the active one — the same reason the card lookup uses `effectiveGameId`:
+
+```ts
+import { getGame } from "@/lib/games";
+...
+const normalizeCardNumber = getGame(effectiveGameId).normalizeCardNumber;
+```
+
+Pass `normalizeCardNumber` to every `parseCardList` and `parseCSV` call in the file. Do not add a second `useGame()` call.
 
 Run: `grep -n "parseCardList\|parseCSV" components/collection/import-modal.tsx components/decks/deck-form.tsx`
 Expected: every call site passes a second argument.
