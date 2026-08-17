@@ -2510,6 +2510,18 @@ where (attributes->>'dp') is distinct from (case when dp is null then null else 
 
 Expected: `0`. A non-zero result means the dual-write disagrees with the columns — fix before proceeding, because migration `011` (dropping the legacy columns) depends on this holding.
 
+**That query alone is not a sufficient gate.** `->>` returns SQL NULL both for an absent key and for a key present with a JSON `null`, so `NULL IS DISTINCT FROM NULL` is false in both cases — the query cannot tell "key omitted" from `"dp": null`. Since migration `010` backfilled with `jsonb_strip_nulls`, key *existence* is the property that must match, so run this too:
+
+```sql
+select count(*) from public.cards
+where (attributes ? 'dp') is distinct from (dp is not null)
+   or (attributes ? 'level') is distinct from (level is not null)
+   or (attributes ? 'play_cost') is distinct from (play_cost is not null)
+   or (attributes ? 'evolution_cost') is distinct from (evolution_cost is not null);
+```
+
+Expected: `0`. Both queries must pass before migration `011` is written — the value comparison catches wrong values, this one catches a wrong shape.
+
 - [ ] **Step 3: Verify the app still renders Digimon stats**
 
 Run `npm run dev`, open `/database` with Digimon active, and click a card. Expected: the four stat boxes populate as before.
@@ -2593,6 +2605,6 @@ From the spec's phase 4, plus scope boundaries:
 
 - **Cyberpunk prices, sell and surplus features.** No automatable feed exists.
 - **RAM colour-budget deck validation.** Needs real seed data to test against.
-- **Migration `011`** dropping the legacy `dp`/`play_cost`/`level`/`evolution_cost` columns. It runs only after a sync cycle proves parity (Task 17 Step 2 is that proof); the drop itself is a separate, later change.
+- **Migration `011`** dropping the legacy `dp`/`play_cost`/`level`/`evolution_cost` columns. It runs only after a sync cycle proves parity — and parity means **both** of Task 17 Step 2's queries returning `0`: the value comparison and the key-existence check. The value comparison alone is blind to a null-versus-omitted key mismatch, which is precisely the shape `jsonb_strip_nulls` established. The drop itself is a separate, later change and is irreversible, so it deserves the stronger gate.
 - **Migrating Digimon onto the alt-art-as-separate-entity model.** Cyberpunk validates the model on fresh data first.
 - **A third game, per-game theming, and game-scoped routes.**
