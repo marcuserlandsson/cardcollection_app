@@ -2,6 +2,21 @@ import { Crown, Users, Wrench, Terminal } from "lucide-react";
 import { validateDeck } from "@/lib/games/validate-deck";
 import type { GameConfig } from "@/lib/games/types";
 
+/**
+ * Legends carry RAM per colour ({"red": 3, "blue": 2}) because each Legend
+ * contributes a colour-specific RAM budget; Units, Gear and Programs carry a
+ * single number. Renders the object form compactly, e.g. "3R 2B".
+ */
+export function formatRam(value: unknown): string {
+  if (typeof value === "number") return String(value);
+  if (value !== null && typeof value === "object") {
+    return Object.entries(value as Record<string, number>)
+      .map(([color, amount]) => `${amount}${color.charAt(0).toUpperCase()}`)
+      .join(" ");
+  }
+  return String(value);
+}
+
 const DECK_RULES = {
   mainMin: 40,
   mainMax: 50,
@@ -46,7 +61,7 @@ export const cyberpunk: GameConfig = {
   stats: [
     { key: "cost", label: "Cost" },
     { key: "power", label: "Power" },
-    { key: "ram", label: "RAM" },
+    { key: "ram", label: "RAM", format: formatRam },
   ],
   deck: { ...DECK_RULES, validate: (cards) => validateDeck(DECK_RULES, cards) },
   hasPrices: false,

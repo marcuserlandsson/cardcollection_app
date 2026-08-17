@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GAMES, REGISTERED_GAME_IDS, getGame, resolveGameId } from "@/lib/games";
+import { formatRam } from "@/lib/games/cyberpunk";
 
 describe("game registry", () => {
   it("registers every declared game id exactly once", () => {
@@ -82,5 +83,31 @@ describe("cyberpunk config", () => {
     expect(deck.mainMax).toBe(50);
     expect(deck.copyLimit).toBe(3);
     expect(deck.zones[0]).toMatchObject({ key: "legend", min: 3, max: 3, uniqueNames: true });
+  });
+});
+
+describe("formatRam", () => {
+  it("renders a plain number as its string form", () => {
+    expect(formatRam(3)).toBe("3");
+  });
+
+  it("does not swallow the number 0", () => {
+    expect(formatRam(0)).toBe("0");
+  });
+
+  it("renders a single-colour object compactly", () => {
+    expect(formatRam({ red: 3 })).toBe("3R");
+  });
+
+  it("renders a multi-colour object compactly", () => {
+    expect(formatRam({ red: 3, blue: 2 })).toBe("3R 2B");
+  });
+
+  it("renders null as the string 'null' rather than throwing", () => {
+    expect(formatRam(null)).toBe("null");
+  });
+
+  it("renders undefined as the string 'undefined' rather than throwing", () => {
+    expect(formatRam(undefined)).toBe("undefined");
   });
 });

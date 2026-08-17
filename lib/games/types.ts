@@ -10,6 +10,8 @@ export interface StatField {
   label: string;
   /** Rendered immediately before the value, e.g. "Lv." for Digimon level. */
   prefix?: string;
+  /** Formats a non-scalar value for display. Defaults to String(). */
+  format?: (value: unknown) => string;
 }
 
 export interface ColorStyle {

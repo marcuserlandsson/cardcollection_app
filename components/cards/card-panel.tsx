@@ -134,7 +134,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
             <div className="mt-4 flex gap-2">
               {shown.map((s) => (
                 <div key={s.key} className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
-                  <div className="text-sm font-bold text-[var(--text-primary)]">{s.prefix ?? ""}{String(s.value)}</div>
+                  <div className="text-sm font-bold text-[var(--text-primary)]">{s.prefix ?? ""}{s.format ? s.format(s.value) : String(s.value)}</div>
                   <div className="text-[10px] uppercase text-[var(--text-dim)]">{s.label}</div>
                 </div>
               ))}
