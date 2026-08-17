@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useDeck, useDeckCards, useDeleteDeck } from "@/lib/hooks/use-decks";
 import { useCollectionMap } from "@/lib/hooks/use-collection";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
+import { getGame } from "@/lib/games";
 import DeckCardRow from "@/components/decks/deck-card-row";
 import DeckValidation from "@/components/decks/deck-validation";
 import CardSearchBar from "@/components/cards/card-search-bar";
@@ -27,6 +29,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
+  const { gameId, setGameId } = useGame();
   const { data: deck } = useDeck(deckId);
   const { data: deckCards } = useDeckCards(deckId);
   const quantities = useCollectionMap();
@@ -76,6 +79,33 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
   }, [deleteDeck, deckId, router]);
 
   if (!deck) return <p className="py-12 text-center text-[var(--text-muted)]">Loading...</p>;
+
+  if (deck.game !== gameId) {
+    const deckGame = getGame(deck.game);
+    return (
+      <div className="space-y-4">
+        <Link href="/decks" className="flex items-center gap-1.5 text-sm font-medium text-[var(--accent)] hover:underline">
+          <ArrowLeft size={14} />
+          Decks
+        </Link>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <SquareStack size={40} className="mb-3 text-[var(--border)]" />
+          <p className="text-sm text-[var(--text-muted)]">
+            &quot;{deck.name}&quot; is a {deckGame.shortName} deck.
+          </p>
+          <p className="mt-1 text-xs text-[var(--text-dim)]">
+            Switch games to view and edit it.
+          </p>
+          <button
+            onClick={() => setGameId(deck.game)}
+            className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-hover)]"
+          >
+            Switch to {deckGame.shortName}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
