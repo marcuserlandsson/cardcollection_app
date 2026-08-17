@@ -1,16 +1,17 @@
 import { digimon } from "@/lib/games/digimon";
+import { cyberpunk } from "@/lib/games/cyberpunk";
 import type { GameConfig, GameId } from "@/lib/games/types";
 
 export * from "@/lib/games/types";
 
 /**
- * Games with a registered config. Cyberpunk joins in phase 2; until then it
- * exists in the database's games table but has no cards and no config.
+ * Games with a registered config. Every id declared in GameId must have an
+ * entry here — the record type (with no cast) enforces that at compile time.
  */
 export const GAMES: Record<GameId, GameConfig> = {
   digimon,
-  // cyberpunk: added in phase 2
-} as Record<GameId, GameConfig>;
+  cyberpunk,
+};
 
 export const REGISTERED_GAME_IDS = Object.keys(GAMES) as GameId[];
 

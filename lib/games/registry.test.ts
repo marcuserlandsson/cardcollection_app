@@ -47,6 +47,7 @@ describe("game registry", () => {
 describe("resolveGameId", () => {
   it("round trips a valid stored id", () => {
     expect(resolveGameId("digimon")).toBe("digimon");
+    expect(resolveGameId("cyberpunk")).toBe("cyberpunk");
   });
 
   it("falls back to digimon for null, empty and unknown ids", () => {
@@ -54,5 +55,32 @@ describe("resolveGameId", () => {
     expect(resolveGameId(undefined)).toBe("digimon");
     expect(resolveGameId("")).toBe("digimon");
     expect(resolveGameId("pokemon")).toBe("digimon");
+  });
+});
+
+describe("cyberpunk config", () => {
+  it("declares the four card types and seven rarities", () => {
+    const g = GAMES.cyberpunk;
+    expect(g.cardTypes.map((t) => t.label)).toEqual(["Legend", "Unit", "Gear", "Program"]);
+    expect(g.rarities).toHaveLength(7);
+    expect(g.rarities).toContain("Iconic Rare");
+    expect(g.rarities).toContain("Nova Rare");
+  });
+
+  it("has no price support and no image fallback", () => {
+    expect(GAMES.cyberpunk.hasPrices).toBe(false);
+    expect(GAMES.cyberpunk.fallbackImageUrl("wtnc-006")).toBe("");
+  });
+
+  it("lowercases card numbers", () => {
+    expect(GAMES.cyberpunk.normalizeCardNumber("WTNC-006")).toBe("wtnc-006");
+  });
+
+  it("enforces three unique legends and a 40-50 main deck", () => {
+    const { deck } = GAMES.cyberpunk;
+    expect(deck.mainMin).toBe(40);
+    expect(deck.mainMax).toBe(50);
+    expect(deck.copyLimit).toBe(3);
+    expect(deck.zones[0]).toMatchObject({ key: "legend", min: 3, max: 3, uniqueNames: true });
   });
 });
