@@ -590,7 +590,7 @@ Task 12 restores the `cyberpunk` case.
 - [ ] **Step 7: Run the test to verify it passes**
 
 Run: `npx vitest run lib/games/registry.test.ts`
-Expected: PASS (6 tests). It will still fail on the missing `validate-deck` import — that is Task 4. If you are running tasks in order, complete Task 4 Step 3 before expecting green, and commit Tasks 3 and 4 together.
+Expected: PASS (7 tests — 5 in the registry block, 2 in the `resolveGameId` block). It will still fail on the missing `validate-deck` import — that is Task 4. If you are running tasks in order, complete Task 4 Step 3 before expecting green, and commit Tasks 3 and 4 together.
 
 - [ ] **Step 8: Commit**
 
@@ -658,8 +658,11 @@ describe("validateDeck — Digimon rules", () => {
       { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 5 },
     ];
     // 12 cards x 4 = 48, plus one card x 2 = 50
+    // Eggs split across two cards (4 + 1) so no single card exceeds the copyLimit of 4
+    // while the zone still totals 5.
     const exact = [...main(12, 4), { card: card("M-X", "Digimon", "Main X"), quantity: 2 },
-      { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 5 }];
+      { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 4 },
+      { card: card("E-2", "Digi-Egg", "Egg 2"), quantity: 1 }];
     expect(validateDeck(DIGIMON, exact)).toEqual([]);
     expect(validateDeck(DIGIMON, deck).length).toBeGreaterThan(0);
   });
@@ -818,7 +821,7 @@ export function validateDeck(rules: Rules, cards: DeckCardWithCard[]): DeckIssue
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run lib/games/`
-Expected: PASS — `validate-deck.test.ts` (10 tests) and `registry.test.ts` (6 tests).
+Expected: PASS — `validate-deck.test.ts` (10 tests) and `registry.test.ts` (7 tests).
 
 Run: `npm test`
 Expected: PASS, whole suite.
