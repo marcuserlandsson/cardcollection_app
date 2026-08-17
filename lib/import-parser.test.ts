@@ -46,6 +46,10 @@ describe("parseCardList", () => {
     const lower = (s: string) => s.toLowerCase();
     expect(parseCardList("2 (alpha-a010)", lower).parsed).toEqual([{ cardNumber: "alpha-a010", quantity: 2 }]);
   });
+  it("parses an unspaced multiplier on a digit-tail card number without swallowing the x", () => {
+    expect(parseCardList("BT1-001x3").parsed).toEqual([{ cardNumber: "BT1-001", quantity: 3 }]);
+    expect(parseCardList("BT1-001X3").parsed).toEqual([{ cardNumber: "BT1-001", quantity: 3 }]);
+  });
 });
 
 describe("parseCSV", () => {

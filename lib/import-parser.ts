@@ -39,7 +39,12 @@ export function parseCardList(
     // Format: "4 (BT14-001)" or "4x (BT14-001)" — quantity first, card number in parens
     const parenMatch = line.match(/^(\d+)\s*x?\s*\(([A-Za-z0-9]+-[A-Za-z0-9]+)\)$/);
     // Format: "BT1-001 3" or "BT1-001 x3" or "BT1-001,3" or just "BT1-001"
-    const standardMatch = line.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+)\s*[,xX×]?\s*(\d+)?$/);
+    // Digimon-shaped numbers end in digits, so try that first — it keeps an
+    // unspaced multiplier (BT1-001x3) parsing as a quantity rather than
+    // letting the looser pattern below swallow the "x" into the card number.
+    const digitTailMatch = line.match(/^([A-Za-z0-9]+-\d+)\s*[,xX×]?\s*(\d+)?$/);
+    const looseMatch = line.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+)\s*[,xX×]?\s*(\d+)?$/);
+    const standardMatch = digitTailMatch || looseMatch;
 
     const match = parenMatch || standardMatch;
     if (!match) {
