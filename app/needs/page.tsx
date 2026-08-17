@@ -27,7 +27,7 @@ export default function NeedsPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const supabaseAuth = createClient();
-  const { gameId } = useGame();
+  const { gameId, game } = useGame();
 
   const { data: collection } = useCollection();
   const { data: decks } = useDecks();
@@ -118,21 +118,25 @@ export default function NeedsPage() {
               <div className="text-2xl font-bold text-[var(--yellow)]">{buyList.cardCount}</div>
               <div className="text-xs text-[var(--text-muted)]">Cards needed</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-[var(--green)]">{buyList.totalCost > 0 ? formatPrice(buyList.totalCost) : "—"}</div>
-              <div className="text-xs text-[var(--text-muted)]">Est. cost</div>
-            </div>
+            {game.hasPrices && (
+              <div>
+                <div className="text-2xl font-bold text-[var(--green)]">{buyList.totalCost > 0 ? formatPrice(buyList.totalCost) : "—"}</div>
+                <div className="text-xs text-[var(--text-muted)]">Est. cost</div>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            <CopyBuyListButton items={buyList.items} />
-            <button
-              onClick={handleExport}
-              disabled={buyList.items.length === 0}
-              className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Download size={15} />
-              Export CSV
-            </button>
+            <CopyBuyListButton items={buyList.items} showPrices={game.hasPrices} />
+            {game.hasPrices && (
+              <button
+                onClick={handleExport}
+                disabled={buyList.items.length === 0}
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--elevated)] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Download size={15} />
+                Export CSV
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -146,10 +150,10 @@ export default function NeedsPage() {
       )}
 
       {sections.map((section) => (
-        <DeckNeedSectionView key={section.deck.id} section={section} onCardClick={handleCardClick} />
+        <DeckNeedSectionView key={section.deck.id} section={section} onCardClick={handleCardClick} showPrices={game.hasPrices} />
       ))}
 
-      <WishlistSection rows={wishlistNeeds} entries={wishlist ?? []} onCardClick={handleCardClick} />
+      <WishlistSection rows={wishlistNeeds} entries={wishlist ?? []} onCardClick={handleCardClick} showPrices={game.hasPrices} />
 
       <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} onCardSelect={setSelectedCard} />
     </div>

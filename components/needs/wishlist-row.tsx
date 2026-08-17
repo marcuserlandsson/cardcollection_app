@@ -10,9 +10,10 @@ interface WishlistRowProps {
   item: NeededCard;
   target: number;
   onClick: () => void;
+  showPrices?: boolean;
 }
 
-export default function WishlistRow({ item, target, onClick }: WishlistRowProps) {
+export default function WishlistRow({ item, target, onClick, showPrices = true }: WishlistRowProps) {
   const setMutation = useSetWishlist();
   const removeMutation = useRemoveFromWishlist();
   const unit = item.price?.price_low ?? item.price?.price_trend ?? null;
@@ -39,7 +40,7 @@ export default function WishlistRow({ item, target, onClick }: WishlistRowProps)
       </button>
 
       <div className="flex flex-shrink-0 flex-col items-end gap-2">
-        {unit !== null && (
+        {showPrices && unit !== null && (
           <p className="flex items-center gap-1 text-sm font-bold text-[var(--green)]">
             <Coins size={14} />
             {formatPrice(item.est_cost)}

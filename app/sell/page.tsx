@@ -22,6 +22,7 @@ import CardPanel from "@/components/cards/card-panel";
 import Link from "next/link";
 import { TrendingUp, Clock, LogIn, Download, Share2 } from "lucide-react";
 import { generateSellCsv, downloadCsv } from "@/lib/export-csv";
+import { useGame } from "@/contexts/game-context";
 import type { Card, SellableCard } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -41,6 +42,7 @@ function SellPageContent() {
   const supabaseAuth = createClient();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const { game } = useGame();
 
   const searchParams = useSearchParams();
   const initialFilter = (searchParams.get("filter") as SellFilter) || "all";
@@ -149,6 +151,20 @@ function SellPageContent() {
     const date = new Date().toISOString().slice(0, 10);
     downloadCsv(csv, `cardboard-sell-export-${date}.csv`);
   }, [filteredCards]);
+
+  if (!game.hasPrices) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <TrendingUp size={40} className="mb-3 text-[var(--border)]" />
+        <p className="text-sm text-[var(--text-muted)]">
+          Price data isn&apos;t available for {game.shortName} yet.
+        </p>
+        <p className="mt-1 text-xs text-[var(--text-dim)]">
+          Switch to a game with price data to see surplus cards worth selling.
+        </p>
+      </div>
+    );
+  }
 
   if (authChecked && !user) {
     return (

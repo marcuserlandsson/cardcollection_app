@@ -23,6 +23,11 @@ export default function LegalPage() {
           endorsed by, sponsored by, or produced by Bandai Co., Ltd., Bandai Namco Entertainment, or
           any of their subsidiaries or affiliates.
         </p>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+          Cyberpunk and Cyberpunk 2077 are trademarks of CD PROJEKT S.A. The Cyberpunk Trading
+          Card Game is published by WeirdCo. CardBoard is an unofficial fan project and is not
+          affiliated with, endorsed, or sponsored by CD PROJEKT or WeirdCo.
+        </p>
       </section>
 
       <section className="mt-8">
@@ -62,6 +67,17 @@ export default function LegalPage() {
               className="text-[var(--text-primary)] hover:underline"
             >
               Cardtrader
+            </a>
+          </li>
+          <li>
+            Cyberpunk Trading Card Game data sourced from{" "}
+            <a
+              href="https://cyberpunktcg.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--text-primary)] hover:underline"
+            >
+              cyberpunktcg.com
             </a>
           </li>
         </ul>

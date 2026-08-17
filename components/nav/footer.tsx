@@ -29,6 +29,15 @@ export default function Footer() {
               <a href="https://www.cardtrader.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">Cardtrader</a>
               . Prices are estimates and may not reflect current market value.
             </p>
+            <p className="mt-2">
+              Cyberpunk and Cyberpunk 2077 are trademarks of{" "}
+              <span className="text-[var(--text-muted)]">CD PROJEKT S.A.</span> The Cyberpunk
+              Trading Card Game is published by WeirdCo. CardBoard is an unofficial fan project
+              and is not affiliated with, endorsed, or sponsored by CD PROJEKT or WeirdCo. Card
+              data from{" "}
+              <a href="https://cyberpunktcg.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">cyberpunktcg.com</a>
+              .
+            </p>
           </div>
 
           {/* Links */}

@@ -6,9 +6,10 @@ import type { NeededCard } from "@/lib/types";
 interface NeedCardRowProps {
   item: NeededCard;
   onClick: () => void;
+  showPrices?: boolean;
 }
 
-export default function NeedCardRow({ item, onClick }: NeedCardRowProps) {
+export default function NeedCardRow({ item, onClick, showPrices = true }: NeedCardRowProps) {
   const unit = item.price?.price_low ?? item.price?.price_trend ?? null;
 
   return (
@@ -34,19 +35,21 @@ export default function NeedCardRow({ item, onClick }: NeedCardRowProps) {
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right">
-        {unit !== null ? (
-          <>
-            <p className="flex items-center justify-end gap-1 text-sm font-bold text-[var(--green)]">
-              <Coins size={14} />
-              {formatPrice(item.est_cost)}
-            </p>
-            <p className="text-xs text-[var(--text-muted)]">{formatPrice(unit)} each</p>
-          </>
-        ) : (
-          <p className="text-xs italic text-[var(--text-dim)]">No listings</p>
-        )}
-      </div>
+      {showPrices && (
+        <div className="flex-shrink-0 text-right">
+          {unit !== null ? (
+            <>
+              <p className="flex items-center justify-end gap-1 text-sm font-bold text-[var(--green)]">
+                <Coins size={14} />
+                {formatPrice(item.est_cost)}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">{formatPrice(unit)} each</p>
+            </>
+          ) : (
+            <p className="text-xs italic text-[var(--text-dim)]">No listings</p>
+          )}
+        </div>
+      )}
     </button>
   );
 }

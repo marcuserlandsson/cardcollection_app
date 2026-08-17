@@ -9,9 +9,10 @@ type CopyState = "idle" | "copied" | "error";
 
 interface CopyBuyListButtonProps {
   items: BuyListItem[];
+  showPrices?: boolean;
 }
 
-export default function CopyBuyListButton({ items }: CopyBuyListButtonProps) {
+export default function CopyBuyListButton({ items, showPrices = true }: CopyBuyListButtonProps) {
   const [state, setState] = useState<CopyState>("idle");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -23,14 +24,14 @@ export default function CopyBuyListButton({ items }: CopyBuyListButtonProps) {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(formatBuyListText(items));
+      await navigator.clipboard.writeText(formatBuyListText(items, showPrices));
       setState("copied");
     } catch {
       setState("error");
     }
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => setState("idle"), 2000);
-  }, [items]);
+  }, [items, showPrices]);
 
   const label = state === "copied" ? "Copied!" : state === "error" ? "Copy failed" : "Copy buy list";
   const Icon = state === "copied" ? Check : state === "error" ? X : Copy;

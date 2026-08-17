@@ -6,9 +6,10 @@ interface WishlistSectionProps {
   rows: NeededCard[];
   entries: WishlistEntry[];
   onCardClick: (card: Card) => void;
+  showPrices?: boolean;
 }
 
-export default function WishlistSection({ rows, entries, onCardClick }: WishlistSectionProps) {
+export default function WishlistSection({ rows, entries, onCardClick, showPrices = true }: WishlistSectionProps) {
   if (rows.length === 0) return null;
   const targetByCard = new Map(entries.map((e) => [e.card_number, e.quantity]));
 
@@ -26,6 +27,7 @@ export default function WishlistSection({ rows, entries, onCardClick }: Wishlist
             item={row}
             target={targetByCard.get(row.card.card_number) ?? row.need}
             onClick={() => onCardClick(row.card)}
+            showPrices={showPrices}
           />
         ))}
       </div>

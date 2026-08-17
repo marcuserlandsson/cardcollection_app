@@ -6,9 +6,10 @@ import type { Card, DeckNeedSection } from "@/lib/types";
 interface DeckNeedSectionProps {
   section: DeckNeedSection;
   onCardClick: (card: Card) => void;
+  showPrices?: boolean;
 }
 
-export default function DeckNeedSectionView({ section, onCardClick }: DeckNeedSectionProps) {
+export default function DeckNeedSectionView({ section, onCardClick, showPrices = true }: DeckNeedSectionProps) {
   const { deck, have, want, rows } = section;
   const isComplete = rows.length === 0;
   const pct = want > 0 ? Math.round((have / want) * 100) : 100;
@@ -39,7 +40,7 @@ export default function DeckNeedSectionView({ section, onCardClick }: DeckNeedSe
       {!isComplete && (
         <div className="space-y-2 pt-1">
           {rows.map((row) => (
-            <NeedCardRow key={row.card.card_number} item={row} onClick={() => onCardClick(row.card)} />
+            <NeedCardRow key={row.card.card_number} item={row} onClick={() => onCardClick(row.card)} showPrices={showPrices} />
           ))}
         </div>
       )}
