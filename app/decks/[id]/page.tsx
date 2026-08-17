@@ -7,12 +7,14 @@ import { useDeck, useDeckCards, useDeleteDeck } from "@/lib/hooks/use-decks";
 import { useCollectionMap } from "@/lib/hooks/use-collection";
 import { createClient } from "@/lib/supabase/client";
 import DeckCardRow from "@/components/decks/deck-card-row";
+import DeckValidation from "@/components/decks/deck-validation";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardGrid from "@/components/cards/card-grid";
 import CardPanel from "@/components/cards/card-panel";
 import ImportModal from "@/components/collection/import-modal";
 import { ArrowLeft, Plus, Trash2, AlertTriangle, Check, SquareStack, Upload } from "lucide-react";
 import type { Card } from "@/lib/types";
+import type { DeckCardWithCard } from "@/lib/games/types";
 import { useRouter } from "next/navigation";
 
 const supabase = createClient();
@@ -60,6 +62,11 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
     return count + Math.max(0, needed - owned);
   }, 0) ?? 0;
 
+  const deckCardsWithCards: DeckCardWithCard[] = (cardsInDeck ?? []).map((card) => ({
+    card,
+    quantity: deckCardMap.get(card.card_number) ?? 0,
+  }));
+
   const handleSearch = useCallback((query: string) => { setSearchQuery(query); }, []);
   const handleCardClick = useCallback((card: Card) => { setSelectedCard(card); }, []);
   const handleDelete = useCallback(() => {
@@ -95,6 +102,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
           </button>
         </div>
       </div>
+      {deck && <DeckValidation game={deck.game} cards={deckCardsWithCards} />}
       {missingCount > 0 && (
         <div className="flex items-center gap-2 rounded-xl border p-3 text-sm font-medium" style={{ background: "var(--red-translucent)", borderColor: "var(--red-border)", color: "var(--danger)" }}>
           <AlertTriangle size={16} />
