@@ -47,3 +47,7 @@ next-env.d.ts
 
 # superpowers SDD scratch
 .superpowers/
+
+# Python bytecode
+__pycache__/
+*.pyc
