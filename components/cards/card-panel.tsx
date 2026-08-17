@@ -92,7 +92,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
         {!card ? null : <>
         {/* Card Image */}
         <div className="relative mx-auto aspect-[5/7] w-full max-w-[280px] overflow-hidden rounded-xl border border-[var(--border)]">
-          {imageError ? (
+          {imageError || !displayImageUrl ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--elevated)] text-[var(--text-dim)]">
               <ImageOff size={24} />
               <span className="text-xs">{card.card_number}</span>
