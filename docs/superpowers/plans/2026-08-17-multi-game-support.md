@@ -1515,6 +1515,14 @@ In `components/cards/card-panel.tsx`, delete the `COLOR_STYLES` const and add `i
   const displayImageUrl = card ? (card.image_url || game.fallbackImageUrl(card.base_card_number)) : "";
 ```
 
+Then guard the panel's own `<Image>` against an empty URL, the same way `CardImage` is guarded in Step 3. Change the image block's ternary condition from `imageError` to:
+
+```tsx
+          {imageError || !displayImageUrl ? (
+```
+
+`displayImageUrl` is `""` whenever a card has no stored `image_url` and its game's `fallbackImageUrl` returns `""`, and `next/image` throws on `src=""`. The `ImageOff` placeholder that already renders for the error case handles it. A guard present in one of two sibling components and absent in the other is how this gets found the hard way.
+
 Replace the whole `{/* Stats Row */}` block with a registry-driven loop. Stats absent from `attributes` are skipped, so a partially-seeded card renders what it has:
 
 ```tsx
