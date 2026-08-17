@@ -212,9 +212,10 @@ export function useCardExpansions(baseCardNumber: string | null) {
         .eq("card_number", baseCardNumber!)
         .eq("cards.game", gameId);
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip the embed before casting
-      return (data ?? []).map(({ cards: _cards, ...row }) =>
-        row) as { card_number: string; expansion: string }[];
+      return (data ?? []).map((row) => ({
+        card_number: row.card_number,
+        expansion: row.expansion,
+      })) as { card_number: string; expansion: string }[];
     },
     enabled: !!baseCardNumber,
   });
