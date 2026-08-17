@@ -7,6 +7,7 @@ import { usePrices } from "@/lib/hooks/use-prices";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import { buildDeckNeedSections, buildWishlistNeeds, buildBuyList } from "@/lib/need-utils";
 import { generateBuyCsv, downloadCsv } from "@/lib/export-csv";
 import DeckNeedSectionView from "@/components/needs/deck-need-section";
@@ -26,6 +27,7 @@ export default function NeedsPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const supabaseAuth = createClient();
+  const { gameId } = useGame();
 
   const { data: collection } = useCollection();
   const { data: decks } = useDecks();
@@ -49,15 +51,15 @@ export default function NeedsPage() {
   }, [allDeckCards, wishlist, collection]);
 
   const { data: cards } = useQuery<Card[]>({
-    queryKey: ["need-cards", referencedCardNumbers],
+    queryKey: ["need-cards", gameId, referencedCardNumbers],
     queryFn: async () => {
       if (referencedCardNumbers.length === 0) return [];
       // Include sibling variants so base-level owned + representative selection are correct.
-      const bases = await supabase.from("cards").select("base_card_number").in("card_number", referencedCardNumbers);
+      const bases = await supabase.from("cards").select("base_card_number").eq("game", gameId).in("card_number", referencedCardNumbers);
       if (bases.error) throw bases.error;
       const baseNumbers = [...new Set((bases.data ?? []).map((b) => b.base_card_number as string))];
       const lookup = baseNumbers.length > 0 ? baseNumbers : referencedCardNumbers;
-      const { data, error } = await supabase.from("cards").select("*").in("base_card_number", lookup);
+      const { data, error } = await supabase.from("cards").select("*").eq("game", gameId).in("base_card_number", lookup);
       if (error) throw error;
       return data as Card[];
     },

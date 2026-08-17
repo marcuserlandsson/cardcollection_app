@@ -32,24 +32,24 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
 
   const cardNumbers = deckCards?.map((dc) => dc.card_number) ?? [];
   const { data: cardsInDeck } = useQuery<Card[]>({
-    queryKey: ["deck-detail-cards", cardNumbers],
+    queryKey: ["deck-detail-cards", deck?.game, cardNumbers],
     queryFn: async () => {
       if (cardNumbers.length === 0) return [];
-      const { data, error } = await supabase.from("cards").select("*").in("card_number", cardNumbers).order("card_number");
+      const { data, error } = await supabase.from("cards").select("*").eq("game", deck!.game).in("card_number", cardNumbers).order("card_number");
       if (error) throw error;
       return data as Card[];
     },
-    enabled: cardNumbers.length > 0,
+    enabled: cardNumbers.length > 0 && !!deck,
   });
 
   const { data: searchResults } = useQuery<Card[]>({
-    queryKey: ["deck-add-search", searchQuery],
+    queryKey: ["deck-add-search", deck?.game, searchQuery],
     queryFn: async () => {
-      const { data, error } = await supabase.from("cards").select("*").or(`name.ilike.%${searchQuery}%,card_number.ilike.%${searchQuery}%`).order("card_number").limit(50);
+      const { data, error } = await supabase.from("cards").select("*").eq("game", deck!.game).or(`name.ilike.%${searchQuery}%,card_number.ilike.%${searchQuery}%`).order("card_number").limit(50);
       if (error) throw error;
       return data as Card[];
     },
-    enabled: addingCards && searchQuery.length >= 2,
+    enabled: addingCards && searchQuery.length >= 2 && !!deck,
   });
 
   const deckCardMap = new Map(deckCards?.map((dc) => [dc.card_number, dc.quantity]) ?? []);

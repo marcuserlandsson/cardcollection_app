@@ -7,6 +7,7 @@ import { useCollectionMap } from "@/lib/hooks/use-collection";
 import { useUpdateDeckCard } from "@/lib/hooks/use-decks";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import { X, Upload, ClipboardPaste, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import type { ParsedCard, ParseError } from "@/lib/import-parser";
 
@@ -35,11 +36,12 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
   const updateQuantity = useUpdateQuantity();
   const updateDeckCard = useUpdateDeckCard();
   const quantities = useCollectionMap();
+  const { gameId } = useGame();
 
   const isDeckImport = !!deckId;
 
   const { data: knownCards } = useQuery<Set<string>>({
-    queryKey: ["all-card-numbers"],
+    queryKey: ["all-card-numbers", gameId],
     queryFn: async () => {
       const pageSize = 1000;
       const allNumbers: string[] = [];
@@ -48,6 +50,7 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
         const { data, error } = await supabase
           .from("cards")
           .select("card_number")
+          .eq("game", gameId)
           .range(from, from + pageSize - 1);
         if (error) throw error;
         allNumbers.push(...(data as { card_number: string }[]).map((c) => c.card_number));

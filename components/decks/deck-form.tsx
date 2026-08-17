@@ -5,6 +5,7 @@ import { useCreateDeck, useUpdateDeckCard } from "@/lib/hooks/use-decks";
 import { parseCardList } from "@/lib/import-parser";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import { Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 
 const supabase = createClient();
@@ -22,9 +23,10 @@ export default function DeckForm({ onCreated, onCancel }: DeckFormProps) {
   const [isImporting, setIsImporting] = useState(false);
   const { mutateAsync: createDeck, isPending } = useCreateDeck();
   const updateDeckCard = useUpdateDeckCard();
+  const { gameId } = useGame();
 
   const { data: knownCards } = useQuery<Set<string>>({
-    queryKey: ["all-card-numbers"],
+    queryKey: ["all-card-numbers", gameId],
     queryFn: async () => {
       const pageSize = 1000;
       const allNumbers: string[] = [];
@@ -33,6 +35,7 @@ export default function DeckForm({ onCreated, onCancel }: DeckFormProps) {
         const { data, error } = await supabase
           .from("cards")
           .select("card_number")
+          .eq("game", gameId)
           .range(from, from + pageSize - 1);
         if (error) throw error;
         allNumbers.push(...(data as { card_number: string }[]).map((c) => c.card_number));

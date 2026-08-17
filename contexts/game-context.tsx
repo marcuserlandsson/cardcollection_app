@@ -36,8 +36,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     (id: GameId) => {
       window.localStorage.setItem(STORAGE_KEY, id);
       setState((prev) => ({ ...prev, gameId: id }));
-      // Every cached query is keyed by game, so a blanket invalidation is
-      // correct and cheap — non-matching keys refetch lazily on next mount.
+      // Blanket invalidation: most cached queries carry the game id, and the
+      // few that don't are safe — prices are keyed lookups against an
+      // already-filtered card list, and deck-by-id queries already imply
+      // one game. Non-matching keys refetch lazily on next mount.
       queryClient.invalidateQueries();
     },
     [queryClient],
