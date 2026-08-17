@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageOff, X, Coins, AlertTriangle } from "lucide-react";
-import { formatPrice, getCardImageUrl } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { useCardPrice } from "@/lib/hooks/use-prices";
 import { usePriceHistory } from "@/lib/hooks/use-price-history";
 import { computeSpikePct, isOutlierLow } from "@/lib/sell-utils";
 import { usePanelContext } from "@/contexts/panel-context";
+import { useGame } from "@/contexts/game-context";
 import QuantityControl from "@/components/collection/quantity-control";
 import CardSiblings from "@/components/cards/card-siblings";
 import CardDeckUsage from "@/components/cards/card-deck-usage";
@@ -16,16 +17,6 @@ import SellListToggle from "@/components/sell/sell-list-toggle";
 import WishlistToggle from "@/components/needs/wishlist-toggle";
 import type { Card } from "@/lib/types";
 import PriceSparkline from "@/components/cards/price-sparkline";
-
-const COLOR_STYLES: Record<string, { color: string; bg: string }> = {
-  Red: { color: "var(--red)", bg: "var(--red-translucent)" },
-  Blue: { color: "var(--blue)", bg: "var(--blue-translucent)" },
-  Yellow: { color: "var(--yellow)", bg: "var(--yellow-translucent)" },
-  Green: { color: "var(--green)", bg: "var(--green-translucent)" },
-  Black: { color: "var(--text-secondary)", bg: "var(--elevated)" },
-  Purple: { color: "var(--purple)", bg: "var(--purple-translucent)" },
-  White: { color: "var(--text-primary)", bg: "var(--elevated)" },
-};
 
 export default function CardPanel({ card, onClose, onCardSelect }: { card: Card | null; onClose: () => void; onCardSelect?: (card: Card) => void }) {
   const { data: price } = useCardPrice(card?.card_number ?? null);
@@ -43,6 +34,7 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
     return priceHistory30d.filter((h) => h.card_number === base);
   }, [card, priceHistory30d]);
   const { openPanel, closePanel } = usePanelContext();
+  const { game } = useGame();
   const [imageError, setImageError] = useState(false);
   const prevCardRef = useRef<string | null>(null);
 
@@ -69,8 +61,10 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
   }, [onClose]);
 
   const isOpen = !!card;
-  const colorStyle = card ? (COLOR_STYLES[card.color] ?? { color: "var(--text-secondary)", bg: "var(--elevated)" }) : null;
-  const displayImageUrl = card ? (card.image_url || getCardImageUrl(card.base_card_number)) : "";
+  const colorStyle = card
+    ? (game.colors.find((c) => c.label === card.color) ?? { color: "var(--text-secondary)", bg: "var(--elevated)" })
+    : null;
+  const displayImageUrl = card ? (card.image_url || game.fallbackImageUrl(card.base_card_number)) : "";
 
   return (
     <>
@@ -131,34 +125,22 @@ export default function CardPanel({ card, onClose, onCardSelect }: { card: Card 
         </div>
 
         {/* Stats Row */}
-        {(card.level !== null || card.play_cost !== null || card.dp !== null || card.evolution_cost !== null) && (
-          <div className="mt-4 flex gap-2">
-            {card.level !== null && (
-              <div className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
-                <div className="text-sm font-bold text-[var(--text-primary)]">Lv.{card.level}</div>
-                <div className="text-[10px] uppercase text-[var(--text-dim)]">Level</div>
-              </div>
-            )}
-            {card.play_cost !== null && (
-              <div className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
-                <div className="text-sm font-bold text-[var(--text-primary)]">{card.play_cost}</div>
-                <div className="text-[10px] uppercase text-[var(--text-dim)]">Cost</div>
-              </div>
-            )}
-            {card.dp !== null && (
-              <div className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
-                <div className="text-sm font-bold text-[var(--text-primary)]">{card.dp}</div>
-                <div className="text-[10px] uppercase text-[var(--text-dim)]">DP</div>
-              </div>
-            )}
-            {card.evolution_cost !== null && (
-              <div className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
-                <div className="text-sm font-bold text-[var(--text-primary)]">{card.evolution_cost}</div>
-                <div className="text-[10px] uppercase text-[var(--text-dim)]">Evo</div>
-              </div>
-            )}
-          </div>
-        )}
+        {(() => {
+          const shown = game.stats
+            .map((s) => ({ ...s, value: card.attributes[s.key] }))
+            .filter((s) => s.value !== undefined && s.value !== null);
+          if (shown.length === 0) return null;
+          return (
+            <div className="mt-4 flex gap-2">
+              {shown.map((s) => (
+                <div key={s.key} className="flex-1 rounded-lg bg-[var(--elevated)] px-3 py-2 text-center">
+                  <div className="text-sm font-bold text-[var(--text-primary)]">{s.prefix ?? ""}{String(s.value)}</div>
+                  <div className="text-[10px] uppercase text-[var(--text-dim)]">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Siblings */}
         <CardSiblings
