@@ -42,6 +42,10 @@ describe("parseCardList", () => {
     expect(parseCardList("not a card").errors).toHaveLength(1);
     expect(parseCardList("just-words-here").errors).toHaveLength(1);
   });
+  it("parses the parenthesised format with letters after the dash", () => {
+    const lower = (s: string) => s.toLowerCase();
+    expect(parseCardList("2 (alpha-a010)", lower).parsed).toEqual([{ cardNumber: "alpha-a010", quantity: 2 }]);
+  });
 });
 
 describe("parseCSV", () => {

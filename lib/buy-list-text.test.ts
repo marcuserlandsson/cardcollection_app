@@ -67,4 +67,9 @@ describe("formatBuyListText", () => {
   it("returns an empty string for an empty list", () => {
     expect(formatBuyListText([])).toBe("");
   });
+
+  it("omits the price segment for a priced item when showPrices is false", () => {
+    const items = [item({ card: makeCard("BT9-009", "WarGreymon"), need: 3, price: makePrice(19.99) })];
+    expect(formatBuyListText(items, false)).toBe("3x WarGreymon (BT9-009)");
+  });
 });
