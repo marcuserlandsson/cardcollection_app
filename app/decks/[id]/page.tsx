@@ -124,7 +124,7 @@ export default function DeckDetailPage({ params }: { params: Promise<{ id: strin
         ))}
       </div>
       <CardPanel card={selectedCard} onClose={() => setSelectedCard(null)} onCardSelect={setSelectedCard} />
-      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} deckId={deckId} />
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} deckId={deckId} game={deck.game} />
     </div>
   );
 }

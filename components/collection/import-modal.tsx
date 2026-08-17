@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useGame } from "@/contexts/game-context";
 import { X, Upload, ClipboardPaste, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import type { ParsedCard, ParseError } from "@/lib/import-parser";
+import type { GameId } from "@/lib/games";
 
 const supabase = createClient();
 
@@ -21,9 +22,12 @@ interface ImportModalProps {
   onClose: () => void;
   /** When provided, imports cards into this deck instead of the collection */
   deckId?: string;
+  /** The deck's own game, when importing into a deck — must be used instead
+   *  of the active game since the switcher is reachable without navigating away */
+  game?: GameId;
 }
 
-export default function ImportModal({ open, onClose, deckId }: ImportModalProps) {
+export default function ImportModal({ open, onClose, deckId, game }: ImportModalProps) {
   const [tab, setTab] = useState<Tab>("paste");
   const [stage, setStage] = useState<Stage>("input");
   const [textInput, setTextInput] = useState("");
@@ -37,11 +41,14 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
   const updateDeckCard = useUpdateDeckCard();
   const quantities = useCollectionMap();
   const { gameId } = useGame();
+  // A deck import must validate against the deck's own game, not whatever
+  // game is active — the switcher is reachable without leaving the page.
+  const effectiveGameId = game ?? gameId;
 
   const isDeckImport = !!deckId;
 
   const { data: knownCards } = useQuery<Set<string>>({
-    queryKey: ["all-card-numbers", gameId],
+    queryKey: ["all-card-numbers", effectiveGameId],
     queryFn: async () => {
       const pageSize = 1000;
       const allNumbers: string[] = [];
@@ -50,7 +57,7 @@ export default function ImportModal({ open, onClose, deckId }: ImportModalProps)
         const { data, error } = await supabase
           .from("cards")
           .select("card_number")
-          .eq("game", gameId)
+          .eq("game", effectiveGameId)
           .range(from, from + pageSize - 1);
         if (error) throw error;
         allNumbers.push(...(data as { card_number: string }[]).map((c) => c.card_number));
