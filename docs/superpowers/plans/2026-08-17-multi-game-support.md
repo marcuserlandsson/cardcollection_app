@@ -1857,7 +1857,7 @@ export function parseCardList(
     if (line === "" || line.startsWith("#")) continue;
 
     const parenMatch = line.match(/^(\d+)\s*x?\s*\(([A-Za-z0-9]+-[A-Za-z0-9]+)\)$/);
-    const standardMatch = line.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+?)\s*[,xX×]?\s*(\d+)?$/);
+    const standardMatch = line.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+)\s*[,xX×]?\s*(\d+)?$/);
 
     const match = parenMatch || standardMatch;
     if (!match) {
@@ -1881,7 +1881,15 @@ export function parseCSV(
 
 and its final line: `return parseCardList(textLines.join("\n"), normalize);`
 
-**Watch the standard regex carefully.** `([A-Za-z0-9]+-[A-Za-z0-9]+?)` is non-greedy so that `BT1-001 3` still splits the quantity off rather than swallowing it. Confirm with the existing tests, which cover `BT1-001 3`, `BT1-001 x2`, `BT1-002,5` and bare `BT3-015`.
+**Keep the trailing group GREEDY** — `([A-Za-z0-9]+-[A-Za-z0-9]+)`, no `?`. A greedy group already cannot cross the whitespace before a quantity, so `BT1-001 3` still splits correctly. Making it non-greedy instead lets the optional `(\d+)?` group eat the card number's own trailing digits, silently corrupting the most common input form — bare card numbers with no quantity:
+
+| Input | Greedy | Non-greedy |
+|---|---|---|
+| `BT3-015` | `BT3-015` ×1 | `BT3-0` ×15 |
+| `wtnc-006` | `wtnc-006` ×1 | `wtnc-0` ×6 |
+| `promo-n001` | `promo-n001` ×1 | `promo-n` ×001 |
+
+Verify with the existing tests, which cover `BT1-001 3`, `BT1-001 x2`, `BT1-002,5` and bare `BT3-015`, plus the new lowercase and letter-suffix cases.
 
 - [ ] **Step 4: Run to verify they pass**
 
