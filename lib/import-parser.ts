@@ -19,8 +19,15 @@ export interface ParseResult {
  * - "4 (BT14-001)" — quantity first, card number in parentheses (digimoncard.io format)
  * - Card number only (defaults to quantity 1)
  * One card per line. Blank lines and lines starting with # are ignored.
+ *
+ * `normalize` casts card numbers to the game's canonical case — Digimon numbers
+ * are uppercase (BT9-111), Cyberpunk's are lowercase (wtnc-006). Defaults to
+ * uppercase so existing Digimon call sites are unaffected.
  */
-export function parseCardList(input: string): ParseResult {
+export function parseCardList(
+  input: string,
+  normalize: (s: string) => string = (s) => s.toUpperCase(),
+): ParseResult {
   const lines = input.split(/\r?\n/);
   const parsed: ParsedCard[] = [];
   const errors: ParseError[] = [];
@@ -30,9 +37,9 @@ export function parseCardList(input: string): ParseResult {
     if (line === "" || line.startsWith("#")) continue;
 
     // Format: "4 (BT14-001)" or "4x (BT14-001)" — quantity first, card number in parens
-    const parenMatch = line.match(/^(\d+)\s*x?\s*\(([A-Za-z0-9]+-\d+)\)$/);
+    const parenMatch = line.match(/^(\d+)\s*x?\s*\(([A-Za-z0-9]+-[A-Za-z0-9]+)\)$/);
     // Format: "BT1-001 3" or "BT1-001 x3" or "BT1-001,3" or just "BT1-001"
-    const standardMatch = line.match(/^([A-Za-z0-9]+-\d+)\s*[,xX×]?\s*(\d+)?$/);
+    const standardMatch = line.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+)\s*[,xX×]?\s*(\d+)?$/);
 
     const match = parenMatch || standardMatch;
     if (!match) {
@@ -40,9 +47,7 @@ export function parseCardList(input: string): ParseResult {
       continue;
     }
 
-    const cardNumber = parenMatch
-      ? match[2].toUpperCase()
-      : match[1].toUpperCase();
+    const cardNumber = normalize(parenMatch ? match[2] : match[1]);
     const rawQty = parenMatch ? match[1] : match[2];
     const quantity = rawQty ? parseInt(rawQty, 10) : 1;
 
@@ -70,7 +75,10 @@ export function parseCardList(input: string): ParseResult {
  * Parses CSV text. Auto-detects column names for card number and quantity.
  * Falls back to first column = card number, second column = quantity.
  */
-export function parseCSV(csvText: string): ParseResult {
+export function parseCSV(
+  csvText: string,
+  normalize: (s: string) => string = (s) => s.toUpperCase(),
+): ParseResult {
   const lines = csvText.split(/\r?\n/).filter((l) => l.trim() !== "");
   if (lines.length === 0) return { parsed: [], errors: [] };
 
@@ -102,5 +110,5 @@ export function parseCSV(csvText: string): ParseResult {
     }
   }
 
-  return parseCardList(textLines.join("\n"));
+  return parseCardList(textLines.join("\n"), normalize);
 }

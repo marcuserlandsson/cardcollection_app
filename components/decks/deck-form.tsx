@@ -23,7 +23,7 @@ export default function DeckForm({ onCreated, onCancel }: DeckFormProps) {
   const [isImporting, setIsImporting] = useState(false);
   const { mutateAsync: createDeck, isPending } = useCreateDeck();
   const updateDeckCard = useUpdateDeckCard();
-  const { gameId } = useGame();
+  const { gameId, game } = useGame();
 
   const { data: knownCards } = useQuery<Set<string>>({
     queryKey: ["all-card-numbers", gameId],
@@ -56,7 +56,7 @@ export default function DeckForm({ onCreated, onCancel }: DeckFormProps) {
 
     if (cardList.trim()) {
       setIsImporting(true);
-      const result = parseCardList(cardList);
+      const result = parseCardList(cardList, game.normalizeCardNumber);
       const validCards = knownCards
         ? result.parsed.filter((c) => knownCards.has(c.cardNumber))
         : result.parsed;

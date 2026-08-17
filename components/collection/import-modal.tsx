@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useGame } from "@/contexts/game-context";
 import { X, Upload, ClipboardPaste, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import type { ParsedCard, ParseError } from "@/lib/import-parser";
-import type { GameId } from "@/lib/games";
+import { getGame, type GameId } from "@/lib/games";
 
 const supabase = createClient();
 
@@ -44,6 +44,7 @@ export default function ImportModal({ open, onClose, deckId, game }: ImportModal
   // A deck import must validate against the deck's own game, not whatever
   // game is active — the switcher is reachable without leaving the page.
   const effectiveGameId = game ?? gameId;
+  const normalizeCardNumber = getGame(effectiveGameId).normalizeCardNumber;
 
   const isDeckImport = !!deckId;
 
@@ -116,11 +117,11 @@ export default function ImportModal({ open, onClose, deckId, game }: ImportModal
   );
 
   const handleParse = useCallback(() => {
-    const result = parseCardList(textInput);
+    const result = parseCardList(textInput, normalizeCardNumber);
     setParseErrors(result.errors);
     validateParsed(result.parsed);
     setStage("preview");
-  }, [textInput, validateParsed]);
+  }, [textInput, validateParsed, normalizeCardNumber]);
 
   const handleFileUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,14 +130,14 @@ export default function ImportModal({ open, onClose, deckId, game }: ImportModal
       const reader = new FileReader();
       reader.onload = (event) => {
         const csvText = event.target?.result as string;
-        const result = parseCSV(csvText);
+        const result = parseCSV(csvText, normalizeCardNumber);
         setParseErrors(result.errors);
         validateParsed(result.parsed);
         setStage("preview");
       };
       reader.readAsText(file);
     },
-    [validateParsed]
+    [validateParsed, normalizeCardNumber]
   );
 
   const handleImport = useCallback(async () => {

@@ -29,6 +29,19 @@ describe("parseCardList", () => {
     expect(result.errors).toHaveLength(1);
     expect(result.parsed).toHaveLength(0);
   });
+  it("keeps lowercase card numbers when the game normalizes to lowercase", () => {
+    const lower = (s: string) => s.toLowerCase();
+    expect(parseCardList("WTNC-006 3", lower).parsed).toEqual([{ cardNumber: "wtnc-006", quantity: 3 }]);
+  });
+  it("parses card numbers with letters after the dash", () => {
+    const lower = (s: string) => s.toLowerCase();
+    expect(parseCardList("alpha-a010 2", lower).parsed).toEqual([{ cardNumber: "alpha-a010", quantity: 2 }]);
+    expect(parseCardList("promo-n001", lower).parsed).toEqual([{ cardNumber: "promo-n001", quantity: 1 }]);
+  });
+  it("still rejects lines that are not card entries", () => {
+    expect(parseCardList("not a card").errors).toHaveLength(1);
+    expect(parseCardList("just-words-here").errors).toHaveLength(1);
+  });
 });
 
 describe("parseCSV", () => {
