@@ -256,6 +256,7 @@ export interface GameConfig {
   deck: DeckRules;
   hasPrices: boolean;
   imageUrl(card: Card): string;
+  normalizeCardNumber(raw: string): string;  // digimon: upper, cyberpunk: lower
 }
 ```
 
@@ -314,13 +315,42 @@ Direct filter on `cards`:
   `useCardSiblings`, `useCardExpansions`)
 - `lib/hooks/use-decks.ts` — list scoped by `decks.game`; create sets `game`
 
-Join filter (`.select("*, cards!inner(game)").eq("cards.game", gameId)`):
+Join filter (`.select("*, cards!inner(game)").eq("cards.game", gameId)`) on the
+three user tables that still have a foreign key to `cards`:
 
-- `use-collection.ts`, `use-wishlist.ts`, `use-sell-list.ts`, `use-prices.ts`,
-  `use-price-history.ts`, `use-entry-session.ts`
+- `use-collection.ts`, `use-wishlist.ts`, `use-sell-list.ts`
+
+The embed changes the returned row shape, so each of these **strips the joined
+key** before casting, keeping the existing types intact:
+
+```ts
+return (data ?? []).map(({ cards: _cards, ...entry }) => entry) as CollectionEntry[];
+```
+
+**`use-prices.ts` and `use-price-history.ts` are deliberately left unfiltered.**
+Migration `007_relax_price_fk.sql` dropped the foreign keys from `card_prices`
+and `card_price_history` to `cards`, so a `cards!inner` embed is not possible on
+either table. Both are only ever consumed as keyed lookups against an
+already-game-filtered card list, so unfiltered rows are inert — and Cyberpunk has
+no price rows at all. Each hook carries a comment recording this reasoning.
+
+**`use-entry-session.ts` needs no change.** It holds local React state over
+`useUpdateQuantity` and `useCollectionMap` and issues no query of its own.
 
 Every paginated query keeps its existing `.range()` loop — the 1000-row limit in
 `learnings.md` still applies, and adding a filter does not remove the need.
+
+### Inline queries outside the hooks
+
+Four `useQuery` calls hit `cards` directly from components and need the same
+treatment:
+
+- `app/decks/[id]/page.tsx` — `deck-detail-cards` and `deck-add-search`. The
+  add-search filters by **the deck's own `game`**, not the active game, so a
+  Digimon card can never be offered for a Cyberpunk deck (which the trigger would
+  reject with a raw Postgres error).
+- `components/decks/deck-form.tsx` — `all-card-numbers`, used to validate imports.
+- `app/needs/page.tsx` — `need-cards`.
 
 ### Components
 
@@ -339,6 +369,14 @@ Every paginated query keeps its existing `.range()` loop — the 1000-row limit 
   work.
 - `components/collection/set-checklist.tsx` and `app/collection/add/page.tsx` —
   scoped by the game-filtered expansion list; no other change.
+- `lib/import-parser.ts` — **currently uppercases every parsed card number**
+  (`match[1].toUpperCase()`), which would turn `wtnc-006` into `WTNC-006` and
+  match nothing. Its regex also requires the segment after the dash to be digits,
+  rejecting `alpha-a010` and `promo-n001`. `parseCardList` and `parseCSV` gain an
+  optional `normalize` parameter defaulting to `(s) => s.toUpperCase()` so
+  existing Digimon behaviour and its tests are unchanged, and the regex loosens to
+  `[A-Za-z0-9]+-[A-Za-z0-9]+`. Each game supplies `normalizeCardNumber` through
+  the registry.
 - `components/decks/*` — validation comes from `game.deck.validate()`; zone
   labels from `game.deck.zones`.
 - `components/nav/footer.tsx` and `app/legal/page.tsx` — add a WeirdCo /
@@ -416,6 +454,19 @@ Four phases, ordered so the risky change ships behind a no-op.
 
 ## Testing
 
+`vitest.config.ts` runs `environment: "node"` with `include: ["**/*.test.ts"]` —
+there is no jsdom and no React testing library, so **component and hook behaviour
+cannot be unit-tested** without adding dependencies, which this work does not do.
+Everything below is a pure-function test, and the hydration behaviour is verified
+by hand during the phase 1 acceptance check.
+
+Adding `game` and `attributes` to the `Card` type, and `game` to `Deck`, breaks
+every test fixture that builds those objects as literals — the `makeCard` /
+`makeDeck` helpers in `need-utils.test.ts`, `buy-list-text.test.ts`,
+`collection-entry.test.ts`, `export-csv.test.ts`, `sell-share-payload.test.ts`,
+`share-text.test.ts`, and `import-parser.test.ts`. Updating those helpers is part
+of the type change, not a separate cleanup.
+
 Following the existing `lib/*.test.ts` vitest layout:
 
 - **Registry validity** — every `stats.key` is a string, no duplicate game ids,
@@ -428,8 +479,12 @@ Following the existing `lib/*.test.ts` vitest layout:
 - **Regression** — `need-utils` and `sell-utils` maths unchanged for Digimon
   fixtures under the game filter; `attributes`-backed stat rendering matches the
   previous column-backed output for a Digimon card.
-- **Game context** — `isHydrated` is false before the `localStorage` read, and an
-  unknown stored game id falls back to `digimon` rather than crashing.
+- **`resolveGameId`** — the pure helper behind the context: a valid stored id round
+  trips, and `null`, `""`, or an unknown id falls back to `digimon` rather than
+  crashing. (The `isHydrated` gate itself is checked by hand in phase 1.)
+- **`parseCardList` normalization** — Digimon input still uppercases by default;
+  Cyberpunk's `normalizeCardNumber` keeps `wtnc-006` lowercase; `alpha-a010` and
+  `promo-n001` parse instead of erroring; `"not a card"` still errors.
 
 ## Risks
 
