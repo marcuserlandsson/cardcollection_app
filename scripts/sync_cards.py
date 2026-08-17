@@ -187,6 +187,27 @@ def transform_card(
     # Use override if provided, otherwise default
     image_url = image_url_override if image_url_override else f"{IMAGE_BASE_URL}/{card_number}.jpg"
 
+    dp = raw.get("dp") if raw.get("dp") else None
+    play_cost = raw.get("play_cost") if raw.get("play_cost") else None
+    level = raw.get("level") if raw.get("level") else None
+    evolution_cost = (
+        raw.get("evolution_cost") if raw.get("evolution_cost") else None
+    )
+
+    # Dual-write: the legacy columns stay until migration 011 confirms parity,
+    # but the frontend already reads stats out of attributes via the game
+    # registry. Nulls are omitted so `attributes ? 'dp'` stays meaningful.
+    attributes = {
+        key: value
+        for key, value in (
+            ("level", level),
+            ("play_cost", play_cost),
+            ("dp", dp),
+            ("evolution_cost", evolution_cost),
+        )
+        if value is not None
+    }
+
     return {
         "card_number": suffixed_card_number,
         "name": raw.get("name", ""),
@@ -194,17 +215,17 @@ def transform_card(
         "card_type": raw.get("type", ""),
         "color": raw.get("color", ""),
         "rarity": RARITY_MAP.get(rarity_raw, rarity_raw),
-        "dp": raw.get("dp") if raw.get("dp") else None,
-        "play_cost": raw.get("play_cost") if raw.get("play_cost") else None,
-        "level": raw.get("level") if raw.get("level") else None,
-        "evolution_cost": (
-            raw.get("evolution_cost") if raw.get("evolution_cost") else None
-        ),
+        "dp": dp,
+        "play_cost": play_cost,
+        "level": level,
+        "evolution_cost": evolution_cost,
         "image_url": image_url,
         "pretty_url": raw.get("pretty_url", ""),
         "max_copies": 4,
         "base_card_number": card_number,
         "variant_name": variant_name,
+        "game": "digimon",
+        "attributes": attributes,
     }
 
 
