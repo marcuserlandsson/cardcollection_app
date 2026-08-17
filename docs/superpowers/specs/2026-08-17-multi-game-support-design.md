@@ -255,10 +255,16 @@ export interface GameConfig {
   stats: StatField[];
   deck: DeckRules;
   hasPrices: boolean;
-  imageUrl(card: Card): string;
-  normalizeCardNumber(raw: string): string;  // digimon: upper, cyberpunk: lower
+  fallbackImageUrl(cardNumber: string): string;  // "" when the game has no CDN pattern
+  normalizeCardNumber(raw: string): string;      // digimon: upper, cyberpunk: lower
 }
 ```
+
+`fallbackImageUrl` takes a card number rather than a `Card` because that is what
+`CardImage` already receives as props (`cardNumber` + optional `imageUrl`).
+Cyberpunk returns `""` — every seeded card carries an explicit `image_url`, so
+`CardImage` must render its `ImageOff` placeholder when both are empty rather than
+passing `src=""` to `next/image`, which throws.
 
 `lib/games/index.ts` exports `GAMES: Record<GameId, GameConfig>` and
 `getGame(id: GameId): GameConfig`.
