@@ -3,12 +3,13 @@
 import { Suspense, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useExpansions, useExpansionMetadata, useCardsByExpansion, useCardSearch, useCardsFiltered } from "@/lib/hooks/use-cards";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Layers } from "lucide-react";
 import CardSearchBar from "@/components/cards/card-search-bar";
 import CardFilters from "@/components/cards/card-filters";
 import CardGrid from "@/components/cards/card-grid";
 import ExpansionGrid from "@/components/cards/expansion-grid";
 import CardPanel from "@/components/cards/card-panel";
+import { useGame } from "@/contexts/game-context";
 import type { Card, Expansion } from "@/lib/types";
 
 function DatabasePageContent() {
@@ -29,6 +30,7 @@ function DatabasePageContent() {
   const [selectedExpansion, setSelectedExpansion] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
+  const { game } = useGame();
   const { data: expansions, isLoading: loadingExpansions } = useExpansions();
   const { data: setImages } = useExpansionMetadata();
   const { data: expansionCards, isLoading: loadingExpansionCards } = useCardsByExpansion(selectedExpansion);
@@ -90,7 +92,15 @@ function DatabasePageContent() {
       {showExpansions && !loadingExpansions && expansions && (
         <>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Browse by Expansion</h2>
-          <ExpansionGrid expansions={expansions} setImages={setImages || {}} onSelect={handleExpansionSelect} />
+          {expansions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Layers size={40} className="mb-3 text-[var(--border)]" />
+              <p className="text-sm text-[var(--text-muted)]">No {game.shortName} cards yet.</p>
+              <p className="text-xs text-[var(--text-dim)]">Cards will appear here once they&apos;re added.</p>
+            </div>
+          ) : (
+            <ExpansionGrid expansions={expansions} setImages={setImages || {}} onSelect={handleExpansionSelect} />
+          )}
         </>
       )}
       {displayCards && !isLoading && <CardGrid cards={displayCards} onCardClick={handleCardClick} />}
