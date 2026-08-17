@@ -2,19 +2,31 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { CollectionEntry } from "@/lib/types";
 
 const supabase = createClient();
 
 export function useCollection() {
+  const { gameId } = useGame();
   return useQuery<CollectionEntry[]>({
-    queryKey: ["collection"],
+    queryKey: ["collection", gameId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
-      const { data, error } = await supabase.from("collection").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("collection")
+        .select("*, cards!inner(game)")
+        .eq("user_id", user.id)
+        .eq("cards.game", gameId);
       if (error) throw error;
-      return data as CollectionEntry[];
+      // Drop the joined column so the row shape stays CollectionEntry.
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        card_number: row.card_number,
+        quantity: row.quantity,
+        updated_at: row.updated_at,
+      })) as CollectionEntry[];
     },
   });
 }
@@ -37,6 +49,7 @@ export function useCollectionMap() {
 
 export function useUpdateQuantity() {
   const queryClient = useQueryClient();
+  const { gameId } = useGame();
   return useMutation({
     mutationFn: async ({ cardNumber, quantity }: { cardNumber: string; quantity: number }) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,9 +68,9 @@ export function useUpdateQuantity() {
     // keeping rapid +/- entry and the session tray consistent with the DB
     // during the refetch window.
     onMutate: async ({ cardNumber, quantity }) => {
-      await queryClient.cancelQueries({ queryKey: ["collection"] });
-      const previous = queryClient.getQueryData<CollectionEntry[]>(["collection"]);
-      queryClient.setQueryData<CollectionEntry[]>(["collection"], (old) => {
+      await queryClient.cancelQueries({ queryKey: ["collection", gameId] });
+      const previous = queryClient.getQueryData<CollectionEntry[]>(["collection", gameId]);
+      queryClient.setQueryData<CollectionEntry[]>(["collection", gameId], (old) => {
         const entries = old ?? [];
         const rest = entries.filter((e) => e.card_number !== cardNumber);
         if (quantity <= 0) return rest;
@@ -76,9 +89,9 @@ export function useUpdateQuantity() {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(["collection"], context.previous);
+        queryClient.setQueryData(["collection", gameId], context.previous);
       }
     },
-    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["collection"] }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["collection", gameId] }); },
   });
 }

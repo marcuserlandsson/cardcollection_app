@@ -10,6 +10,10 @@ export function usePrices() {
   return useQuery<CardPrice[]>({
     queryKey: ["prices"],
     queryFn: async () => {
+      // Not game-filtered: migration 007_relax_price_fk.sql dropped the FK from
+      // card_prices to cards, so a `cards!inner` embed is impossible here.
+      // Prices are only ever consumed as keyed lookups against an
+      // already-game-filtered card list, so extra rows are inert.
       // Supabase defaults to 1000 rows — paginate to get all prices
       const all: CardPrice[] = [];
       const pageSize = 1000;

@@ -2,22 +2,29 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { SellListEntry } from "@/lib/types";
 
 const supabase = createClient();
 
 export function useSellList() {
+  const { gameId } = useGame();
   return useQuery<SellListEntry[]>({
-    queryKey: ["sell-list"],
+    queryKey: ["sell-list", gameId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from("sell_list")
-        .select("*")
-        .eq("user_id", user.id);
+        .select("*, cards!inner(game)")
+        .eq("user_id", user.id)
+        .eq("cards.game", gameId);
       if (error) throw error;
-      return data as SellListEntry[];
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        card_number: row.card_number,
+        added_at: row.added_at,
+      })) as SellListEntry[];
     },
   });
 }

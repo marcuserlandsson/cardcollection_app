@@ -2,22 +2,30 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { WishlistEntry } from "@/lib/types";
 
 const supabase = createClient();
 
 export function useWishlist() {
+  const { gameId } = useGame();
   return useQuery<WishlistEntry[]>({
-    queryKey: ["wishlist"],
+    queryKey: ["wishlist", gameId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from("wishlist")
-        .select("*")
-        .eq("user_id", user.id);
+        .select("*, cards!inner(game)")
+        .eq("user_id", user.id)
+        .eq("cards.game", gameId);
       if (error) throw error;
-      return data as WishlistEntry[];
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        card_number: row.card_number,
+        quantity: row.quantity,
+        added_at: row.added_at,
+      })) as WishlistEntry[];
     },
   });
 }

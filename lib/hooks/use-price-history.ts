@@ -14,6 +14,10 @@ export function usePriceHistory(days: number = 7) {
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString().slice(0, 10);
 
+      // Not game-filtered: migration 007_relax_price_fk.sql dropped the FK from
+      // card_price_history to cards, so a `cards!inner` embed is impossible here.
+      // Prices are only ever consumed as keyed lookups against an
+      // already-game-filtered card list, so extra rows are inert.
       // Paginate to handle >1000 rows (4000+ cards × N days)
       const all: PriceHistoryEntry[] = [];
       const pageSize = 1000;
