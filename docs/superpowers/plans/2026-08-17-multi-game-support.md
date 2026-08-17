@@ -872,19 +872,24 @@ interface GameContextValue {
 const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [gameId, setGameIdState] = useState<GameId>("digimon");
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [state, setState] = useState<{ gameId: GameId; isHydrated: boolean }>({
+    gameId: "digimon",
+    isHydrated: false,
+  });
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setGameIdState(resolveGameId(window.localStorage.getItem(STORAGE_KEY)));
-    setIsHydrated(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setState({
+      gameId: resolveGameId(window.localStorage.getItem(STORAGE_KEY)),
+      isHydrated: true,
+    });
   }, []);
 
   const setGameId = useCallback(
     (id: GameId) => {
       window.localStorage.setItem(STORAGE_KEY, id);
-      setGameIdState(id);
+      setState((prev) => ({ ...prev, gameId: id }));
       // Every cached query is keyed by game, so a blanket invalidation is
       // correct and cheap — non-matching keys refetch lazily on next mount.
       queryClient.invalidateQueries();
@@ -893,7 +898,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <GameContext.Provider value={{ gameId, game: GAMES[gameId], setGameId, isHydrated }}>
+    <GameContext.Provider value={{ gameId: state.gameId, game: GAMES[state.gameId], setGameId, isHydrated: state.isHydrated }}>
       {children}
     </GameContext.Provider>
   );
@@ -925,6 +930,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 Add the import at the top: `import { GameProvider } from "@/contexts/game-context";`
 
 The nesting order matters — `GameProvider` calls `useQueryClient()`, so it must be a descendant of `QueryClientProvider`.
+
+**On the `eslint-disable` in the effect:** `eslint-config-next` 16 enables `react-hooks/set-state-in-effect`, and seeding state from `localStorage` trips it no matter how the state is shaped — one `useState` or two, batched or not. The suppression is doing the work, and it follows the existing precedent at `components/sell/share-modal.tsx:37`, which suppresses the same rule for the same reason (state that cannot be read synchronously at render/SSR time). `useSyncExternalStore` would avoid it, but only by adding a manual event-emitter module — `localStorage.setItem` fires no `storage` event in the same tab — plus memoized `subscribe`/`getSnapshot` pairs and a second store for `isHydrated`. Not worth it for single-instance provider state.
 
 - [ ] **Step 3: Verify the app still boots**
 
