@@ -2250,6 +2250,8 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: Allow the Cyberpunk image host**
 
+**Deferred while the seed is empty.** This step cannot be done until real cards are seeded — the hostname is derived from their `image_url` values, and guessing a CDN host would put a fabricated entry in the allowlist. Do it as part of populating the seed, before the first real import, otherwise every Cyberpunk card image will silently fail to render.
+
 Derive the hostname from the seed rather than guessing it:
 
 Run: `python -c "import json;print(sorted({__import__('urllib.parse',fromlist=['urlparse']).urlparse(c['image_url']).netloc for c in json.load(open('scripts/data/cyberpunk_cards.json'))}))"`
