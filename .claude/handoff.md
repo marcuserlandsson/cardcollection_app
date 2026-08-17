@@ -17,7 +17,14 @@ Current state of work for session continuity. Updated at the end of each session
   gate passed**: migration 010 applied to the live database, the human
   partner confirmed the parity query returns 0, and the manual walkthrough
   showed no change to the Digimon experience — phase 1 is behaviour-neutral
-  as designed.
+  as designed. **Caveat on build version:** that gate evidence, including the
+  manual walkthrough, was captured against an unrequested Next.js `16.3.1`
+  bump that landed mid-branch and was later reverted. The tree is now pinned
+  back to `16.2.1` (`package.json:17`, matching `eslint-config-next`).
+  `npm test`, `tsc --noEmit`, `lint`, and `build` were all re-verified clean
+  on `16.2.1`. The manual walkthrough was **not** repeated on `16.2.1` — it
+  only covers `16.3.1`. Re-run it if a Next.js version bump is suspected of
+  affecting rendering or navigation before trusting the gate again.
 - **Phase 2 (Task 12-12b):** Cyberpunk registered in the game registry with a
   provisional colour list (only Red and Green independently confirmed from
   official sources; the rest is unpublished until Cyberpunk TCG's October

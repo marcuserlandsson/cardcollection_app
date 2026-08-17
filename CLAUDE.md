@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-CardBoard — a responsive web app for tracking TCG card collections, planning decks, and identifying surplus cards worth selling on Cardtrader. Currently focused on Digimon TCG with plans to support additional TCGs.
+CardBoard — a responsive web app for tracking TCG card collections, planning decks, and identifying surplus cards worth selling on Cardtrader. Supports Digimon TCG and Cyberpunk TCG.
 
 ## Tech Stack
 
@@ -65,7 +65,7 @@ python scripts/import_game_cards.py --game cyberpunk --file scripts/data/cyberpu
 ## Database Schema
 
 See `supabase/migrations/` for the full schema.
-Tables: `cards`, `card_variants`, `collection`, `decks`, `deck_cards`, `card_prices`
+Tables: `games`, `cards`, `card_variants`, `card_expansions`, `expansion_metadata`, `collection`, `decks`, `deck_cards`, `card_prices`, `card_price_history`, `wishlist`, `sell_list`, `sell_shares`
 
 ## UI Design System
 
