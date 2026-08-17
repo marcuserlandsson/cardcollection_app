@@ -9,9 +9,14 @@ Current state of work for session continuity. Updated at the end of each session
 ### Accomplished
 
 - **Phase 1 (Tasks 1-11):** Shared `cards`/`decks` schema gained `game` and JSONB
-  `attributes` columns; every query, hook, and mutation across collection,
-  decks, sell, and needs is now scoped `.eq("game", gameId)`; the game
-  registry (`lib/games/`) and `contexts/game-context.tsx` exist; card display
+  `attributes` columns; most queries, hooks, and mutations across collection,
+  decks, sell, and needs carry the game id via `.eq("game", gameId)` — the
+  exceptions are keyed lookups against already-scoped data (`usePrices`,
+  `usePriceHistory`, `useSellShare`, `useDeck`, `useDeckCards`, and four keyed
+  card lookups in `app/collection/page.tsx`, `app/sell/page.tsx`,
+  `components/dashboard/dashboard-stats.tsx`, and
+  `components/dashboard/worth-selling.tsx`), each documented at its call site;
+  the game registry (`lib/games/`) and `contexts/game-context.tsx` exist; card display
   components (thumbnail, panel, image) read colours/types/rarities/stats/image
   fallback from the registry instead of hardcoded Digimon values. **Acceptance
   gate passed**: migration 010 applied to the live database, the human
@@ -41,7 +46,7 @@ Current state of work for session continuity. Updated at the end of each session
 
 Every task passed independent code review; details and rationale for every
 ruling are in the SDD ledger at
-`.superpowers/sdd/2026-08-17-multi-game-support/progress.md`.
+`docs/superpowers/plans/2026-08-17-multi-game-support-ledger.md`.
 
 ## Blocked on the October retail release
 
@@ -86,7 +91,7 @@ are handed off, not passed.
 
 ## Deferred items
 
-- `handleImport` in `components/decks/import-modal.tsx` has no try/catch —
+- `handleImport` in `components/collection/import-modal.tsx` has no try/catch —
   any mutation failure during an import leaves the modal stuck on its
   spinner with no visible error. Pre-existing, not introduced by this work.
 - `lib/hooks/use-sell-share.ts` is not game-scoped (one `sell_shares` row per
@@ -94,7 +99,24 @@ are handed off, not passed.
   on `GameConfig.hasPrices` and only Digimon has prices; becomes a real bug
   the moment a second game gets a price feed.
 - The game switcher's `<button>` elements lack `type="button"`, and the
-  dropdown lacks `aria-expanded`/`aria-haspopup` and Escape-to-close.
+  dropdown lacks `aria-expanded`/`aria-haspopup` and Escape-to-close. It is
+  now a live control reachable from every page (see the final whole-branch
+  review's Fix 1: switching games mid-view of another game's data is a real
+  user path), so this is no longer just a nice-to-have.
+- Page-local selection state (search query, filters, selected expansion) is
+  not reset on a game switch. A stale filter or expansion selection carried
+  over from the previous game can leave `/database` showing "No cards
+  found" with no visibly active chip to clear it.
+- `components/cards/expansion-grid.tsx`'s tab list and set-code regexes are
+  Digimon-specific and will misbehave for a game whose set codes don't match
+  that shape.
+- `components/decks/deck-form.tsx`'s import placeholder text hardcodes
+  Digimon card numbers regardless of the active game.
+- `isHydrated` from `contexts/game-context.tsx` has only one consumer today.
+  A user whose stored game is Cyberpunk still gets a first paint of Digimon
+  data before hydration flips, on every other consumer of `useGame()`.
+- `/needs` renders a bare heading with no empty state for a game with no
+  cards. Pre-existing on `main`, not introduced by this branch.
 - The deck page's legality/missing-count banners briefly vanish on card
   add/remove because the query key changes on refetch. `keepPreviousData` on
   that query would fix both at once.

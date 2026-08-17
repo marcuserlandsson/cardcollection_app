@@ -56,7 +56,9 @@ python scripts/import_game_cards.py --game cyberpunk --file scripts/data/cyberpu
   case) lives in the game registry at `lib/games/`. Adding a game = a config
   file plus a seed file.
 - Active game lives in `contexts/game-context.tsx`, persisted to
-  `localStorage["cardboard.game"]`; every query key includes the game id.
+  `localStorage["cardboard.game"]`; most query keys carry the game id — the
+  exceptions are keyed lookups against already-scoped data, documented at
+  their call sites (see `.claude/handoff.md`).
 - Cyberpunk has no price feed: Cardmarket's API is closed to new applicants and
   Cardtrader hasn't listed the game. `GameConfig.hasPrices` gates all price UI.
 - Cyberpunk cards are imported from `scripts/data/cyberpunk_cards.json` via
