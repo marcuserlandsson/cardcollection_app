@@ -32,6 +32,14 @@ python scripts/sync_prices.py   # Sync prices from Cardtrader
 
 Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 
+Cyberpunk cards are imported separately, from a hand-maintained seed file rather than an API:
+
+```bash
+python scripts/import_game_cards.py --game cyberpunk --file scripts/data/cyberpunk_cards.json --validate-only  # offline shape check, no credentials needed
+python scripts/import_game_cards.py --game cyberpunk --file scripts/data/cyberpunk_cards.json --dry-run        # full rehearsal: connects, runs collision checks, no writes
+python scripts/import_game_cards.py --game cyberpunk --file scripts/data/cyberpunk_cards.json                  # actual import
+```
+
 ## Key Architecture Decisions
 
 - Regular card images: `https://images.digimoncard.io/images/cards/{card_number}.jpg`
@@ -42,6 +50,17 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 - Guest browsing allowed for card database; auth required for collection/decks/sell
 - Bottom tab nav on mobile, top nav on desktop (768px breakpoint)
 - Supabase RLS enforces per-user data isolation
+- Multi-game: one shared `cards` table with a `game` column and a JSONB
+  `attributes` column for per-game stats. All per-game behaviour (card types,
+  colours, rarities, displayed stats, deck rules, image fallback, card-number
+  case) lives in the game registry at `lib/games/`. Adding a game = a config
+  file plus a seed file.
+- Active game lives in `contexts/game-context.tsx`, persisted to
+  `localStorage["cardboard.game"]`; every query key includes the game id.
+- Cyberpunk has no price feed: Cardmarket's API is closed to new applicants and
+  Cardtrader hasn't listed the game. `GameConfig.hasPrices` gates all price UI.
+- Cyberpunk cards are imported from `scripts/data/cyberpunk_cards.json` via
+  `python scripts/import_game_cards.py --game cyberpunk --file <path>`.
 
 ## Database Schema
 

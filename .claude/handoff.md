@@ -4,43 +4,114 @@ Current state of work for session continuity. Updated at the end of each session
 
 ## Last Session Summary
 
-**Prepared the app for public hosting: security hardening + legal compliance.**
+**Multi-game support (Cyberpunk TCG), phases 1-3, on branch `feat/multi-game-support`.**
 
-### Security Changes
-- **`proxy.ts`**: Upgraded from session-only refresh to include auth guards on protected routes (`/collection`, `/decks`, `/sell`) — unauthenticated users redirected to `/login?next=...`. Added security headers: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`.
-- **`app/auth/callback/route.ts`**: Hardened against open redirect — validates `next` param is relative path, uses env-based origin instead of request origin.
-- **`lib/hooks/use-decks.ts`**: `useDeck()` now verifies user ownership via `user_id` filter (defense-in-depth alongside RLS).
-- **`app/login/page.tsx`**: Password minimum increased to 8 chars, hint text on signup, respects `?next=` param for post-login redirect, Suspense boundary for `useSearchParams`.
-- **`components/decks/deck-form.tsx`**: Deck name capped at 100 chars, description at 500 chars.
+### Accomplished
 
-### Legal Pages & Footer
-- **`components/nav/footer.tsx`**: Footer with Bandai trademark disclaimer, data source attribution (digimoncard.io, Cardtrader, Cardmarket), price disclaimer, links to legal/privacy/terms. Shifts with card detail panel.
-- **`app/legal/page.tsx`**: Trademark disclaimer, fair use, data attribution, price disclaimer, liability limitation.
-- **`app/privacy/page.tsx`**: Privacy policy — account data, collection data, no tracking, Supabase/Vercel third parties, data deletion.
-- **`app/terms/page.tsx`**: Terms of service — acceptable use, IP disclaimer, pricing disclaimer, liability limitation.
+- **Phase 1 (Tasks 1-11):** Shared `cards`/`decks` schema gained `game` and JSONB
+  `attributes` columns; every query, hook, and mutation across collection,
+  decks, sell, and needs is now scoped `.eq("game", gameId)`; the game
+  registry (`lib/games/`) and `contexts/game-context.tsx` exist; card display
+  components (thumbnail, panel, image) read colours/types/rarities/stats/image
+  fallback from the registry instead of hardcoded Digimon values. **Acceptance
+  gate passed**: migration 010 applied to the live database, the human
+  partner confirmed the parity query returns 0, and the manual walkthrough
+  showed no change to the Digimon experience — phase 1 is behaviour-neutral
+  as designed.
+- **Phase 2 (Task 12-12b):** Cyberpunk registered in the game registry with a
+  provisional colour list (only Red and Green independently confirmed from
+  official sources; the rest is unpublished until Cyberpunk TCG's October
+  retail release) and deck rules. Fixed a latent stat-rendering bug where a
+  Legend's `attributes.ram` (an object like `{"red": 3}`) would render as
+  `"[object Object]"` — `StatField` now takes an optional `format` function.
+- **Phase 3 (Tasks 13-17):** Card-number parser handles both games' formats.
+  `scripts/import_game_cards.py` built with three modes
+  (`--validate-only`, `--dry-run`, real run) and multiple collision guards
+  (cross-game `card_number`, cross-game `expansion_metadata`). Price UI gated
+  behind `GameConfig.hasPrices`; legal/attribution copy updated for Cyberpunk.
+  `sync_cards.py` now dual-writes the legacy stat columns and the new
+  `attributes` JSONB from the same computed values, so they cannot diverge.
 
-### UI Tweak
-- **`components/cards/card-panel.tsx`**: Card image now stacked on top (full width, `aspect-[5/7]`, max 280px) instead of small side-by-side thumbnail.
+Every task passed independent code review; details and rationale for every
+ruling are in the SDD ledger at
+`.superpowers/sdd/2026-08-17-multi-game-support/progress.md`.
 
-### Security Review
-- Ran comprehensive security audit (20 automated tests). All passed.
-- Independent security review found 0 high-confidence vulnerabilities. Three initial findings were all validated as false positives (Next.js router prevents open redirects, Supabase RLS enforces DB-level auth, Next.js Image enforces domain whitelist).
+## Blocked on the October retail release
 
-## In Progress
+Cyberpunk TCG cards are not public yet. Three things are on hold until they
+are:
 
-Nothing actively in progress.
+- **`scripts/data/cyberpunk_cards.json` is `[]`.** It must be populated from
+  `cyberpunktcg.com/cards` once cards are revealed. Do not invent card data —
+  the importer's `--validate-only` mode can shape-check whatever is entered,
+  offline, with no credentials.
+- **The Cyberpunk image CDN host is not yet in `next.config.ts`.** It must be
+  added at the same time as the seed is populated, derived from the seed's
+  actual `image_url` values. Until then, every Cyberpunk card image will
+  silently fail to render (blocked by Next.js's image domain allowlist).
+- **The colour list is provisional and lives in two places that must agree**:
+  `lib/games/cyberpunk.ts` and the `GAME_RULES` dict in
+  `scripts/import_game_cards.py` (different languages, different files). Only
+  Red and Green are confirmed. A colour outside the list aborts the import,
+  naming the offending colour — that's the safety net, not a guess to leave
+  unresolved.
 
-## Next Steps
+## Awaiting the account holder
 
-- **Deploy to Vercel**: App is now hosting-ready. Set up Vercel project, configure env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`), deploy.
-- **Alt art rework**: Treat alt art cards as separate DB entities with independent pricing/collection tracking.
-- **Duplicate type interfaces**: `PriceHistoryEntry` and `SellListEntry` are defined twice in `lib/types.ts`.
-- **Remaining 8 unmatched `base_in_db=yes` cards**: AD1-024 (sec), BT9-111 (P1), P-207/208/209/210 (b), EX4-065 (P1), P-084 (a).
+Not yet run, in this order:
+
+1. `python scripts/sync_cards.py` (to populate `attributes` for existing
+   Digimon cards via the new dual-write).
+2. **Both** parity queries from the plan's Task 17 Step 2 — the value
+   comparison and the key-existence check (`attributes ? 'key'`, not just
+   `->>'key'`, since Postgres can't otherwise tell an absent key from one set
+   to JSON `null`). Both must return 0.
+3. Confirm Digimon stat boxes still render correctly on `/database` and deck
+   pages.
+
+Also unexercised (no real data, no live credentials available during this
+run): the importer's live paths — the `games` table registration check,
+`find_collisions()`, `find_expansion_collisions()`, and the actual upserts
+and their idempotency.
+
+Do not treat any of the above as verified — the ledger is explicit that these
+are handed off, not passed.
+
+## Deferred items
+
+- `handleImport` in `components/decks/import-modal.tsx` has no try/catch —
+  any mutation failure during an import leaves the modal stuck on its
+  spinner with no visible error. Pre-existing, not introduced by this work.
+- `lib/hooks/use-sell-share.ts` is not game-scoped (one `sell_shares` row per
+  user regardless of active game). Harmless today because `/sell` is gated
+  on `GameConfig.hasPrices` and only Digimon has prices; becomes a real bug
+  the moment a second game gets a price feed.
+- The game switcher's `<button>` elements lack `type="button"`, and the
+  dropdown lacks `aria-expanded`/`aria-haspopup` and Escape-to-close.
+- The deck page's legality/missing-count banners briefly vanish on card
+  add/remove because the query key changes on refetch. `keepPreviousData` on
+  that query would fix both at once.
+- Migration `011` (dropping the legacy `dp`/`play_cost`/`level`/
+  `evolution_cost` columns) is still pending. It must not run until both
+  parity queries above are green — the drop is irreversible.
+
+## Design note for a third game
+
+"Which game does this operation belong to?" was the wrong-answer fork three
+times in this work: the deck add-card search, the import modal, and deck
+validation all defaulted to the *active* game from `useGame()` when they
+needed the *deck's own* `game` instead. A deck-scoped context or hook that
+supplies `deck.game` to everything under the deck page would make this hard
+to get wrong. Worth doing before a third game lands.
 
 ## Open Questions
 
-- The outlier threshold (50% of median) may need tuning — monitor `OUTLIER_THRESHOLD` in `sell-utils.ts`.
+- The outlier threshold (50% of median) may need tuning — monitor
+  `OUTLIER_THRESHOLD` in `sell-utils.ts`.
 - Sparkline only useful once price history accumulates over several days.
-- ~1,988 variants use world CDN `_P{N}` images — likely correct but unverified.
-- Next.js 16 uses `proxy.ts` not `middleware.ts` — keep this in mind for future middleware work.
-- `NEXT_PUBLIC_SITE_URL` env var needed for auth callback origin in production.
+- ~1,988 variants use world CDN `_P{N}` images — likely correct but
+  unverified.
+- Next.js 16 uses `proxy.ts` not `middleware.ts` — keep this in mind for
+  future middleware work.
+- `NEXT_PUBLIC_SITE_URL` env var needed for auth callback origin in
+  production.

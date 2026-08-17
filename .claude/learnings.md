@@ -6,10 +6,19 @@ Each entry format: `- **[description]`: [actionable corrective rule]`
 
 ## Code Quality
 
+- **Seeding React state from `localStorage` trips `react-hooks/set-state-in-effect`**: `eslint-config-next` 16 enables this rule, and it fires no matter how the state is shaped (single vs. batched useState). The codebase's established answer is a narrow `eslint-disable-next-line` at the call site, not a rewrite — see `components/sell/share-modal.tsx` for precedent.
+- **The omit-a-key rest-strip idiom is a lint error here**: `({ cards: _cards, ...rest }) => rest` trips `@typescript-eslint/no-unused-vars` because the ESLint config sets no `varsIgnorePattern` for underscore-prefixed siblings. Pick the fields you want explicitly instead, e.g. `(row) => ({ card_number: row.card_number, expansion: row.expansion })`.
+- **`bool` subclasses `int` in Python**: `isinstance(x, int)` accepts `True`/`False`. When validating that a value is an integer (e.g. `max_copies`), check `isinstance(x, bool)` first and reject it before the `int` check.
+
 ## Testing
+
+- **vitest runs `environment: "node"` with no jsdom**: component and hook behaviour cannot be unit-tested directly. Extract pure functions out of components/hooks and test those instead.
 
 ## Architecture
 
+- **Postgres `->>` cannot distinguish an absent jsonb key from one set to JSON `null`**: both return SQL NULL, so a parity query comparing `attributes->>'key'` against a column will pass even if one side wrote `null` and the other omitted the key entirely. Use `attributes ? 'key'` when key existence (not value) is what needs checking.
+- **`cards!inner(...)` Supabase embeds require a real foreign key**: `card_prices` and `card_price_history` lost their FK to `cards` in migration `007` (to unblock inserts for orphaned keys), so neither can be filtered via an inner-join embed.
+- **A deck's operations must use the deck's own `game`, never the active game from `useGame()`**: the game switcher lives in the persistent app shell, so a user can flip games without leaving a deck page; a deck's game is fixed at creation. Got this wrong three times before catching it: the add-card search, the import modal, and deck validation. When touching anything deck-scoped, thread `deck.game` through explicitly rather than reading the ambient active game.
 - **Supabase client default 1000-row limit**: Always paginate with `.range()` when querying tables that may exceed 1000 rows. This bit us in both the Python sync script and the frontend React hooks (`usePrices`, `usePriceHistory`). Check any `select("*")` call.
 - **FK constraints block inserts for orphaned keys**: The `card_prices` FK to `cards.card_number` prevented storing prices keyed by `base_card_number` when no Regular variant existed. Migration 007 dropped these FKs. Be aware of this pattern.
 - **Supabase HTTP/2 connection limit (~10K requests)**: The hosted Supabase terminates HTTP/2 connections after ~10,000 stream pairs. Python sync scripts that make many sequential updates must recreate the client periodically (every ~2,000 requests). See `REFRESH_INTERVAL` in `sync_images.py`.
@@ -21,6 +30,7 @@ Each entry format: `- **[description]`: [actionable corrective rule]`
 ## Project-Specific
 
 - **Cardtrader collector numbers can have trailing whitespace**: Always `.strip()` the suffix extracted from the regex match. Trailing spaces were causing ~13 cards to be classified as having a suffix when they were really Regular cards.
+- **Card-number regex trailing group must be greedy**: a non-greedy trailing group in the import-parser's card-number regex silently eats the number's own trailing digits when there is no quantity suffix — `BT3-015` parses as card `BT3-0` quantity `15`. Keep the group greedy; a greedy `[A-Za-z0-9]+` for the card number already cannot cross the whitespace before a quantity, so there's no ambiguity to resolve by making it non-greedy.
 - **Next.js useSearchParams requires Suspense boundary**: Any page using `useSearchParams()` must wrap the consuming component in `<Suspense>`. The database page already had this; the sell page was missing it.
 
 - **Alt art cards have completely different prices from regular cards**: Never share prices between variants. AD1-008 Regular = €19, Alt Art = €56, SP = €410. The sync must store per-variant prices, not per-base-card.

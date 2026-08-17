@@ -2,7 +2,7 @@
 
 ## Overview
 
-CardBoard — a responsive web app for tracking TCG (Trading Card Game) collections, planning decks, and identifying surplus cards worth selling on Cardmarket. Currently focused on Digimon TCG with plans to support additional TCGs.
+CardBoard — a responsive web app for tracking TCG (Trading Card Game) collections, planning decks, and identifying surplus cards worth selling on Cardmarket. Supports Digimon TCG and Cyberpunk TCG, selectable via a global game switcher.
 
 ## Tech Stack
 
@@ -12,8 +12,8 @@ CardBoard — a responsive web app for tracking TCG (Trading Card Game) collecti
 - **Client caching:** TanStack React Query v5
 - **Data sync:** Python scripts (sync_cards.py, sync_prices.py, sync_images.py) run via GitHub Actions
 - **Hosting:** Vercel (free tier)
-- **Card data source:** Digimon Card API (digimoncard.io)
-- **Price data:** Cardmarket API (primary), Cardtrader API (fallback)
+- **Card data source:** Digimon Card API (digimoncard.io) for Digimon; hand-maintained JSON seed (`scripts/data/cyberpunk_cards.json`) imported via `scripts/import_game_cards.py` for Cyberpunk
+- **Price data:** Cardtrader API only. Cardmarket's API is closed to new applicants (not just "unavailable" as originally logged) — this is also why Cyberpunk ships with no price feed at all; Cardtrader hasn't listed the game either
 
 ## Key Commands
 
@@ -60,8 +60,9 @@ components/
   icons/                # Custom icons (CardBoard logo)
   nav/                  # App shell, top nav, bottom tab bar
   sell/                 # Sell-specific components
-contexts/               # React contexts (panel context)
+contexts/               # React contexts (panel context, game context)
 lib/
+  games/                # Per-game registry: card types, colours, rarities, stats, deck rules, image fallback, card-number case (one config file per game, e.g. digimon.ts, cyberpunk.ts)
   hooks/                # Custom React hooks
   supabase/             # Supabase client utilities
   types.ts              # TypeScript interfaces (Card, CollectionEntry, Deck, DeckCard, CardPrice, Expansion, SellableCard)
@@ -69,8 +70,10 @@ lib/
   import-parser.ts      # Card list import parsing
 scripts/                # Python data sync scripts
   sync_cards.py         # Fetch cards from Digimon Card API → Supabase
-  sync_prices.py        # Fetch prices from Cardmarket/Cardtrader → Supabase
+  sync_prices.py        # Fetch prices from Cardtrader → Supabase
   sync_images.py        # Image sync utility
+  import_game_cards.py  # Import a game's card seed JSON → Supabase (--validate-only / --dry-run / real run), used for Cyberpunk
+  data/cyberpunk_cards.json  # Hand-maintained Cyberpunk seed (empty until October retail release)
 supabase/migrations/    # 5 migrations: initial schema, variants, expansions, expansion metadata, promote variants
 docs/                   # Documentation and design specs/plans
 public/                 # Static assets (favicon, logo)
@@ -81,7 +84,6 @@ public/                 # Static assets (favicon, logo)
 - **Supabase** — Postgres database, auth, RLS. Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars.
 - **Digimon Card API** (digimoncard.io) — card data source
 - **Digimon Card CDN** (images.digimoncard.io) — card images
-- **Cardmarket API** — primary price data
-- **Cardtrader API** — fallback price data
+- **Cardtrader API** — price data (Cardmarket was the original plan but its API is closed to new applicants)
 - **Vercel** — hosting
 - **GitHub Actions** — daily cron for data sync scripts
