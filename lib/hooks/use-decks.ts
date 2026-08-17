@@ -2,17 +2,19 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { Deck, DeckCard } from "@/lib/types";
 
 const supabase = createClient();
 
 export function useDecks() {
+  const { gameId } = useGame();
   return useQuery<Deck[]>({
-    queryKey: ["decks"],
+    queryKey: ["decks", gameId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
-      const { data, error } = await supabase.from("decks").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
+      const { data, error } = await supabase.from("decks").select("*").eq("user_id", user.id).eq("game", gameId).order("updated_at", { ascending: false });
       if (error) throw error;
       return data as Deck[];
     },
@@ -44,12 +46,13 @@ export function useDeckCards(deckId: string) {
 }
 
 export function useAllDeckCards() {
+  const { gameId } = useGame();
   return useQuery<DeckCard[]>({
-    queryKey: ["deck-cards", "all"],
+    queryKey: ["deck-cards", "all", gameId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
-      const { data: decks, error: decksError } = await supabase.from("decks").select("id").eq("user_id", user.id);
+      const { data: decks, error: decksError } = await supabase.from("decks").select("id").eq("user_id", user.id).eq("game", gameId);
       if (decksError) throw decksError;
       if (decks.length === 0) return [];
       const deckIds = decks.map((d) => d.id);
@@ -62,11 +65,12 @@ export function useAllDeckCards() {
 
 export function useCreateDeck() {
   const queryClient = useQueryClient();
+  const { gameId } = useGame();
   return useMutation({
     mutationFn: async ({ name, description }: { name: string; description?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const { data, error } = await supabase.from("decks").insert({ user_id: user.id, name, description: description || null }).select().single();
+      const { data, error } = await supabase.from("decks").insert({ user_id: user.id, game: gameId, name, description: description || null }).select().single();
       if (error) throw error;
       return data as Deck;
     },

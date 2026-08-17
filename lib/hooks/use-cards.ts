@@ -2,13 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useGame } from "@/contexts/game-context";
 import type { Card, Expansion } from "@/lib/types";
 
 const supabase = createClient();
 
 export function useExpansions() {
+  const { gameId } = useGame();
   return useQuery<Expansion[]>({
-    queryKey: ["expansions"],
+    queryKey: ["expansions", gameId],
     queryFn: async () => {
       // Count cards per expansion using the join table
       const pageSize = 1000;
@@ -18,11 +20,12 @@ export function useExpansions() {
       while (true) {
         const { data, error } = await supabase
           .from("card_expansions")
-          .select("expansion")
+          .select("expansion, cards!inner(game)")
+          .eq("cards.game", gameId)
           .range(from, from + pageSize - 1);
 
         if (error) throw error;
-        allRows.push(...data);
+        allRows.push(...(data as unknown as { expansion: string }[]));
         if (data.length < pageSize) break;
         from += pageSize;
       }
@@ -44,8 +47,9 @@ export function useExpansions() {
 }
 
 export function useCardsByExpansion(expansion: string | null) {
+  const { gameId } = useGame();
   return useQuery<Card[]>({
-    queryKey: ["cards", "expansion", expansion],
+    queryKey: ["cards", "expansion", gameId, expansion],
     queryFn: async () => {
       // Get card numbers from the join table, then fetch full card data
       const pageSize = 1000;
@@ -55,8 +59,9 @@ export function useCardsByExpansion(expansion: string | null) {
       while (true) {
         const { data, error } = await supabase
           .from("card_expansions")
-          .select("card_number")
+          .select("card_number, cards!inner(game)")
           .eq("expansion", expansion!)
+          .eq("cards.game", gameId)
           .range(from, from + pageSize - 1);
 
         if (error) throw error;
@@ -76,6 +81,7 @@ export function useCardsByExpansion(expansion: string | null) {
           .from("cards")
           .select("*")
           .in("card_number", batch)
+          .eq("game", gameId)
           .order("card_number");
 
         if (error) throw error;
@@ -89,12 +95,14 @@ export function useCardsByExpansion(expansion: string | null) {
 }
 
 export function useCardSearch(query: string) {
+  const { gameId } = useGame();
   return useQuery<Card[]>({
-    queryKey: ["cards", "search", query],
+    queryKey: ["cards", "search", gameId, query],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
+        .eq("game", gameId)
         .or(`name.ilike.%${query}%,card_number.ilike.%${query}%`)
         .order("card_number")
         .limit(100);
@@ -112,10 +120,12 @@ export function useCardsFiltered(filters: {
   rarity?: string;
   expansion?: string;
 }) {
+  const { gameId } = useGame();
   return useQuery<Card[]>({
-    queryKey: ["cards", "filtered", filters],
+    queryKey: ["cards", "filtered", gameId, filters],
     queryFn: async () => {
       let q = supabase.from("cards").select("*");
+      q = q.eq("game", gameId);
 
       if (filters.color) q = q.eq("color", filters.color);
       if (filters.card_type) q = q.eq("card_type", filters.card_type);
@@ -132,12 +142,14 @@ export function useCardsFiltered(filters: {
 }
 
 export function useExpansionMetadata() {
+  const { gameId } = useGame();
   return useQuery<Record<string, string>>({
-    queryKey: ["expansion-metadata"],
+    queryKey: ["expansion-metadata", gameId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expansion_metadata")
-        .select("expansion, set_image_url");
+        .select("expansion, set_image_url")
+        .eq("game", gameId);
 
       if (error) throw error;
 
@@ -153,13 +165,15 @@ export function useExpansionMetadata() {
 }
 
 export function useCard(cardNumber: string | null) {
+  const { gameId } = useGame();
   return useQuery<Card>({
-    queryKey: ["cards", cardNumber],
+    queryKey: ["cards", gameId, cardNumber],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
         .eq("card_number", cardNumber!)
+        .eq("game", gameId)
         .single();
 
       if (error) throw error;
@@ -170,13 +184,15 @@ export function useCard(cardNumber: string | null) {
 }
 
 export function useCardSiblings(baseCardNumber: string | null) {
+  const { gameId } = useGame();
   return useQuery<Card[]>({
-    queryKey: ["card-siblings", baseCardNumber],
+    queryKey: ["card-siblings", gameId, baseCardNumber],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
         .eq("base_card_number", baseCardNumber!)
+        .eq("game", gameId)
         .order("card_number");
       if (error) throw error;
       return data as Card[];
@@ -186,15 +202,19 @@ export function useCardSiblings(baseCardNumber: string | null) {
 }
 
 export function useCardExpansions(baseCardNumber: string | null) {
+  const { gameId } = useGame();
   return useQuery<{ card_number: string; expansion: string }[]>({
-    queryKey: ["card-expansions", baseCardNumber],
+    queryKey: ["card-expansions", gameId, baseCardNumber],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("card_expansions")
-        .select("card_number, expansion")
-        .eq("card_number", baseCardNumber!);
+        .select("card_number, expansion, cards!inner(game)")
+        .eq("card_number", baseCardNumber!)
+        .eq("cards.game", gameId);
       if (error) throw error;
-      return data as { card_number: string; expansion: string }[];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip the embed before casting
+      return (data ?? []).map(({ cards: _cards, ...row }) =>
+        row) as { card_number: string; expansion: string }[];
     },
     enabled: !!baseCardNumber,
   });
