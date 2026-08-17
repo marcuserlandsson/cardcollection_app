@@ -38,8 +38,11 @@ describe("validateDeck — Digimon rules", () => {
       { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 5 },
     ];
     // 12 cards x 4 = 48, plus one card x 2 = 50
+    // Eggs split across two cards (4 + 1) so no single card exceeds the copyLimit of 4
+    // while the zone still totals 5.
     const exact = [...main(12, 4), { card: card("M-X", "Digimon", "Main X"), quantity: 2 },
-      { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 5 }];
+      { card: card("E-1", "Digi-Egg", "Egg 1"), quantity: 4 },
+      { card: card("E-2", "Digi-Egg", "Egg 2"), quantity: 1 }];
     expect(validateDeck(DIGIMON, exact)).toEqual([]);
     expect(validateDeck(DIGIMON, deck).length).toBeGreaterThan(0);
   });

@@ -20,6 +20,8 @@ function makeCard(card_number: string, max_copies = 4): Card {
     last_updated: "",
     base_card_number: card_number,
     variant_name: "Regular",
+    game: "digimon",
+    attributes: {},
   };
 }
 

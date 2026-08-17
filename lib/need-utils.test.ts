@@ -39,6 +39,8 @@ function makeCard(
     last_updated: "",
     base_card_number,
     variant_name,
+    game: "digimon",
+    attributes: {},
   };
 }
 
@@ -47,7 +49,7 @@ function makePrice(card_number: string, price_low: number | null, price_trend: n
 }
 
 function makeDeck(id: string, updated_at: string): Deck {
-  return { id, user_id: "u", name: `Deck ${id}`, description: null, created_at: "", updated_at };
+  return { id, user_id: "u", game: "digimon", name: `Deck ${id}`, description: null, created_at: "", updated_at };
 }
 
 function coll(card_number: string, quantity: number): CollectionEntry {

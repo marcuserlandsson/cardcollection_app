@@ -1,3 +1,5 @@
+import type { GameId } from "@/lib/games/types";
+
 export interface Card {
   card_number: string;
   name: string;
@@ -15,6 +17,8 @@ export interface Card {
   last_updated: string;
   base_card_number: string;
   variant_name: string;
+  game: GameId;
+  attributes: Record<string, unknown>;
 }
 
 export interface CollectionEntry {
@@ -27,6 +31,7 @@ export interface CollectionEntry {
 export interface Deck {
   id: string;
   user_id: string;
+  game: GameId;
   name: string;
   description: string | null;
   created_at: string;
