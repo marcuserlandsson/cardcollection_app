@@ -1937,11 +1937,15 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: the `games`, `cards`, `card_expansions` and `expansion_metadata` tables from Task 1.
-- Produces: `python scripts/import_game_cards.py --game <id> --file <path> [--dry-run]`, exiting non-zero on any validation failure or cross-game collision.
+- Produces: `python scripts/import_game_cards.py --game <id> --file <path> [--validate-only | --dry-run]`, exiting non-zero on any validation failure or cross-game collision.
+
+**Three modes, each honest about what it needs.** `--validate-only` runs the pure validation pass and exits 0 or 1 **without opening a Supabase connection** — this is the mode for hand-editing the seed file, needs no service-role credentials, and is the only mode CI or an agent can exercise. `--dry-run` does the full rehearsal — validation, the `games`-table registration check, and the cross-game collision check — then prints planned counts and returns **before writing**; it connects, because the collision check is the most valuable thing a rehearsal can report, and that guard is what makes the shared single-column `card_number` primary key safe across games. A plain run does all of that and then upserts. Passing both flags is an error rather than a guess.
 
 - [ ] **Step 1: Create the seed file with a documented shape**
 
-Create `scripts/data/cyberpunk_cards.json` as a JSON array. **Read every value off the official database at `cyberpunktcg.com/cards`** (cross-check stats against `ripperdeck.gg/cards`). Do not invent cost, power, RAM, tag or rarity values — the set is not fully revealed, and a wrong number silently corrupts deck validation and needs maths. Seed only cards whose every field you can confirm; the importer is idempotent, so more can be added later by re-running it.
+Create `scripts/data/cyberpunk_cards.json`. **Until the set is revealed, this file contains exactly `[]`** — the importer's non-empty check then rejects it, which is correct.
+
+When cards are revealed, **read every value off the official database at `cyberpunktcg.com/cards`** (cross-check stats against `ripperdeck.gg/cards`). Do not invent cost, power, RAM, tag or rarity values — a wrong number silently corrupts deck validation and needs maths while looking authoritative. Seed only cards whose every field you can confirm; the importer is idempotent, so more can be added later by re-running it. Use `--validate-only` while editing — it needs no credentials.
 
 This is the required shape of each entry — the values shown are a **format reference only and must be replaced with confirmed data**:
 
