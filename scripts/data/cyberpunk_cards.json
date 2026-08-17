@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "card_number": "wtnc-001",
+    "name": "Adam Smasher — Ender of Legends",
+    "expansion": "wtnc",
+    "card_type": "Legend",
+    "color": "Red",
+    "rarity": "Common",
+    "image_url": null,
+    "max_copies": 1,
+    "base_card_number": "wtnc-001",
+    "variant_name": "Regular",
+    "attributes": {
+      "cost": 9,
+      "power": 9,
+      "ram": 2,
+      "ram_role": "provided",
+      "tags": ["Arasaka", "Merc"]
+    }
+  },
+  {
+    "card_number": "wtnc-006",
+    "name": "6th Street Recruits",
+    "expansion": "wtnc",
+    "card_type": "Unit",
+    "color": "Red",
+    "rarity": "Common",
+    "image_url": null,
+    "max_copies": 3,
+    "base_card_number": "wtnc-006",
+    "variant_name": "Regular",
+    "attributes": {
+      "cost": 4,
+      "power": 6,
+      "ram": 1,
+      "tags": ["6th Street", "Ganger"]
+    }
+  },
+  {
+    "card_number": "wtnc-041",
+    "name": "Adam Smasher — Metal Over Meat",
+    "expansion": "wtnc",
+    "card_type": "Unit",
+    "color": "Yellow",
+    "rarity": "Common",
+    "image_url": null,
+    "max_copies": 3,
+    "base_card_number": "wtnc-041",
+    "variant_name": "Regular",
+    "attributes": {
+      "cost": 9,
+      "power": 15,
+      "ram": 6,
+      "tags": ["Arasaka", "Merc"]
+    }
+  },
+  {
+    "card_number": "wtnc-060",
+    "name": "Gorilla Arms",
+    "expansion": "wtnc",
+    "card_type": "Gear",
+    "color": "Yellow",
+    "rarity": "Common",
+    "image_url": null,
+    "max_copies": 3,
+    "base_card_number": "wtnc-060",
+    "variant_name": "Regular",
+    "attributes": {
+      "cost": 4,
+      "power": 3,
+      "ram": 3,
+      "tags": ["Cyberware"]
+    }
+  },
+  {
+    "card_number": "wtnc-070",
+    "name": "The Heist",
+    "expansion": "wtnc",
+    "card_type": "Program",
+    "color": "Yellow",
+    "rarity": "Common",
+    "image_url": null,
+    "max_copies": 3,
+    "base_card_number": "wtnc-070",
+    "variant_name": "Regular",
+    "attributes": {
+      "cost": 2,
+      "ram": 2,
+      "tags": ["Merc"]
+    }
+  }
+]

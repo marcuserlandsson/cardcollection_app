@@ -53,9 +53,15 @@ load_dotenv(".env.local", override=True)
 
 BATCH_SIZE = 500
 
+# image_url is deliberately NOT required. Cyberpunk has no usable image
+# source yet: the official database serves signed CloudFront URLs that expire
+# within days, and the community databases re-host the art in their own
+# buckets. A card with no image_url renders the ImageOff placeholder that
+# CardImage and CardPanel already fall back to. Make it required again once a
+# stable image source exists.
 REQUIRED_FIELDS = [
     "card_number", "name", "expansion", "card_type",
-    "color", "rarity", "image_url", "max_copies",
+    "color", "rarity", "max_copies",
     "base_card_number", "variant_name", "attributes",
 ]
 
@@ -119,9 +125,6 @@ def validate(rows: list[dict], game: str) -> list[str]:
 
         if not isinstance(row.get("attributes"), dict):
             problems.append(f"{label}: attributes must be an object")
-
-        if not row.get("image_url"):
-            problems.append(f"{label}: image_url is required")
 
     return problems
 
